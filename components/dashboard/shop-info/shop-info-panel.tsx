@@ -127,7 +127,19 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
   const templateKey = templates?.find((t) => t.id === currentSite?.template_id)?.key;
   const theme = templateKey ? getThemeById(templateKey) : undefined;
   const host = currentSite?.custom_domain || currentSite?.subdomain;
-  const shopUrl = theme?.previewUrl && host ? `${theme.previewUrl}?__site=${host}` : null;
+  // A published site already has a real domain attached (custom_domain, or
+  // {subdomain}.SITE_BASE_DOMAIN via the Vercel API automation on publish —
+  // see app/api/sites.py's publish_site) — link there directly instead of
+  // the shared template preview server. A draft has no real domain yet
+  // (that's what publishing does), so it falls back to the same
+  // preview-with-?__site= mechanism the theme editor uses.
+  const siteBaseDomain = process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz";
+  const realShopUrl =
+    currentSite?.status === "published" && host
+      ? `https://${host.includes(".") ? host : `${host}.${siteBaseDomain}`}`
+      : null;
+  const shopUrl =
+    realShopUrl ?? (theme?.previewUrl && host ? `${theme.previewUrl}?__site=${host}` : null);
   const logoUrl = resolveSiteLogoUrl(currentSite);
   const usedBytes = media?.total_bytes ?? 0;
 
