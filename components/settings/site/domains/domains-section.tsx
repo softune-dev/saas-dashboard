@@ -1,11 +1,10 @@
 "use client";
 
-import { ArrowUpRight, Check, Copy, Globe, Info, RefreshCw } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Globe, Info, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/ui/toast";
 import { PrimaryButton } from "@/components/ui/primary-button";
-import { OutlineButton } from "@/components/ui/outline-button";
 import {
   getDomainStatus,
   saveSiteDomain,
@@ -150,9 +149,15 @@ export function DomainsSection() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.custom_domain, siteId]);
 
-  async function handleSave() {
+  // Optional override so the Remove button can pass "" directly instead of
+  // relying on `host` state right after calling setHost("") — setHost is
+  // async, so reading `host` in the same synchronous call would still see
+  // the OLD value (this was the actual bug: Remove silently re-saved the
+  // existing domain instead of clearing it).
+  async function handleSave(overrideHost?: string) {
     if (!siteId) return;
-    const trimmed = host.trim().toLowerCase() || null;
+    const raw = overrideHost ?? host;
+    const trimmed = raw.trim().toLowerCase() || null;
     const isNewDomain = trimmed && trimmed !== data?.custom_domain;
     setSaving(true);
     try {
@@ -257,21 +262,28 @@ export function DomainsSection() {
             placeholder="shop.yourstore.com"
             className="h-10 w-full min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
           />
-          <PrimaryButton type="button" onClick={handleSave} disabled={saving} className="h-10 shrink-0">
+          <PrimaryButton
+            type="button"
+            onClick={() => handleSave()}
+            disabled={saving}
+            className="h-10 shrink-0"
+          >
             {saving ? "Saving…" : "Save"}
           </PrimaryButton>
           {data?.custom_domain ? (
-            <OutlineButton
+            <button
               type="button"
+              aria-label="Remove custom domain"
+              title="Remove custom domain"
               onClick={() => {
                 setHost("");
-                handleSave();
+                handleSave("");
               }}
               disabled={saving}
-              className="h-10 shrink-0"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
             >
-              Remove
-            </OutlineButton>
+              <Trash2 className="size-4" strokeWidth={1.75} />
+            </button>
           ) : null}
         </div>
         <p className="text-xs text-slate-500">
