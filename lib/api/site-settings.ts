@@ -141,3 +141,18 @@ export const saveSiteFaqs = (siteId: string, faqs: SiteFaq[]) => patchSite(siteI
 export const saveSiteLegal = (siteId: string, legal: SiteLegal) => patchSite(siteId, { legal });
 export const saveSiteFraudRules = (siteId: string, fraud_rules: SiteFraudRules) =>
   patchSite(siteId, { fraud_rules });
+
+/** Not routed through patchSite's typed subset above — custom_domain isn't
+ * a settings-section field, it's site identity, but it's the same one
+ * PATCH /sites/{id} endpoint underneath. Setting it (once the site is
+ * published) queues the same Vercel domain-attach automation as publish —
+ * see app/api/sites.py's update_site. */
+export async function saveSiteDomain(
+  siteId: string,
+  custom_domain: string | null,
+): Promise<SiteSettings> {
+  return request<SiteSettings>(`/sites/${siteId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ custom_domain }),
+  });
+}
