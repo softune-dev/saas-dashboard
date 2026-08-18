@@ -72,6 +72,16 @@ export type SiteShipping = {
   locations: ShippingLocation[];
 };
 
+/** Dedicated About Us page content — separate from theme.tagline (short
+ * strapline shown site-wide) and business.description (one-line SEO/contact
+ * blurb). This is the merchant's longer-form story, with its own image
+ * rather than reusing the homepage hero. */
+export type SiteAbout = {
+  heading?: string;
+  image?: string;
+  paragraphs?: string[];
+};
+
 export type SiteFaq = {
   id: string;
   question: string;
@@ -102,6 +112,7 @@ export type SiteSettings = {
   subdomain: string;
   custom_domain: string | null;
   business: SiteBusiness;
+  about: SiteAbout;
   seo: SiteSeo;
   shipping: SiteShipping;
   faqs: SiteFaq[];
@@ -122,7 +133,7 @@ export function useSiteSettingsSWR(
 }
 
 type SiteSettingsPatch = Partial<
-  Pick<SiteSettings, "business" | "seo" | "shipping" | "faqs" | "legal" | "fraud_rules">
+  Pick<SiteSettings, "business" | "about" | "seo" | "shipping" | "faqs" | "legal" | "fraud_rules">
 >;
 
 async function patchSite(siteId: string, patch: SiteSettingsPatch): Promise<SiteSettings> {
@@ -135,6 +146,8 @@ async function patchSite(siteId: string, patch: SiteSettingsPatch): Promise<Site
 export const saveSiteSeo = (siteId: string, seo: SiteSeo) => patchSite(siteId, { seo });
 export const saveSiteBusiness = (siteId: string, business: SiteBusiness) =>
   patchSite(siteId, { business });
+export const saveSiteAbout = (siteId: string, about: SiteAbout) =>
+  patchSite(siteId, { about });
 export const saveSiteShipping = (siteId: string, shipping: SiteShipping) =>
   patchSite(siteId, { shipping });
 export const saveSiteFaqs = (siteId: string, faqs: SiteFaq[]) => patchSite(siteId, { faqs });

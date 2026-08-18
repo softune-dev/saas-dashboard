@@ -1,4 +1,4 @@
-import { Image, Search, type LucideIcon } from "lucide-react";
+import { BookOpen, Image, Search, type LucideIcon } from "lucide-react";
 
 export type SiteSettingsNavItem = {
   id: string;
@@ -35,6 +35,12 @@ export const siteSettingsNav: SiteSettingsNavItem[] = [
     label: "Contact Info",
     href: "/settings/site/contact",
     iconSrc: "/sidebar/note.svg",
+  },
+  {
+    id: "about",
+    label: "About Us",
+    href: "/settings/site/about",
+    LucideIcon: BookOpen,
   },
   {
     id: "faqs",
