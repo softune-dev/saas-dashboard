@@ -29,11 +29,15 @@ export function DashboardView() {
     limit: 100,
   });
   const { data: categories, isLoading: categoriesLoading } = useCategoriesSWR(siteId);
+  // 500, not 100 — the Sales Analysis chart below buckets these into 6
+  // calendar months; 100 orders covers well under 6 months once a store has
+  // real volume, silently leaving older months blank (see app/api/commerce.py's
+  // list_orders for the matching backend cap).
   const {
     data: ordersPage,
     error: ordersError,
     isLoading: ordersLoading,
-  } = useOrdersSWR(siteId, { limit: 100 });
+  } = useOrdersSWR(siteId, { limit: 500 });
 
   const loading = productsLoading || categoriesLoading || ordersLoading;
   const error = ordersError
