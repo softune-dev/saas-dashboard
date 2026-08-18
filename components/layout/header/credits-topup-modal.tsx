@@ -4,25 +4,26 @@ import { Check, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { MaskIcon } from "@/components/ui/mask-icon";
-import { useToast } from "@/components/ui/toast";
 
 type CreditPack = {
   id: string;
   credits: number;
-  /** Display cents — mock pricing until billing is wired. */
-  priceCents: number;
+  /** Real BDT price, in taka. */
+  priceBdt: number;
   popular?: boolean;
 };
 
+// Priced to roughly track this session's plan pricing (Growth/Business's
+// per-credit cost) — not arbitrary round numbers.
 const PACKS: CreditPack[] = [
-  { id: "starter", credits: 50, priceCents: 500 },
-  { id: "growth", credits: 120, priceCents: 1000, popular: true },
-  { id: "pro", credits: 300, priceCents: 2200 },
-  { id: "scale", credits: 750, priceCents: 4500 },
+  { id: "starter", credits: 50, priceBdt: 199 },
+  { id: "growth", credits: 120, priceBdt: 399, popular: true },
+  { id: "pro", credits: 300, priceBdt: 899 },
+  { id: "scale", credits: 750, priceBdt: 1999 },
 ];
 
-function formatPrice(cents: number) {
-  return `$${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}`;
+function formatPrice(bdt: number) {
+  return `৳${bdt.toLocaleString("en-BD")}`;
 }
 
 type CreditsTopupModalProps = {
@@ -36,21 +37,16 @@ type CreditsTopupModalProps = {
  * (rounded-2xl, dim backdrop, full-width rounded-full actions).
  */
 export function CreditsTopupModal({ open, balance, onClose }: CreditsTopupModalProps) {
-  const { toast } = useToast();
   const [selectedId, setSelectedId] = useState(
     () => PACKS.find((p) => p.popular)?.id ?? PACKS[0].id,
   );
 
   const selected = PACKS.find((p) => p.id === selectedId) ?? PACKS[0];
 
-  const handleBuy = () => {
-    toast({
-      title: `${selected.credits} credits added`,
-      description: "Mock purchase — billing isn’t connected yet.",
-      variant: "success",
-    });
-    onClose();
-  };
+  // Deliberately does nothing — no purchase flow exists until billing
+  // ships alongside superadmin. A fake "success" toast here would tell a
+  // merchant they bought credits that were never actually added.
+  const handleBuy = () => {};
 
   return (
     <AnimatePresence>
@@ -138,7 +134,7 @@ export function CreditsTopupModal({ open, balance, onClose }: CreditsTopupModalP
                         ) : null}
                       </div>
                       <span className="mt-0.5 block text-xs text-muted">
-                        {formatPrice(pack.priceCents)} · one-time
+                        {formatPrice(pack.priceBdt)} · one-time
                       </span>
                     </div>
 
@@ -170,7 +166,7 @@ export function CreditsTopupModal({ open, balance, onClose }: CreditsTopupModalP
                 onClick={handleBuy}
                 className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-primary text-sm font-medium text-white transition-opacity hover:opacity-90"
               >
-                Buy {selected.credits.toLocaleString()} · {formatPrice(selected.priceCents)}
+                Buy {selected.credits.toLocaleString()} · {formatPrice(selected.priceBdt)}
               </button>
             </div>
           </motion.div>
