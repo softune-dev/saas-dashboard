@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { Check } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
-import { currentPlan, plans } from "./billing-data";
+import { useSession } from "@/components/providers/session-provider";
+import { SWITCHABLE_PLANS, planById, type Plan } from "./billing-data";
+import { ContactSalesModal } from "./contact-sales-modal";
 
 export function PlanCards() {
-  const { toast } = useToast();
+  const { me } = useSession();
+  const currentPlanId = me?.tenant.plan ?? "demo";
+  const currentPlan = planById(currentPlanId);
+  const [target, setTarget] = useState<Plan | null>(null);
 
   return (
     <section className="h-full rounded-md bg-white p-4 sm:p-5">
@@ -14,8 +19,8 @@ export function PlanCards() {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {plans.map((plan) => {
-          const isCurrent = plan.id === currentPlan.id;
+        {SWITCHABLE_PLANS.map((plan) => {
+          const isCurrent = plan.id === currentPlanId;
 
           return (
             <article
@@ -41,9 +46,9 @@ export function PlanCards() {
               </div>
 
               <p className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
-                {plan.price}
+                ৳{plan.priceMonthly?.toLocaleString()}
                 <span className="ml-1 text-sm font-medium text-muted">
-                  / {plan.period}
+                  / month
                 </span>
               </p>
 
@@ -67,11 +72,7 @@ export function PlanCards() {
                 disabled={isCurrent}
                 onClick={() => {
                   if (isCurrent) return;
-                  toast({
-                    title: "Plan switched",
-                    description: `Your plan is now ${plan.name}.`,
-                    variant: "success",
-                  });
+                  setTarget(plan);
                 }}
                 className={[
                   "mt-5 inline-flex h-10 w-full items-center justify-center rounded-full text-sm font-medium transition-opacity",
@@ -86,6 +87,13 @@ export function PlanCards() {
           );
         })}
       </div>
+
+      <ContactSalesModal
+        open={target !== null}
+        targetPlan={target}
+        currentPlanName={currentPlan?.name ?? "your current plan"}
+        onClose={() => setTarget(null)}
+      />
     </section>
   );
 }

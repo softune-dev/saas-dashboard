@@ -1,148 +1,89 @@
-export type PlanId = "starter" | "growth" | "scale";
+/**
+ * Real plan lineup — mirrors landing/components/pricing.tsx exactly (same
+ * names, same BDT prices, same feature copy) and app/ai.py's
+ * PLAN_AI_DAILY_CAP (same 4 plan ids). There is no payment gateway yet —
+ * plan changes are applied manually by the team after a merchant contacts
+ * sales, so nothing here simulates a purchase.
+ */
+
+export type PlanId = "demo" | "starter" | "growth" | "business";
 
 export type Plan = {
   id: PlanId;
   name: string;
-  price: string;
-  period: string;
+  priceMonthly: number | null;
   description: string;
   features: string[];
   popular?: boolean;
 };
 
-export type InvoiceStatus = "Paid" | "Pending" | "Failed";
-
-export type Invoice = {
-  id: string;
-  invoiceId: string;
-  date: string;
-  plan: string;
-  amount: string;
-  status: InvoiceStatus;
-};
-
-export const currentPlan = {
-  id: "growth" as PlanId,
-  name: "Growth",
-  price: "2,490৳",
-  period: "month",
-  renewsOn: "Sep 8, 2026",
-  seats: "1 store · Unlimited products",
-  status: "Active" as const,
-};
-
-export const plans: Plan[] = [
+/** Only plans a merchant can actually be switched into. Demo is assigned by
+ * the team for trial tenants — it isn't something to "switch to". */
+export const SWITCHABLE_PLANS: Plan[] = [
   {
     id: "starter",
     name: "Starter",
-    price: "990৳",
-    period: "month",
-    description: "For new stores getting started",
+    priceMonthly: 1190,
+    description: "Perfect for new stores and small businesses getting started.",
     features: [
-      "1 storefront site",
-      "Up to 100 products",
+      "50 products",
+      "1 Courier integration",
+      "Theme editor",
       "Basic analytics",
-      "Email support",
-      "Softune branding",
+      "Media library",
+      "Manual blocklist",
+      "0% Transaction Fee",
     ],
   },
   {
     id: "growth",
     name: "Growth",
-    price: "2,490৳",
-    period: "month",
-    description: "For growing shops that need more power",
+    priceMonthly: 2990,
     popular: true,
+    description: "Everything you need to scale your growing e-commerce brand.",
     features: [
-      "1 storefront site",
-      "Unlimited products",
-      "Full analytics + export",
-      "Social media funnels",
-      "Priority support",
-      "Courier Support",
+      "500 products",
+      "All courier integrations",
+      "Payment gateway integrations",
+      "AI Assistant Included",
+      "Fraud protection",
+      "Priority email support",
+      "Advanced Analytics",
+      "0% Transaction Fee",
     ],
   },
   {
-    id: "scale",
-    name: "Scale",
-    price: "4,990৳",
-    period: "month",
-    description: "For high-volume sellers",
+    id: "business",
+    name: "Business",
+    priceMonthly: 6990,
+    description: "Built for teams managing multiple client storefronts.",
     features: [
-      "Everything in Growth",
-      "Custom domain SSL",
-      "Advanced shipping rules",
-      "Dedicated success manager",
-      "Custom integrations",
-      "Courier Support",
-      "Priority support",
+      "3 Storefronts",
+      "All in Growth",
+      "Unlimited products",
+      "Extra AI credits",
+      "Account Manager",
+      "Custom tools",
+      "0% Transaction Fee",
     ],
   },
 ];
 
-export const invoices: Invoice[] = [
-  {
-    id: "1",
-    invoiceId: "#INV-24081",
-    date: "Aug 8, 2026",
-    plan: "Growth",
-    amount: "2,490৳",
-    status: "Paid",
-  },
-  {
-    id: "2",
-    invoiceId: "#INV-24052",
-    date: "Jul 8, 2026",
-    plan: "Growth",
-    amount: "2,490৳",
-    status: "Paid",
-  },
-  {
-    id: "3",
-    invoiceId: "#INV-24021",
-    date: "Jun 8, 2026",
-    plan: "Growth",
-    amount: "2,490৳",
-    status: "Paid",
-  },
-  {
-    id: "4",
-    invoiceId: "#INV-23990",
-    date: "May 8, 2026",
-    plan: "Starter",
-    amount: "990৳",
-    status: "Paid",
-  },
-  {
-    id: "5",
-    invoiceId: "#INV-23960",
-    date: "Apr 8, 2026",
-    plan: "Starter",
-    amount: "990৳",
-    status: "Paid",
-  },
-  {
-    id: "6",
-    invoiceId: "#INV-23930",
-    date: "Mar 8, 2026",
-    plan: "Starter",
-    amount: "990৳",
-    status: "Failed",
-  },
-  {
-    id: "7",
-    invoiceId: "#INV-23900",
-    date: "Feb 8, 2026",
-    plan: "Starter",
-    amount: "990৳",
-    status: "Paid",
-  },
-  {
-    id: "8",
-    invoiceId: "#INV-23870",
-    date: "Jan 8, 2026",
-    plan: "Starter",
-    amount: "990৳",
-    status: "Pending",
-  },
-];
+export const DEMO_PLAN: Plan = {
+  id: "demo",
+  name: "Demo",
+  priceMonthly: null,
+  description: "Internal trial access — assigned by the Softune team, not self-serve.",
+  features: [
+    "50 AI requests / day",
+    "Full dashboard access",
+    "1 storefront site",
+    "No card required",
+  ],
+};
+
+export const ALL_PLANS: Plan[] = [DEMO_PLAN, ...SWITCHABLE_PLANS];
+
+export function planById(id: string): Plan | undefined {
+  return ALL_PLANS.find((p) => p.id === id);
+}

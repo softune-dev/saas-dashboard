@@ -1,57 +1,13 @@
 "use client";
 
-import { Download } from "lucide-react";
-import { DataTable, type TableColumn } from "@/components/ui/table";
-import { invoices, type Invoice } from "./billing-data";
-import { InvoiceStatusBadge } from "./invoice-status-badge";
+import { Receipt } from "lucide-react";
 
-const columns: TableColumn<Invoice>[] = [
-  {
-    id: "invoiceId",
-    header: "Invoice",
-    cell: (row) => (
-      <span className="font-semibold text-foreground">{row.invoiceId}</span>
-    ),
-  },
-  {
-    id: "date",
-    header: "Date",
-    cell: (row) => <span className="text-muted">{row.date}</span>,
-  },
-  {
-    id: "plan",
-    header: "Plan",
-    cell: (row) => <span className="font-medium text-foreground">{row.plan}</span>,
-  },
-  {
-    id: "amount",
-    header: "Amount",
-    cell: (row) => (
-      <span className="font-semibold text-foreground">{row.amount}</span>
-    ),
-  },
-  {
-    id: "status",
-    header: "Status",
-    cell: (row) => <InvoiceStatusBadge status={row.status} />,
-  },
-  {
-    id: "actions",
-    header: "Download",
-    headerClassName: "text-right",
-    className: "text-right",
-    cell: (row) => (
-      <button
-        type="button"
-        aria-label={`Download ${row.invoiceId}`}
-        className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
-      >
-        <Download className="size-3.5" strokeWidth={1.75} />
-      </button>
-    ),
-  },
-];
-
+/**
+ * No invoicing/subscriptions table exists in the backend yet (billing is
+ * applied manually by the team — see plan-cards.tsx / contact-sales-modal).
+ * This shows an honest empty state instead of fabricated invoice rows;
+ * wire this to a real GET /billing/invoices once that table exists.
+ */
 export function BillingHistory() {
   return (
     <section className="rounded-md bg-white p-4 sm:p-5">
@@ -64,13 +20,16 @@ export function BillingHistory() {
         </p>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={invoices}
-        rowKey={(row) => row.id}
-        pageSize={5}
-        emptyMessage="No invoices yet"
-      />
+      <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border py-10 text-center">
+        <span className="flex size-9 items-center justify-center rounded-full bg-search-bg text-muted-soft">
+          <Receipt className="size-4" strokeWidth={1.75} />
+        </span>
+        <p className="text-sm font-medium text-foreground">No invoices yet</p>
+        <p className="max-w-xs text-xs text-muted">
+          Billing is set up manually with our team for now — invoices will
+          show up here once your plan is active.
+        </p>
+      </div>
     </section>
   );
 }
