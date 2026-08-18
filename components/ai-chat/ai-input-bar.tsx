@@ -13,20 +13,58 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { MaskIcon } from "@/components/ui/mask-icon";
+import { useSession } from "@/components/providers/session-provider";
 import {
   AI_MODELS,
   DEFAULT_AI_MODEL,
   type FileAttachment,
 } from "./ai-chat-store";
 
+type ContextTag = {
+  id: string;
+  label: string;
+  /** Prepended to the outgoing message (not shown in the chat bubble) so
+   * the tag actually steers which of app/ai_tools.py's real tools the
+   * assistant reaches for, instead of being a decorative chip. */
+  hint: string;
+};
 
 type AiInputBarProps = {
-  onSendMessage: (text: string, attachments: FileAttachment[]) => void;
+  onSendMessage: (
+    text: string,
+    attachments: FileAttachment[],
+    contextHint?: string,
+  ) => void;
   isThinking: boolean;
   input: string;
   onInputChange: (val: string) => void;
   isThemeEditor?: boolean;
 };
+
+// Every option here maps to a tool the backend assistant can actually call
+// (see app/ai_tools.py) — no invented categories with nothing behind them.
+const CONTEXT_TAG_OPTIONS: ContextTag[] = [
+  {
+    id: "orders",
+    label: "Recent Orders",
+    hint: "Focus your answer on my recent orders — look up the actual order list/details before answering.",
+  },
+  {
+    id: "inventory",
+    label: "Product Inventory",
+    hint: "Focus your answer on my current product inventory and stock levels — look up the actual product list before answering.",
+  },
+  {
+    id: "sales",
+    label: "Sales Summary",
+    hint: "Focus your answer on my real sales summary and revenue numbers — look those up before answering.",
+  },
+  {
+    id: "site",
+    label: "Site Settings",
+    hint: "Focus your answer on my actual site settings/configuration — look those up before answering.",
+  },
+];
 
 export function AiInputBar({
   onSendMessage,
@@ -35,23 +73,32 @@ export function AiInputBar({
   onInputChange,
   isThemeEditor,
 }: AiInputBarProps) {
+  const { currentSite, me } = useSession();
+  const storeName = currentSite?.name ?? me?.tenant.name ?? "Your store";
+
   const [selectedModel, setSelectedModel] = useState(DEFAULT_AI_MODEL);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
-  const [contextTags, setContextTags] = useState<string[]>(
-    isThemeEditor ? ["Theme Editor · Modhu Bon"] : ["Modhu Bon Store · Today"]
-  );
+  const defaultTag: ContextTag = isThemeEditor
+    ? {
+        id: "theme",
+        label: `Theme Editor · ${storeName}`,
+        hint: "Focus your answer on my current theme and site settings — look those up before answering.",
+      }
+    : {
+        id: "overview",
+        label: `${storeName} · Today`,
+        hint: "Focus your answer on my store's real business overview — look it up before answering.",
+      };
+  const [contextTags, setContextTags] = useState<ContextTag[]>([defaultTag]);
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounter = useRef(0);
 
-  const SUGGESTED_TAGS = [
-    "Modhu Bon Store · Today",
-    "Theme Editor",
-    "Recent Orders",
-    "Product Inventory",
-  ];
+  const SUGGESTED_TAGS = CONTEXT_TAG_OPTIONS.filter(
+    (tag) => !contextTags.some((t) => t.id === tag.id),
+  );
 
   const handleInputChangeEvent = (val: string) => {
     onInputChange(val);
@@ -134,7 +181,8 @@ export function AiInputBar({
 
   const handleSubmit = () => {
     if ((!input.trim() && attachments.length === 0) || isThinking) return;
-    onSendMessage(input, attachments);
+    const contextHint = contextTags.map((t) => t.hint).join(" ");
+    onSendMessage(input, attachments, contextHint || undefined);
     setAttachments([]);
   };
 
@@ -176,23 +224,29 @@ export function AiInputBar({
               Suggested Context
             </div>
             <div className="flex flex-col gap-0.5">
-              {SUGGESTED_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => {
-                    if (!contextTags.includes(tag)) {
-                      setContextTags((prev) => [...prev, tag]);
-                    }
-                    onInputChange(input.replace(/@([a-zA-Z]*)$/, ""));
-                    setShowTagPicker(false);
-                  }}
-                  className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-search-bg"
-                >
-                  <MaskIcon src="/sidebar/save.svg" className="size-3.5 text-muted-soft shrink-0" />
-                  <span>{tag}</span>
-                </button>
-              ))}
+              {SUGGESTED_TAGS.length === 0 ? (
+                <p className="px-2.5 py-1.5 text-xs text-muted-soft">
+                  All context tags already added.
+                </p>
+              ) : (
+                SUGGESTED_TAGS.map((tag) => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => {
+                      setContextTags((prev) =>
+                        prev.some((t) => t.id === tag.id) ? prev : [...prev, tag],
+                      );
+                      onInputChange(input.replace(/@([a-zA-Z]*)$/, ""));
+                      setShowTagPicker(false);
+                    }}
+                    className="w-full flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-search-bg"
+                  >
+                    <MaskIcon src="/sidebar/save.svg" className="size-3.5 text-muted-soft shrink-0" />
+                    <span>{tag.label}</span>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         )}
@@ -201,12 +255,12 @@ export function AiInputBar({
         {contextTags.length > 0 ? (
           <div className="mb-2 flex flex-wrap items-center gap-2">
             {contextTags.map((tag) => (
-              <span key={tag} className="inline-flex items-center gap-1.5 rounded-full bg-search-bg px-3 py-1 text-[11px] font-medium text-muted">
+              <span key={tag.id} className="inline-flex items-center gap-1.5 rounded-full bg-search-bg px-3 py-1 text-[11px] font-medium text-muted">
                 <span className="text-muted-soft font-normal">@</span>
-                <span className="text-foreground">{tag}</span>
+                <span className="text-foreground">{tag.label}</span>
                 <button
                   type="button"
-                  onClick={() => setContextTags((prev) => prev.filter((t) => t !== tag))}
+                  onClick={() => setContextTags((prev) => prev.filter((t) => t.id !== tag.id))}
                   className="ml-1 text-muted-soft hover:text-foreground"
                 >
                   <X className="size-3" />

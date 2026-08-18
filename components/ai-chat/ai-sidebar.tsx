@@ -87,7 +87,11 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
     updateConversationsState(remaining, nextActiveId);
   };
 
-  const handleSendMessage = (textToSend?: string, attachmentsToSend?: FileAttachment[]) => {
+  const handleSendMessage = (
+    textToSend?: string,
+    attachmentsToSend?: FileAttachment[],
+    contextHint?: string,
+  ) => {
     const text = (textToSend || input).trim();
     if ((!text && (!attachmentsToSend || attachmentsToSend.length === 0)) || isThinking) return;
 
@@ -137,10 +141,15 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
       attachmentsToSend && attachmentsToSend.length > 0
         ? `\n\n(Attached: ${attachmentsToSend.map((a) => a.name).join(", ")})`
         : "";
+    // Context tag hints steer which real tool the assistant reaches for
+    // (see ai-input-bar.tsx's CONTEXT_TAG_OPTIONS) — sent to the backend
+    // but not shown in the chat bubble, so the displayed conversation
+    // stays exactly what the merchant typed.
+    const outgoingText = contextHint ? `${contextHint}\n\n${text}` : text;
 
     const startedAt = performance.now();
 
-    chatWithAssistant(text + attachmentNote, history)
+    chatWithAssistant(outgoingText + attachmentNote, history)
       .then(({ reply, toolsUsed, pendingAction }) => {
         const elapsedSec = (performance.now() - startedAt) / 1000;
         const aiMsg: ChatMessage = {
@@ -315,7 +324,9 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
             <AiInputBar
               input={input}
               onInputChange={setInput}
-              onSendMessage={(text, atts) => handleSendMessage(text, atts)}
+              onSendMessage={(text, atts, contextHint) =>
+                handleSendMessage(text, atts, contextHint)
+              }
               isThinking={isThinking}
               isThemeEditor={isThemeEditor}
             />
