@@ -331,7 +331,7 @@ export function DomainsSection() {
                   <span className="font-medium text-slate-500">Type</span>
                   <span className="font-semibold text-foreground">A</span>
                   <span className="font-medium text-slate-500">Value</span>
-                  <CopyRow value="76.76.21.21" />
+                  <CopyRow value="216.198.79.1" />
                 </div>
               </div>
             </div>
@@ -343,6 +343,18 @@ export function DomainsSection() {
             nothing else to set up. Use the refresh button next to your domain above to check
             whether it&apos;s connected yet.
           </p>
+
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="text-xs font-medium text-amber-800">
+              Used this domain before?
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-amber-700">
+              If this domain was ever connected somewhere else (an old site, an agency&apos;s
+              build), it may need one extra ownership-verification step before it starts working
+              — if your domain still shows as not connected after DNS looks correct and 24 hours
+              have passed, contact support and we&apos;ll sort out that one-time step for you.
+            </p>
+          </div>
         </div>
       </SettingsModal>
     </div>
