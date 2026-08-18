@@ -20,12 +20,25 @@ const defaultRange: DateRange = {
   to: new Date(2026, 7, 31),
 };
 
+// app/api/analytics.py's get_analytics only accepts a trailing "last N
+// weeks (from today)" window, not arbitrary from/to dates — so the picker's
+// span is converted to a week count rather than sent as literal dates. The
+// backend caps at 26 weeks (~6 months); clamped here so an aggressive range
+// pick can't 422.
+function weeksFromRange(range: DateRange): number {
+  const days = Math.round(
+    (range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  const weeks = Math.ceil(days / 7);
+  return Math.min(26, Math.max(1, weeks));
+}
+
 export function AnalyticsView() {
   const { currentSite, loading: sessionLoading } = useSession();
   const [range, setRange] = useState<DateRange>(defaultRange);
   const siteId = currentSite?.id ?? null;
 
-  const { data, error, isLoading } = useAnalyticsSWR(siteId, 8);
+  const { data, error, isLoading } = useAnalyticsSWR(siteId, weeksFromRange(range));
   const loading = sessionLoading || (isLoading && currentSite);
   const errorMessage = error
     ? error instanceof Error
@@ -84,7 +97,7 @@ export function AnalyticsView() {
                     Weekly sales performance curve
                   </p>
                 </div>
-                <PeriodPill label="Last 8 Weeks" />
+                <PeriodPill label={`Last ${weeksFromRange(range)} Weeks`} />
               </div>
               <RevenueCurveChart curve={data.revenue_curve} />
             </section>
