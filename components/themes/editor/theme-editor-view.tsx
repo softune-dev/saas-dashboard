@@ -73,6 +73,17 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
   // null = lookup finished with no host (API miss) — preview may load without
   // __site rather than hang on the spinner forever.
   const [siteHost, setSiteHost] = useState<string | null | undefined>(undefined);
+  // The real domain to SHOW in the preview's address bar — siteHost itself
+  // is what actually drives the iframe (via ?__site=, so live draft edits
+  // keep showing up, since the shared preview server always reflects the
+  // theme editor's current in-progress settings, not just what's published).
+  // Cosmetic only: siteHost is either a full custom_domain already, or a
+  // bare subdomain that needs SITE_BASE_DOMAIN appended to look real.
+  const displayHost = siteHost
+    ? siteHost.includes(".")
+      ? siteHost
+      : `${siteHost}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz"}`
+    : null;
   // The real backend site id (a UUID) — different from the `siteId` prop,
   // which is the template key ("aurora") used to namespace local storage.
   // Media uploads need the real id since that's what the API is scoped to.
@@ -454,6 +465,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
             onDeviceChange={setDevice}
             previewUrl={previewUrl}
             siteHost={siteHost}
+            displayHost={displayHost}
             refreshSignal={refreshSignal}
             onPublishClick={handlePublishClick}
             publishing={publishing}

@@ -28,6 +28,12 @@ type SitePreviewProps = {
    * __site). Mounting before resolve causes a double load: first without
    * __site (wrong default site), then again with the real host. */
   siteHost?: string | null;
+  /** Real domain to show in the address bar (e.g. "shop.softune.xyz") —
+   * cosmetic only. The iframe itself keeps loading from `previewUrl` +
+   * ?__site= regardless (see siteHost above), since that shared preview
+   * server is what reflects this editor's live, unsaved changes; the site's
+   * own real domain only ever serves the last-published version. */
+  displayHost?: string | null;
   /** Bump this (e.g. Date.now()) after a successful publish to force the
    * iframe to reload — otherwise the preview keeps showing pre-publish
    * content until the visitor manually refreshes. */
@@ -56,6 +62,7 @@ export function SitePreview({
   onDeviceChange,
   previewUrl,
   siteHost,
+  displayHost,
   refreshSignal,
   onPublishClick,
   publishing,
@@ -134,12 +141,16 @@ export function SitePreview({
 
   // What the address bar shows. Deliberately the clean route without the
   // __site / __r preview params: this is the string the merchant copies into a
-  // nav link, and those params must not travel with it.
+  // nav link, and those params must not travel with it. Prefer the site's
+  // own real domain (displayHost) over the shared preview server's origin —
+  // the iframe still LOADS from baseUrl regardless (see displayHost's own
+  // comment above); this only changes what's shown/copied.
+  const displayBaseUrl = displayHost ? `https://${displayHost}` : baseUrl;
   const currentUrl = iframePath
-    ? `${baseUrl.replace(/\/$/, "")}${iframePath}`
+    ? `${displayBaseUrl.replace(/\/$/, "")}${iframePath}`
     : page
-      ? resolvePageUrl(page, baseUrl)
-      : `${baseUrl.replace(/\/$/, "")}/`;
+      ? resolvePageUrl(page, displayBaseUrl)
+      : `${displayBaseUrl.replace(/\/$/, "")}/`;
 
   // Real loading state, driven by the iframe's own load event — not a fake
   // timer. True while waiting for siteHost, while the preview server is
