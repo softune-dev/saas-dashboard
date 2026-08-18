@@ -12,6 +12,7 @@ import {
 import { useSiteSettingsSWR } from "@/lib/api/site-settings";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
+import type { MediaImage } from "@/lib/api";
 import {
   createProduct,
   getProduct,
@@ -185,6 +186,22 @@ export function ProductFormPage({ productId }: { productId?: string }) {
     setForm((f) => ({
       ...f,
       images: [...f.images, { kind: "pending", file, previewUrl }],
+    }));
+  }
+
+  /** Picked from the media library — already real Cloudinary URLs, so these
+   * go straight in as "uploaded" with no pending/upload-on-save step. */
+  function addImagesFromLibrary(images: MediaImage[]) {
+    setForm((f) => ({
+      ...f,
+      images: [
+        ...f.images,
+        ...images.map((img) => ({
+          kind: "uploaded" as const,
+          url: img.url,
+          public_id: img.public_id,
+        })),
+      ],
     }));
   }
 
@@ -363,9 +380,11 @@ export function ProductFormPage({ productId }: { productId?: string }) {
 
       {/* Media first */}
       <ProductMediaGallery
+        siteId={currentSite?.id ?? null}
         images={form.images}
         onChange={(images) => setForm((f) => ({ ...f, images }))}
         onAdd={addPendingImage}
+        onAddFromLibrary={addImagesFromLibrary}
         onRemove={removeImage}
       />
 

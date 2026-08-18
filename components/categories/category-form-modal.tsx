@@ -4,10 +4,11 @@ import { ImagePlus } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FormModal } from "@/components/ui/form-modal";
 import { useToast } from "@/components/ui/toast";
-import { uploadSiteMedia } from "@/lib/api";
+import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import type { CategoryCreate, CategoryOut, CategoryUpdate } from "@/lib/api/commerce";
 import { SettingsInput, SettingsTextarea } from "@/components/settings/site/ui/settings-field";
 import { EditorLabel, IconPicker } from "@/components/themes/editor/editor-field";
+import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { randomIconValue } from "@/lib/icon-options";
 
 type CoverImage =
@@ -104,6 +105,20 @@ export function CategoryFormModal({
     });
   }
 
+  /** Picked from the media library — already a real Cloudinary URL, so this
+   * goes straight to "uploaded" and skips resolveUrl's upload-on-save step
+   * entirely (there's nothing left to upload). */
+  function pickFieldFromLibrary(field: "image" | "banner", image: MediaImage) {
+    setForm((f) => {
+      const current = f[field];
+      if (current?.kind === "pending") {
+        URL.revokeObjectURL(current.previewUrl);
+        objectUrls.current.delete(current.previewUrl);
+      }
+      return { ...f, [field]: { kind: "uploaded", url: image.url } };
+    });
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!siteId || !form.name.trim()) return;
@@ -170,52 +185,66 @@ export function CategoryFormModal({
          * banner is what the shop page swaps in when a visitor picks this
          * category; the circle is the small thumbnail used in listings. */}
         <div className="relative mb-12">
-          <label className="group relative block h-32 w-full cursor-pointer overflow-hidden rounded-xl bg-search-bg ring-1 ring-slate-200/80 transition-shadow hover:ring-slate-300">
-            {bannerSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={bannerSrc} alt="" className="size-full object-cover" />
-            ) : (
-              <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-soft">
-                <ImagePlus className="size-5" strokeWidth={1.5} />
-                <span className="text-[11px] font-medium">Upload banner</span>
-              </div>
+          <MediaSourceMenu
+            siteId={siteId}
+            category="categories"
+            onUploadFiles={(files) => {
+              if (files[0]) pickField("banner", files[0]);
+            }}
+            onPickImages={(images) => {
+              if (images[0]) pickFieldFromLibrary("banner", images[0]);
+            }}
+          >
+            {(open) => (
+              <button
+                type="button"
+                onClick={open}
+                className="group relative block h-32 w-full cursor-pointer overflow-hidden rounded-xl bg-search-bg ring-1 ring-slate-200/80 transition-shadow hover:ring-slate-300"
+              >
+                {bannerSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={bannerSrc} alt="" className="size-full object-cover" />
+                ) : (
+                  <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-soft">
+                    <ImagePlus className="size-5" strokeWidth={1.5} />
+                    <span className="text-[11px] font-medium">Add banner</span>
+                  </div>
+                )}
+                <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+                  <ImagePlus className="size-5 text-white" strokeWidth={1.75} />
+                </span>
+              </button>
             )}
-            <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-              <ImagePlus className="size-5 text-white" strokeWidth={1.75} />
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) pickField("banner", file);
-                e.target.value = "";
-              }}
-              className="hidden"
-            />
-          </label>
+          </MediaSourceMenu>
 
-          <label className="group absolute -bottom-10 left-1/2 flex size-20 -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-search-bg ring-4 ring-white transition-shadow hover:ring-white">
-            {imageSrc ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageSrc} alt="" className="size-full object-cover" />
-            ) : (
-              <ImagePlus className="size-4 text-muted-soft" strokeWidth={1.5} />
+          <MediaSourceMenu
+            siteId={siteId}
+            category="categories"
+            onUploadFiles={(files) => {
+              if (files[0]) pickField("image", files[0]);
+            }}
+            onPickImages={(images) => {
+              if (images[0]) pickFieldFromLibrary("image", images[0]);
+            }}
+          >
+            {(open) => (
+              <button
+                type="button"
+                onClick={open}
+                className="group absolute -bottom-10 left-1/2 flex size-20 -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-search-bg ring-4 ring-white transition-shadow hover:ring-white"
+              >
+                {imageSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imageSrc} alt="" className="size-full object-cover" />
+                ) : (
+                  <ImagePlus className="size-4 text-muted-soft" strokeWidth={1.5} />
+                )}
+                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
+                  <ImagePlus className="size-4 text-white" strokeWidth={1.75} />
+                </span>
+              </button>
             )}
-            <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-              <ImagePlus className="size-4 text-white" strokeWidth={1.75} />
-            </span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) pickField("image", file);
-                e.target.value = "";
-              }}
-              className="hidden"
-            />
-          </label>
+          </MediaSourceMenu>
         </div>
 
         <SettingsInput

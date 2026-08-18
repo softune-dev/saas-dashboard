@@ -1124,6 +1124,7 @@ function PanelFields({
   if (panel === "testimonials") {
     return (
       <TestimonialsEditor
+        siteId={siteId}
         title={settings.testimonialsTitle}
         items={settings.testimonials}
         onTitleChange={(v) => onChange({ testimonialsTitle: v })}

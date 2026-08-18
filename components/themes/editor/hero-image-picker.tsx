@@ -3,7 +3,8 @@
 import { Loader2, Upload, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useToast } from "@/components/ui/toast";
-import { uploadSiteMedia } from "@/lib/api";
+import { uploadSiteMedia, type MediaImage } from "@/lib/api";
+import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { EditorLabel } from "./editor-field";
 import { FALLBACK_PREVIEW_URL, resolveMediaUrl } from "./editor-types";
 import { IMAGE_LIMITS_HINT } from "@/lib/constants/media-limits";
@@ -117,47 +118,54 @@ export function HeroImagePicker({
         </div>
       ) : null}
 
-      <label
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragOver(false);
-          uploadFiles(e.dataTransfer.files);
-        }}
-        className={[
-          "mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed py-5 text-center transition-colors",
-          dragOver
-            ? "border-primary bg-primary/5"
-            : "border-slate-300 hover:border-slate-400 hover:bg-search-bg/60",
-        ].join(" ")}
+      <MediaSourceMenu
+        siteId={siteId}
+        category="hero"
+        multiple
+        onUploadFiles={uploadFiles}
+        onPickImages={(images: MediaImage[]) =>
+          onChange([...(selected ?? []), ...images.map((i) => i.url)])
+        }
       >
-        {uploading ? (
-          <Loader2 className="size-4 animate-spin text-slate-400" />
-        ) : (
-          <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
+        {(open) => (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={open}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") open();
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              uploadFiles(e.dataTransfer.files);
+            }}
+            className={[
+              "mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed py-5 text-center transition-colors",
+              dragOver
+                ? "border-primary bg-primary/5"
+                : "border-slate-300 hover:border-slate-400 hover:bg-search-bg/60",
+            ].join(" ")}
+          >
+            {uploading ? (
+              <Loader2 className="size-4 animate-spin text-slate-400" />
+            ) : (
+              <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
+            )}
+            <span className="text-xs font-medium text-slate-500">
+              {uploading ? "Uploading…" : "Click to add, or drag images to upload"}
+            </span>
+            {!uploading ? (
+              <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
+            ) : null}
+          </div>
         )}
-        <span className="text-xs font-medium text-slate-500">
-          {uploading ? "Uploading…" : "Click or drag images to upload"}
-        </span>
-        {!uploading ? (
-          <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
-        ) : null}
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          disabled={uploading}
-          onChange={(e) => {
-            if (e.target.files) uploadFiles(e.target.files);
-            e.target.value = "";
-          }}
-          className="hidden"
-        />
-      </label>
+      </MediaSourceMenu>
     </div>
   );
 }
@@ -250,50 +258,57 @@ export function SingleImagePicker({
               </button>
             </>
           ) : null}
-          <label
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragOver(true);
+          <MediaSourceMenu
+            siteId={siteId}
+            category={category}
+            onUploadFiles={uploadFile}
+            onPickImages={(images: MediaImage[]) => {
+              if (images[0]) onChange(images[0].url);
             }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragOver(false);
-              uploadFile(e.dataTransfer.files);
-            }}
-            className={[
-              "absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 transition-colors",
-              value
-                ? "bg-black/0 hover:bg-black/5"
-                : dragOver
-                  ? "bg-primary/5"
-                  : "bg-transparent",
-              !value && dragOver ? "ring-1 ring-inset ring-primary" : "",
-            ].join(" ")}
           >
-            {!value || uploading ? (
-              <>
-                {uploading ? (
-                  <Loader2 className="size-4 animate-spin text-slate-400" />
-                ) : (
-                  <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
-                )}
-                <span className="text-xs font-medium text-slate-500">
-                  {uploading ? "Uploading…" : "Upload logo"}
-                </span>
-              </>
-            ) : null}
-            <input
-              type="file"
-              accept="image/*"
-              disabled={uploading}
-              onChange={(e) => {
-                if (e.target.files) uploadFile(e.target.files);
-                e.target.value = "";
-              }}
-              className="hidden"
-            />
-          </label>
+            {(open) => (
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={open}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") open();
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  uploadFile(e.dataTransfer.files);
+                }}
+                className={[
+                  "absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 transition-colors",
+                  value
+                    ? "bg-black/0 hover:bg-black/5"
+                    : dragOver
+                      ? "bg-primary/5"
+                      : "bg-transparent",
+                  !value && dragOver ? "ring-1 ring-inset ring-primary" : "",
+                ].join(" ")}
+              >
+                {!value || uploading ? (
+                  <>
+                    {uploading ? (
+                      <Loader2 className="size-4 animate-spin text-slate-400" />
+                    ) : (
+                      <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
+                    )}
+                    <span className="text-xs font-medium text-slate-500">
+                      {uploading ? "Uploading…" : "Add logo"}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            )}
+          </MediaSourceMenu>
         </div>
       </div>
     );
@@ -322,50 +337,57 @@ export function SingleImagePicker({
         </div>
       ) : null}
 
-      <label
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
+      <MediaSourceMenu
+        siteId={siteId}
+        category={category}
+        onUploadFiles={uploadFile}
+        onPickImages={(images: MediaImage[]) => {
+          if (images[0]) onChange(images[0].url);
         }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragOver(false);
-          uploadFile(e.dataTransfer.files);
-        }}
-        className={[
-          "mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed py-5 text-center transition-colors",
-          dragOver
-            ? "border-primary bg-primary/5"
-            : "border-slate-300 hover:border-slate-400 hover:bg-search-bg/60",
-        ].join(" ")}
       >
-        {uploading ? (
-          <Loader2 className="size-4 animate-spin text-slate-400" />
-        ) : (
-          <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
+        {(open) => (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={open}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") open();
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragOver(false);
+              uploadFile(e.dataTransfer.files);
+            }}
+            className={[
+              "mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed py-5 text-center transition-colors",
+              dragOver
+                ? "border-primary bg-primary/5"
+                : "border-slate-300 hover:border-slate-400 hover:bg-search-bg/60",
+            ].join(" ")}
+          >
+            {uploading ? (
+              <Loader2 className="size-4 animate-spin text-slate-400" />
+            ) : (
+              <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
+            )}
+            <span className="text-xs font-medium text-slate-500">
+              {uploading
+                ? "Uploading…"
+                : value
+                  ? "Click to replace"
+                  : "Click to add an image"}
+            </span>
+            {!uploading ? (
+              <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
+            ) : null}
+          </div>
         )}
-        <span className="text-xs font-medium text-slate-500">
-          {uploading
-            ? "Uploading…"
-            : value
-              ? "Click or drag to replace"
-              : "Click or drag an image to upload"}
-        </span>
-        {!uploading ? (
-          <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
-        ) : null}
-        <input
-          type="file"
-          accept="image/*"
-          disabled={uploading}
-          onChange={(e) => {
-            if (e.target.files) uploadFile(e.target.files);
-            e.target.value = "";
-          }}
-          className="hidden"
-        />
-      </label>
+      </MediaSourceMenu>
     </div>
   );
 }

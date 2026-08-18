@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/ui/toast";
-import { uploadSiteMedia } from "@/lib/api";
+import { uploadSiteMedia, type MediaImage } from "@/lib/api";
+import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { saveSiteSeo, useSiteSettingsSWR, type SiteSeo } from "@/lib/api/site-settings";
 import { SettingsActions } from "../ui/settings-actions";
 import {
@@ -144,9 +145,11 @@ export function SeoSection() {
         />
         <ImageUploadField
           label="OG image"
+          siteId={siteId}
           value={form.og_image ?? ""}
           uploading={uploadingImage === "og_image"}
           onUpload={(file) => handleUpload("og_image", file)}
+          onPick={(url) => setField("og_image", url)}
           onClear={() => setField("og_image", "")}
         />
       </div>
@@ -197,9 +200,11 @@ export function SeoSection() {
         />
         <ImageUploadField
           label="Favicon"
+          siteId={siteId}
           value={form.favicon ?? ""}
           uploading={uploadingImage === "favicon"}
           onUpload={(file) => handleUpload("favicon", file)}
+          onPick={(url) => setField("favicon", url)}
           onClear={() => setField("favicon", "")}
         />
       </div>
@@ -218,23 +223,24 @@ export function SeoSection() {
 
 function ImageUploadField({
   label,
+  siteId,
   value,
   uploading,
   onUpload,
+  onPick,
   onClear,
 }: {
   label: string;
+  siteId: string | null;
   value: string;
   uploading: boolean;
   onUpload: (file: File) => void;
+  onPick: (url: string) => void;
   onClear: () => void;
 }) {
-  const fieldId = label.toLowerCase().replace(/\s+/g, "-");
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={fieldId} className="text-sm font-medium text-slate-500">
-        {label}
-      </label>
+      <span className="text-sm font-medium text-slate-500">{label}</span>
       <div className="flex items-center gap-2">
         {value ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -244,24 +250,27 @@ function ImageUploadField({
             className="size-10 shrink-0 rounded-md border border-slate-200 bg-white object-contain p-1"
           />
         ) : null}
-        <label
-          htmlFor={fieldId}
-          className="flex h-10 flex-1 cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-slate-500 transition-colors hover:border-slate-400"
+        <MediaSourceMenu
+          siteId={siteId}
+          category="other"
+          onUploadFiles={(files) => {
+            if (files[0]) onUpload(files[0]);
+          }}
+          onPickImages={(images: MediaImage[]) => {
+            if (images[0]) onPick(images[0].url);
+          }}
         >
-          {uploading ? "Uploading…" : value ? "Replace image" : "Upload image"}
-          <input
-            id={fieldId}
-            type="file"
-            accept="image/*"
-            disabled={uploading}
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onUpload(file);
-              e.target.value = "";
-            }}
-          />
-        </label>
+          {(open) => (
+            <button
+              type="button"
+              onClick={open}
+              disabled={uploading}
+              className="flex h-10 flex-1 cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-slate-500 transition-colors hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {uploading ? "Uploading…" : value ? "Replace image" : "Add image"}
+            </button>
+          )}
+        </MediaSourceMenu>
         {value ? (
           <button
             type="button"

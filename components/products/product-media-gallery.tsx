@@ -2,6 +2,8 @@
 
 import { ImagePlus, Star, X } from "lucide-react";
 import { IMAGE_LIMITS_HINT } from "@/lib/constants/media-limits";
+import type { MediaImage } from "@/lib/api";
+import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import type { GalleryImage } from "./product-form-types";
 
 function imageKey(img: GalleryImage): string {
@@ -16,18 +18,22 @@ const tileClass =
   "relative size-40 shrink-0 overflow-hidden rounded-lg bg-search-bg sm:size-44";
 
 type ProductMediaGalleryProps = {
+  siteId: string | null;
   images: GalleryImage[];
   onChange: (images: GalleryImage[]) => void;
   onAdd: (file: File) => void;
+  onAddFromLibrary: (images: MediaImage[]) => void;
   onRemove: (img: GalleryImage) => void;
 };
 
 /** Equal-size gallery tiles. First image in the list is primary for the
  * storefront (click a non-first tile to promote it); no badge chrome. */
 export function ProductMediaGallery({
+  siteId,
   images,
   onChange,
   onAdd,
+  onAddFromLibrary,
   onRemove,
 }: ProductMediaGalleryProps) {
   function setPrimary(index: number) {
@@ -92,22 +98,26 @@ export function ProductMediaGallery({
           </div>
         ))}
 
-        <label
-          className={`${tileClass} flex cursor-pointer flex-col items-center justify-center gap-1.5 text-muted ring-1 ring-dashed ring-slate-300 transition-colors hover:bg-slate-100 hover:text-foreground`}
+        <MediaSourceMenu
+          siteId={siteId}
+          category="products"
+          multiple
+          onUploadFiles={(files) => {
+            for (const file of Array.from(files)) onAdd(file);
+          }}
+          onPickImages={onAddFromLibrary}
         >
-          <ImagePlus className="size-5" strokeWidth={1.5} />
-          <span className="text-xs font-medium">Add image</span>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onAdd(file);
-              e.target.value = "";
-            }}
-            className="hidden"
-          />
-        </label>
+          {(open) => (
+            <button
+              type="button"
+              onClick={open}
+              className={`${tileClass} flex cursor-pointer flex-col items-center justify-center gap-1.5 text-muted ring-1 ring-dashed ring-slate-300 transition-colors hover:bg-slate-100 hover:text-foreground`}
+            >
+              <ImagePlus className="size-5" strokeWidth={1.5} />
+              <span className="text-xs font-medium">Add image</span>
+            </button>
+          )}
+        </MediaSourceMenu>
       </div>
     </section>
   );
