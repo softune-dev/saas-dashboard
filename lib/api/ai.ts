@@ -7,7 +7,32 @@
  * anything itself.
  */
 
+import useSWR, { type SWRResponse } from "swr";
 import { request } from "../api";
+
+/** Shared SWR key — both the chat sidebar and the theme editor's "Ask AI"
+ * box mutate this exact key after a successful call, so the header's
+ * credits pill updates immediately instead of waiting for its own poll. */
+export const AI_USAGE_SWR_KEY = "ai-usage";
+
+export type AIUsage = {
+  used: number;
+  limit: number;
+  remaining: number;
+};
+
+/** Read-only — does not itself count as AI usage. See app/ai.py's
+ * get_usage docstring for why that distinction is load-bearing. */
+export async function getAIUsage(): Promise<AIUsage> {
+  return request<AIUsage>("/ai/usage");
+}
+
+export function useAIUsageSWR(): SWRResponse<AIUsage> {
+  // Light polling as a safety net (usage can change from other tabs/devices
+  // too, not just this one) — the real-time feel mostly comes from the
+  // explicit mutate() calls right after a suggest/chat call succeeds.
+  return useSWR(AI_USAGE_SWR_KEY, getAIUsage, { refreshInterval: 60000 });
+}
 
 export type AISuggestPatch = Partial<{
   siteName: string;

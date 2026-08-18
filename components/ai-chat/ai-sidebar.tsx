@@ -15,7 +15,8 @@ import {
   saveActiveConversationId,
   createNewConversation,
 } from "./ai-chat-store";
-import { chatWithAssistant, TOOL_LABELS } from "@/lib/api/ai";
+import { useSWRConfig } from "swr";
+import { AI_USAGE_SWR_KEY, chatWithAssistant, TOOL_LABELS } from "@/lib/api/ai";
 import { AiChatHeader } from "./ai-chat-header";
 import { AiEmptyState } from "./ai-empty-state";
 import { AiMessageItem } from "./ai-message-item";
@@ -27,6 +28,7 @@ type AiSidebarProps = {
 };
 
 export function AiSidebar({ open, onClose }: AiSidebarProps) {
+  const { mutate } = useSWRConfig();
   const pathname = usePathname();
   const isThemeEditor = pathname.startsWith("/themes/editor");
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -186,7 +188,14 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
         );
         updateConversationsState(finalAllConvs, finalConv.id);
       })
-      .finally(() => setIsThinking(false));
+      .finally(() => {
+        setIsThinking(false);
+        // Refresh the header's credits pill either way — a request that
+        // hit the daily cap still counted as an attempt (see
+        // app/ai.py's _check_ai_access), so the header should reflect
+        // that block state too, not just successful replies.
+        mutate(AI_USAGE_SWR_KEY);
+      });
   };
 
   const handleEditUserMessage = (text: string) => {

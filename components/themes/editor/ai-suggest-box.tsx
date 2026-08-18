@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { suggestThemePatch, type AISuggestPatch } from "@/lib/api/ai";
+import { useSWRConfig } from "swr";
+import { AI_USAGE_SWR_KEY, suggestThemePatch, type AISuggestPatch } from "@/lib/api/ai";
 
 const FIELD_LABELS: Record<string, string> = {
   siteName: "Site name",
@@ -27,6 +28,7 @@ export function AISuggestBox({
   siteId: string | null;
   onApply: (patch: AISuggestPatch) => void;
 }) {
+  const { mutate } = useSWRConfig();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,9 @@ export function AISuggestBox({
     setPatch(null);
     try {
       const result = await suggestThemePatch(siteId, prompt.trim());
+      // Refresh the header's credits pill immediately — this request just
+      // counted against today's cap, no reason to wait for its own poll.
+      mutate(AI_USAGE_SWR_KEY);
       if (Object.keys(result).length === 0) {
         setError("No suggestion for that — try describing colors, fonts, or wording.");
       } else {
