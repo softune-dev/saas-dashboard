@@ -146,11 +146,13 @@ export function SitePreview({
   // the iframe still LOADS from baseUrl regardless (see displayHost's own
   // comment above); this only changes what's shown/copied.
   const displayBaseUrl = displayHost ? `https://${displayHost}` : baseUrl;
-  const currentUrl = iframePath
-    ? `${displayBaseUrl.replace(/\/$/, "")}${iframePath}`
-    : page
-      ? resolvePageUrl(page, displayBaseUrl)
-      : `${displayBaseUrl.replace(/\/$/, "")}/`;
+  const currentUrl = !hostReady
+    ? "Loading…"
+    : iframePath
+      ? `${displayBaseUrl.replace(/\/$/, "")}${iframePath}`
+      : page
+        ? resolvePageUrl(page, displayBaseUrl)
+        : `${displayBaseUrl.replace(/\/$/, "")}/`;
 
   // Real loading state, driven by the iframe's own load event — not a fake
   // timer. True while waiting for siteHost, while the preview server is

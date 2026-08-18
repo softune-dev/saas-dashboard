@@ -88,6 +88,14 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
   // which is the template key ("aurora") used to namespace local storage.
   // Media uploads need the real id since that's what the API is scoped to.
   const [realSiteId, setRealSiteId] = useState<string | null>(null);
+  // False only for the very first-ever visit to a site's editor, while the
+  // real backend theme is still in flight — the sidebar shows this template's
+  // hardcoded placeholder copy (editor-defaults.ts) as the initial `settings`
+  // value, and briefly rendering that as if it were the merchant's real site
+  // name/tagline/etc. reads as a bug, not a loading state. Sites with an
+  // existing draft skip this entirely since that draft IS already real,
+  // customer-owned content.
+  const [themeReady, setThemeReady] = useState(() => hasThemeDraft(siteId));
 
   // Real catalog for the Categories/Feature Products/Category Showcase/
   // Product Showcase pickers — these used to read the dashboard's own mock
@@ -157,6 +165,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
     // host (or without __site) while the new lookup is in flight.
     setSiteHost(undefined);
     setRealSiteId(null);
+    setThemeReady(hasThemeDraft(siteId));
 
     // First time this site's editor has ever opened on this browser: pull
     // the real theme from the backend instead of showing the built-in
@@ -182,11 +191,18 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
 
       if (!hasThemeDraft(siteId)) {
         const theme = await getSiteTheme(site.id).catch(() => null);
-        if (!theme || cancelled) return;
+        if (cancelled) return;
+        if (!theme) {
+          // Real theme genuinely unavailable (e.g. API error) — fall back to
+          // the placeholder rather than hang on the loading state forever.
+          setThemeReady(true);
+          return;
+        }
         const remote = theme as unknown as SiteEditorSettings;
         seedThemeFromRemote(siteId, remote);
         setSettings(remote);
         setSaved(remote);
+        setThemeReady(true);
         return;
       }
 
@@ -272,8 +288,23 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
     };
   }, [refreshUnpublished]);
 
-  const activePage =
+  const rawActivePage =
     settings.pages.find((p) => p.id === activePageId) ?? settings.pages[0];
+
+  // The Product Details page's route is a template placeholder ("/shop/:slug")
+  // — there is no real product at that literal URL, so loading it as-is 404s.
+  // Substitute the real slug of whichever product the sidebar's picker has
+  // selected (settings.showcaseProductId) before it ever reaches the iframe.
+  const activePage =
+    rawActivePage?.type === "productDetail" && rawActivePage.path.includes(":slug")
+      ? {
+          ...rawActivePage,
+          path: rawActivePage.path.replace(
+            ":slug",
+            rawProducts.find((p) => p.id === settings.showcaseProductId)?.slug ?? ":slug",
+          ),
+        }
+      : rawActivePage;
 
   const patch = useCallback((partial: Partial<SiteEditorSettings>) => {
     setSettings((prev) => ({ ...prev, ...partial }));
@@ -432,6 +463,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
       <div className="flex h-full min-h-0 gap-3">
         <EditorSidebar
           settings={settings}
+          loading={!themeReady}
           siteId={realSiteId}
           themeId={siteId}
           previewUrl={previewUrl}

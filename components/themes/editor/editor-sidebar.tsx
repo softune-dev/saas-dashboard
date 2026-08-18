@@ -75,6 +75,11 @@ const globalTools: { id: EditorPanelId; label: string; icon: string }[] = [
 
 type EditorSidebarProps = {
   settings: SiteEditorSettings;
+  /** True only while the real backend theme is still loading for a
+   * brand-new site (see theme-editor-view.tsx's themeReady) — panel fields
+   * show a skeleton instead of `settings`, which is this template's generic
+   * placeholder copy until the real fetch resolves. */
+  loading?: boolean;
   /** Real backend site id, for media uploads. Null until resolved on mount. */
   siteId: string | null;
   /** Template key from themes-data (aurora | bazaar | sweets) — picks
@@ -109,6 +114,7 @@ type EditorSidebarProps = {
 
 export function EditorSidebar({
   settings,
+  loading,
   siteId,
   themeId,
   previewUrl,
@@ -409,28 +415,32 @@ export function EditorSidebar({
             </div>
 
             <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-4">
-              <div key={panel} className="flex min-h-full flex-col gap-4">
-                <PanelFields
-                  panel={panel}
-                  settings={settings}
-                  siteId={siteId}
-                  themePalettes={themePalettes}
-                  previewUrl={previewUrl}
-                  categories={categories}
-                  products={products}
-                  activePageId={activePageId}
-                  onChange={onChange}
-                  availableToAdd={availableToAdd}
-                  onAddSection={onAddSection}
-                  onRemoveSection={onRemoveSection}
-                  onReorderSections={onReorderSections}
-                  onActivePageChange={onActivePageChange}
-                  onPanelChange={onPanelChange}
-                  onChangePage={onChangePage}
-                  onAddPage={onAddPage}
-                  onRemovePage={onRemovePage}
-                />
-              </div>
+              {loading ? (
+                <PanelFieldsSkeleton />
+              ) : (
+                <div key={panel} className="flex min-h-full flex-col gap-4">
+                  <PanelFields
+                    panel={panel}
+                    settings={settings}
+                    siteId={siteId}
+                    themePalettes={themePalettes}
+                    previewUrl={previewUrl}
+                    categories={categories}
+                    products={products}
+                    activePageId={activePageId}
+                    onChange={onChange}
+                    availableToAdd={availableToAdd}
+                    onAddSection={onAddSection}
+                    onRemoveSection={onRemoveSection}
+                    onReorderSections={onReorderSections}
+                    onActivePageChange={onActivePageChange}
+                    onPanelChange={onPanelChange}
+                    onChangePage={onChangePage}
+                    onAddPage={onAddPage}
+                    onRemovePage={onRemovePage}
+                  />
+                </div>
+              )}
             </div>
           </motion.div>
         ) : null}
@@ -515,6 +525,33 @@ function NumberRailButton({
 
 function isSectionType(id: EditorPanelId): id is SectionType {
   return sectionCatalog.some((s) => s.type === id);
+}
+
+/** Shown in place of PanelFields while the real theme is still loading — see
+ * EditorSidebarProps.loading. Generic field-shaped blocks, not tied to any
+ * specific panel, since which panel is active is arbitrary at this point. */
+function PanelFieldsSkeleton() {
+  return (
+    <div className="flex min-h-full animate-pulse flex-col gap-4">
+      <div className="h-9 w-full rounded-lg bg-search-bg" />
+      <div className="flex flex-col gap-1.5">
+        <div className="h-3 w-16 rounded bg-search-bg" />
+        <div className="h-9 w-full rounded-lg bg-search-bg" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <div className="h-3 w-16 rounded bg-search-bg" />
+        <div className="h-9 w-full rounded-lg bg-search-bg" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <div className="h-3 w-20 rounded bg-search-bg" />
+        <div className="grid grid-cols-3 gap-2">
+          <div className="h-14 rounded-lg bg-search-bg" />
+          <div className="h-14 rounded-lg bg-search-bg" />
+          <div className="h-14 rounded-lg bg-search-bg" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function panelTitle(panel: EditorPanelId, pageTitle?: string): string {
