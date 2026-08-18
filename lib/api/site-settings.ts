@@ -156,3 +156,17 @@ export async function saveSiteDomain(
     body: JSON.stringify({ custom_domain }),
   });
 }
+
+export type DomainStatus = {
+  domain: string;
+  /** null = couldn't check (not a real "not connected") — see
+   * app/vercel.py's check_domain_connected. */
+  connected: boolean | null;
+};
+
+/** Real-time DNS check against Vercel — not cached, this is a live network
+ * call on the backend, called on-demand (mount + manual refresh), not
+ * polled continuously. */
+export async function getDomainStatus(siteId: string): Promise<DomainStatus> {
+  return request<DomainStatus>(`/sites/${siteId}/domain-status`);
+}
