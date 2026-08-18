@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #eaeaea;
   --foreground: #171717;
+  --primary: #ff5a36;
+  --surface: #ffffff;
+  --muted: #6b7280;
+  --muted-soft: #9ca3af;
+  --border: #e5e7eb;
+  --store: #3b82f6;
+  --search-bg: #f4f4f5;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-muted-soft: var(--muted-soft);
+  --color-border: var(--border);
+  --color-store: var(--store);
+  --color-search-bg: var(--search-bg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* AI chat drawer — Google Sans (Latin + Bengali) for mixed EN/BN replies */
+  --font-ai-chat: var(--font-google-sans), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Hard ban on shadows across the dashboard chrome */
+.no-shadow,
+.no-shadow * {
+  box-shadow: none !important;
+}
+
+/* Hide scrollbars but keep scroll (editor tool rails, etc.) */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Thin, low-contrast scrollbar for dense panels (theme editor, drawers). */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225 / 0.9) transparent; /* slate-300 */
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225 / 0.85);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(148 163 184); /* slate-400 */
+}
+.scrollbar-thin::-webkit-scrollbar-corner {
+  background: transparent;
 }

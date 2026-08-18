@@ -1,0 +1,9 @@
+import { MediaSection, SiteSettingsShell } from "@/components/settings/site";
+
+export default function MediaPage() {
+  return (
+    <SiteSettingsShell title="Media">
+      <MediaSection />
+    </SiteSettingsShell>
+  );
+}

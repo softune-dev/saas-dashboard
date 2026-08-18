@@ -1,0 +1,100 @@
+"use client";
+
+import { useState } from "react";
+import { PrimaryButton } from "@/components/ui/primary-button";
+import { useToast } from "@/components/ui/toast";
+import {
+  SettingsInput,
+  SettingsSelect,
+  SettingsTextarea,
+} from "@/components/settings/site/ui/settings-field";
+import { priorityOptions, ticketCategories } from "./help-data";
+
+export function NewTicketForm() {
+  const { toast } = useToast();
+  const [form, setForm] = useState({
+    subject: "",
+    category: "Technical",
+    priority: "Medium",
+    message: "",
+  });
+
+  function setField<K extends keyof typeof form>(key: K, value: string) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function submit() {
+    if (!form.subject.trim() || !form.message.trim()) {
+      toast({
+        title: "Missing details",
+        description: "Add a subject and message to submit a ticket.",
+        variant: "error",
+      });
+      return;
+    }
+
+    toast({
+      title: "Ticket submitted",
+      description: "We'll reply by email when there's an update.",
+      variant: "success",
+    });
+
+    setForm({
+      subject: "",
+      category: "Technical",
+      priority: "Medium",
+      message: "",
+    });
+  }
+
+  return (
+    <section className="flex h-full flex-col rounded-md bg-white p-4 sm:p-5">
+      <h2 className="mb-1 text-base font-semibold text-foreground">
+        New ticket
+      </h2>
+      <p className="mb-5 text-sm text-slate-500">
+        Tell us what you need help with
+      </p>
+
+      <div className="flex flex-1 flex-col gap-4">
+        <SettingsInput
+          label="Subject"
+          value={form.subject}
+          onChange={(e) => setField("subject", e.target.value)}
+          placeholder="Brief summary of the issue"
+        />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <SettingsSelect
+            label="Category"
+            value={form.category}
+            options={ticketCategories}
+            onChange={(e) => setField("category", e.target.value)}
+          />
+          <SettingsSelect
+            label="Priority"
+            value={form.priority}
+            options={priorityOptions}
+            onChange={(e) => setField("priority", e.target.value)}
+          />
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col">
+          <SettingsTextarea
+            label="Message"
+            value={form.message}
+            onChange={(e) => setField("message", e.target.value)}
+            placeholder="Describe the problem with steps if you can…"
+            className="!min-h-[140px] flex-1"
+          />
+        </div>
+
+        <div className="mt-auto flex justify-end pt-1">
+          <PrimaryButton type="button" onClick={submit}>
+            Submit ticket
+          </PrimaryButton>
+        </div>
+      </div>
+    </section>
+  );
+}
