@@ -34,19 +34,33 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, []);
 
-  const label = `${formatDisplayDate(value.from)} - ${formatDisplayDate(value.to)}`;
+  const fullLabel = `${formatDisplayDate(value.from)} – ${formatDisplayDate(value.to)}`;
+  // Compact "Jan 1 – Aug 31" without year on narrow screens to avoid overflow.
+  const shortLabel = `${value.from.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })} – ${value.to.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  })}`;
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative min-w-0 max-w-full">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 rounded-full border border-border bg-surface px-3.5 py-2 text-sm text-foreground transition-colors hover:border-slate-300"
+        title={fullLabel}
+        className="flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-2 text-sm text-foreground transition-colors hover:border-muted-soft sm:gap-2.5 sm:px-3.5"
         aria-expanded={open}
         aria-haspopup="dialog"
       >
         <Calendar className="size-4 shrink-0 text-muted" strokeWidth={1.75} />
-        <span className="whitespace-nowrap font-medium">{label}</span>
+        <span className="min-w-0 truncate font-medium sm:hidden">
+          {shortLabel}
+        </span>
+        <span className="hidden min-w-0 truncate font-medium sm:inline">
+          {fullLabel}
+        </span>
         <ChevronDown
           className={[
             "size-4 shrink-0 text-muted transition-transform",
@@ -60,7 +74,7 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
         <div
           role="dialog"
           aria-label="Select date range"
-          className="absolute top-[calc(100%+0.5rem)] right-0 z-30 flex w-72 flex-col gap-3 rounded-md border border-border bg-surface p-3"
+          className="absolute top-[calc(100%+0.5rem)] right-0 z-30 flex w-[min(18rem,calc(100vw-1.5rem))] flex-col gap-3 rounded-md border border-border bg-surface p-3 dark:border-transparent"
         >
           <div className="flex flex-col gap-1.5">
             <label htmlFor={fromId} className="text-xs font-medium text-muted">

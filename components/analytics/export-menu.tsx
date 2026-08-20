@@ -111,18 +111,25 @@ export function ExportMenu({
   }
 
   return (
-    <div ref={rootRef} className="relative">
-      <PrimaryButton onClick={() => setOpen((v) => !v)}>
+    <div ref={rootRef} className="relative shrink-0">
+      <PrimaryButton
+        onClick={() => setOpen((v) => !v)}
+        className="px-2.5 sm:px-4"
+        aria-label="Export"
+      >
         <Download className="size-4" strokeWidth={2} />
-        Export
+        <span className="hidden sm:inline">Export</span>
         <ChevronDown
-          className={["size-3.5 transition-transform", open ? "rotate-180" : ""].join(" ")}
+          className={[
+            "size-3.5 transition-transform",
+            open ? "rotate-180" : "",
+          ].join(" ")}
           strokeWidth={2}
         />
       </PrimaryButton>
 
       {open ? (
-        <div className="absolute top-[calc(100%+0.5rem)] right-0 z-30 w-48 rounded-xl border border-border bg-surface p-1.5 shadow-xl">
+        <div className="absolute top-[calc(100%+0.5rem)] right-0 z-30 w-48 rounded-xl border border-border bg-surface p-1.5 shadow-xl dark:border-transparent">
           <button
             type="button"
             onClick={handleCsv}

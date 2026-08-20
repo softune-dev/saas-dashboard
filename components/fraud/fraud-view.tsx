@@ -344,38 +344,43 @@ export function FraudView() {
             return (
               <div
                 key={rule.id}
-                className="flex items-center gap-3 px-4 py-3.5 sm:gap-4 sm:px-5"
+                className="flex flex-col gap-3 px-4 py-4 sm:px-5"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-                  <MaskIcon src={rule.icon} className="size-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {rule.name}
-                    </h3>
+                {/* Title row — icon + name/badge + toggle; never cramps the description */}
+                <div className="flex items-center gap-3">
+                  <span className="hidden size-10 shrink-0 items-center justify-center rounded-full bg-primary text-white sm:flex">
+                    <MaskIcon src={rule.icon} className="size-4" />
+                  </span>
+                  <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+                    {rule.name}
+                  </h3>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={state.enabled}
+                    aria-label={`${state.enabled ? "Disable" : "Enable"} ${rule.name}`}
+                    onClick={() => toggleRule(rule.id)}
+                    className={[
+                      "relative h-7 w-12 shrink-0 rounded-full transition-colors",
+                      state.enabled ? "bg-primary" : "bg-border",
+                    ].join(" ")}
+                  >
                     <span
                       className={[
-                        "rounded-full px-2 py-0.5 text-[11px] font-medium",
-                        state.enabled
-                          ? "bg-primary/10 text-primary"
-                          : "bg-search-bg text-muted",
+                        "absolute top-0.5 size-6 rounded-full bg-[#ffffff] shadow-sm transition-transform",
+                        state.enabled ? "left-5" : "left-0.5",
                       ].join(" ")}
-                    >
-                      {state.enabled ? "On" : "Off"}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 text-sm leading-snug text-muted">
-                    {rule.description}
-                  </p>
+                    />
+                  </button>
                 </div>
 
-                {/* Threshold sits in the gap between copy and toggle */}
+                <p className="text-sm leading-relaxed text-muted sm:pl-[3.25rem]">
+                  {rule.description}
+                </p>
+
                 {thr && state.enabled ? (
-                  <label className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                    <span className="hidden text-xs text-muted sm:inline">
-                      {thr.label}
-                    </span>
+                  <label className="flex flex-wrap items-center gap-2 sm:pl-[3.25rem]">
+                    <span className="text-xs text-muted">{thr.label}</span>
                     <span className="inline-flex items-center gap-1">
                       {thr.suffix === "৳" ? (
                         <span className="text-xs font-medium text-foreground">
@@ -407,25 +412,6 @@ export function FraudView() {
                     </span>
                   </label>
                 ) : null}
-
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={state.enabled}
-                  aria-label={`${state.enabled ? "Disable" : "Enable"} ${rule.name}`}
-                  onClick={() => toggleRule(rule.id)}
-                  className={[
-                    "relative h-7 w-12 shrink-0 rounded-full transition-colors",
-                    state.enabled ? "bg-primary" : "bg-border",
-                  ].join(" ")}
-                >
-                  <span
-                    className={[
-                      "absolute top-0.5 size-6 rounded-full bg-[#ffffff] shadow-sm transition-transform",
-                      state.enabled ? "left-5" : "left-0.5",
-                    ].join(" ")}
-                  />
-                </button>
               </div>
             );
           })}

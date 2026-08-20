@@ -51,12 +51,19 @@ function CopyRow({ value }: { value: string }) {
 }
 
 type LiveDomainRowProps = {
-  label: string;
+  kind: "free" | "custom";
   host: string;
   statusLabel: string;
   statusTone: "live" | "pending" | "unknown";
+  /** Custom domain DNS status — colors the host on mobile only. */
+  connected?: boolean | null;
   onRefresh?: () => void;
   refreshing?: boolean;
+};
+
+const KIND_STYLES: Record<LiveDomainRowProps["kind"], string> = {
+  free: "bg-primary/10 text-primary",
+  custom: "bg-search-bg text-muted",
 };
 
 const STATUS_STYLES: Record<LiveDomainRowProps["statusTone"], string> = {
@@ -65,17 +72,46 @@ const STATUS_STYLES: Record<LiveDomainRowProps["statusTone"], string> = {
   unknown: "bg-search-bg text-muted",
 };
 
-function LiveDomainRow({ label, host, statusLabel, statusTone, onRefresh, refreshing }: LiveDomainRowProps) {
+function LiveDomainRow({
+  kind,
+  host,
+  statusLabel,
+  statusTone,
+  connected,
+  onRefresh,
+  refreshing,
+}: LiveDomainRowProps) {
+  const hostColor =
+    kind === "custom"
+      ? connected === true
+        ? "text-emerald-600 sm:text-foreground"
+        : "text-primary sm:text-foreground"
+      : "text-foreground";
+
   return (
-    <div className="flex items-center gap-3 rounded-md border border-border px-3 py-3">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+    <div className="flex items-center gap-2 rounded-md border border-border px-3 py-3 sm:gap-3">
+      <span className="hidden size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary sm:flex">
         <Globe className="size-4" strokeWidth={1.75} />
       </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold text-foreground">{host}</p>
-        <p className="mt-0.5 text-xs text-muted">{label}</p>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <p className={["min-w-0 truncate font-semibold", hostColor].join(" ")}>
+          {host}
+        </p>
+        <span
+          className={[
+            "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-normal",
+            KIND_STYLES[kind],
+          ].join(" ")}
+        >
+          {kind === "free" ? "Free" : "Custom"}
+        </span>
       </div>
-      <span className={["inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium", STATUS_STYLES[statusTone]].join(" ")}>
+      <span
+        className={[
+          "hidden shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium sm:inline-flex",
+          STATUS_STYLES[statusTone],
+        ].join(" ")}
+      >
         {statusLabel}
       </span>
       {onRefresh ? (
@@ -196,28 +232,12 @@ export function DomainsSection() {
     );
   }
 
-  const customStatusLabel = !isPublished
-    ? "Not live yet"
-    : checkingStatus
-      ? "Checking…"
-      : domainStatus?.connected === true
-        ? "Connected"
-        : domainStatus?.connected === false
-          ? "DNS not detected yet"
-          : "Unknown";
-  const customStatusTone: LiveDomainRowProps["statusTone"] =
-    isPublished && domainStatus?.connected === true
-      ? "live"
-      : isPublished && domainStatus?.connected === false
-        ? "pending"
-        : "unknown";
-
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2.5">
         {subdomainHost ? (
           <LiveDomainRow
-            label="Free subdomain — always on, no setup needed"
+            kind="free"
             host={subdomainHost}
             statusLabel={isPublished ? "Live" : "Not live yet"}
             statusTone={isPublished ? "live" : "unknown"}
@@ -225,10 +245,29 @@ export function DomainsSection() {
         ) : null}
         {data?.custom_domain ? (
           <LiveDomainRow
-            label="Custom domain"
+            kind="custom"
             host={data.custom_domain}
-            statusLabel={customStatusLabel}
-            statusTone={customStatusTone}
+            statusLabel={
+              !isPublished
+                ? "Not live yet"
+                : checkingStatus
+                  ? "Checking…"
+                  : domainStatus?.connected === true
+                    ? "Connected"
+                    : domainStatus?.connected === false
+                      ? "DNS not detected yet"
+                      : "Unknown"
+            }
+            statusTone={
+              isPublished && domainStatus?.connected === true
+                ? "live"
+                : isPublished && domainStatus?.connected === false
+                  ? "pending"
+                  : "unknown"
+            }
+            connected={
+              isPublished ? domainStatus?.connected ?? null : false
+            }
             onRefresh={() => checkStatus(data.custom_domain!)}
             refreshing={checkingStatus}
           />

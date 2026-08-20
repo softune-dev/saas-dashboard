@@ -53,7 +53,7 @@ export function AnalyticsView() {
       <PageHeading
         title="Analytics"
         actions={
-          <>
+          <div className="flex w-full min-w-0 max-w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
             <DateRangePill value={range} onChange={setRange} />
             {data ? (
               <ExportMenu
@@ -62,7 +62,7 @@ export function AnalyticsView() {
                 periodLabel={`Last ${weeksFromRange(range)} weeks`}
               />
             ) : null}
-          </>
+          </div>
         }
       />
 
