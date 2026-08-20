@@ -66,6 +66,13 @@ body {
   box-shadow: none !important;
 }
 
+/* ── Scrollbars ───────────────────────────────────────────────────────────
+   Default: thin, low-contrast, hidden until hover / active scroll.
+   Touch (no hover): always show a subtle thumb so scroll is discoverable.
+   Opt-out: .scrollbar-none  |  Always-on thin: .scrollbar-thin
+   Opt-in JS reveal: .scrollbar-auto-hide.is-scrolling
+   ──────────────────────────────────────────────────────────────────────── */
+
 /* Hide scrollbars but keep scroll (editor tool rails, etc.) */
 .scrollbar-none {
   -ms-overflow-style: none;
@@ -75,13 +82,72 @@ body {
   display: none;
 }
 
-/* Thin, low-contrast scrollbar for dense panels (theme editor, drawers). */
+/* Global thin track for every scrollable surface. */
+*:not(.scrollbar-none) {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+*:not(.scrollbar-none)::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+*:not(.scrollbar-none)::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 4px;
+}
+*:not(.scrollbar-none)::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+*:not(.scrollbar-none)::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Pointer devices: reveal thumb while hovering the scroll container. */
+@media (hover: hover) and (pointer: fine) {
+  *:not(.scrollbar-none):hover {
+    scrollbar-color: rgb(203 213 225 / 0.9) transparent; /* slate-300 */
+  }
+  .dark *:not(.scrollbar-none):hover {
+    scrollbar-color: rgb(82 82 91 / 0.9) transparent; /* zinc-600 */
+  }
+  *:not(.scrollbar-none):hover::-webkit-scrollbar-thumb {
+    background-color: rgb(203 213 225 / 0.85);
+  }
+  .dark *:not(.scrollbar-none):hover::-webkit-scrollbar-thumb {
+    background-color: rgb(82 82 91 / 0.85);
+  }
+  *:not(.scrollbar-none):hover::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(148 163 184); /* slate-400 */
+  }
+  .dark *:not(.scrollbar-none):hover::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(113 113 122); /* zinc-500 */
+  }
+}
+
+/* Touch / coarse pointer: keep a quiet thumb visible when content overflows. */
+@media (hover: none), (pointer: coarse) {
+  *:not(.scrollbar-none) {
+    scrollbar-color: rgb(203 213 225 / 0.7) transparent;
+  }
+  .dark *:not(.scrollbar-none) {
+    scrollbar-color: rgb(82 82 91 / 0.7) transparent;
+  }
+  *:not(.scrollbar-none)::-webkit-scrollbar-thumb {
+    background-color: rgb(203 213 225 / 0.7);
+  }
+  .dark *:not(.scrollbar-none)::-webkit-scrollbar-thumb {
+    background-color: rgb(82 82 91 / 0.7);
+  }
+}
+
+/* Always-visible thin scrollbar for dense panels (theme editor, drawers). */
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgb(203 213 225 / 0.9) transparent; /* slate-300 */
+  scrollbar-color: rgb(203 213 225 / 0.9) transparent;
 }
 .dark .scrollbar-thin {
-  scrollbar-color: rgb(82 82 91 / 0.9) transparent; /* zinc-600 */
+  scrollbar-color: rgb(82 82 91 / 0.9) transparent;
 }
 .scrollbar-thin::-webkit-scrollbar {
   width: 5px;
@@ -99,37 +165,21 @@ body {
   background-color: rgb(82 82 91 / 0.85);
 }
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(148 163 184); /* slate-400 */
+  background-color: rgb(148 163 184);
 }
 .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(113 113 122); /* zinc-500 */
+  background-color: rgb(113 113 122);
 }
 .scrollbar-thin::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* Thin scrollbar that only appears while the element is being scrolled. */
-.scrollbar-auto-hide {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
+/* JS-driven reveal while actively scrolling (works without hover, e.g. trackpad). */
 .scrollbar-auto-hide.is-scrolling {
   scrollbar-color: rgb(203 213 225 / 0.9) transparent;
 }
 .dark .scrollbar-auto-hide.is-scrolling {
   scrollbar-color: rgb(82 82 91 / 0.9) transparent;
-}
-.scrollbar-auto-hide::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
-.scrollbar-auto-hide::-webkit-scrollbar-track {
-  background: transparent;
-  margin-block: 4px;
-}
-.scrollbar-auto-hide::-webkit-scrollbar-thumb {
-  background-color: transparent;
-  border-radius: 9999px;
 }
 .scrollbar-auto-hide.is-scrolling::-webkit-scrollbar-thumb {
   background-color: rgb(203 213 225 / 0.85);
@@ -142,7 +192,4 @@ body {
 }
 .dark .scrollbar-auto-hide.is-scrolling::-webkit-scrollbar-thumb:hover {
   background-color: rgb(113 113 122);
-}
-.scrollbar-auto-hide::-webkit-scrollbar-corner {
-  background: transparent;
 }

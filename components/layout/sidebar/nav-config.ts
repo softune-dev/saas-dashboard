@@ -6,10 +6,10 @@ export type NavItem = {
   tag?: string;
 };
 
-/** Own sidebar group (not under Menu). Hidden entirely when setup is complete. */
+/** Guided store setup wizard under Getting Started. */
 export const setupItem: NavItem = {
   label: "Setup",
-  href: "/getting-started",
+  href: "/onboarding",
   icon: "/sidebar/start.svg",
 };
 
@@ -49,9 +49,9 @@ export const logoutItem: NavItem = {
 /** Map a nav href to a stable data-tour id for the product tour. */
 export function tourIdForHref(href: string): string {
   if (href === "/") return "nav-dashboard";
-  if (href === "/getting-started") return "nav-setup";
+  if (href === "/onboarding") return "nav-setup";
   // Each settings route gets its own id (nav-settings-site, nav-settings-fraud,
-  // …) so the tour can call each one out individually instead of one combined
+  // etc.) so the tour can call each one out individually instead of one combined
   // step for the whole Settings section.
   return `nav-${href.replace(/^\//, "").replace(/\//g, "-")}`;
 }

@@ -2,12 +2,15 @@ export type ThemeStatus = "active" | "locked";
 
 export type ThemeCard = {
   id: string;
-  shopName: string;
-  productsCount: number;
-  categoriesCount: number;
   status: ThemeStatus;
   /** e.g. social media funnel label for locked cards */
   subtitle?: string;
+  /** Display name for a locked card — there's no real site to pull a real
+   * name from, unlike active cards (see ThemeCard's shopName). */
+  label?: string;
+  /** Static preview image for a locked card, under /public — active cards
+   * use the real site's live screenshot_url instead (see theme-card.tsx). */
+  imageSrc?: string;
   /**
    * Which storefront project this card's editor drives. Used to pick the
    * right preview server and to namespace this site's draft/published
@@ -16,21 +19,17 @@ export type ThemeCard = {
   previewUrl?: string;
 };
 
-/** One card per storefront template project. */
+/** Static per-template metadata only — shop name and product/category
+ * counts are real, per-tenant data and are fetched live in ThemesGrid/
+ * ThemeCard instead of living here. */
 export const themes: ThemeCard[] = [
   {
     id: "aurora",
-    shopName: "Aurora — Ananya Lifestyle",
-    productsCount: 6,
-    categoriesCount: 5,
     status: "active",
     previewUrl: "https://saas-theme1.vercel.app",
   },
   {
     id: "sweets",
-    shopName: "Mishthan — মিষ্টিঘর",
-    productsCount: 0,
-    categoriesCount: 0,
     status: "active",
     // Not deployed yet — still points at the local dev server. Update once
     // Sweets has a real Vercel project like Aurora/Bazaar above.
@@ -38,11 +37,15 @@ export const themes: ThemeCard[] = [
   },
   {
     id: "bazaar",
-    shopName: "Bazaar — Multi-category marketplace",
-    productsCount: 12,
-    categoriesCount: 10,
     status: "active",
     previewUrl: "https://saas-theme2.vercel.app",
+  },
+  {
+    id: "funnels",
+    status: "locked",
+    label: "Add Funnels",
+    subtitle: "Social media funnel only",
+    imageSrc: "/others/theme_aurora.jpg",
   },
 ];
 

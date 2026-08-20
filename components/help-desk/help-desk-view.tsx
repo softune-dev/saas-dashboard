@@ -1,5 +1,4 @@
 import { PageHeading } from "@/components/ui/page-heading";
-import { HelpChat } from "./help-chat";
 import { HelpStats } from "./help-stats";
 import { HelpTopics } from "./help-topics";
 import { NewTicketForm } from "./new-ticket-form";
@@ -18,9 +17,6 @@ export function HelpDeskView() {
       </div>
 
       <TicketsTable />
-
-      {/* Opens only from the floating bubble */}
-      <HelpChat />
     </div>
   );
 }

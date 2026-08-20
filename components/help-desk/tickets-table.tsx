@@ -2,79 +2,96 @@
 
 import { Eye, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { DataTable, type TableColumn } from "@/components/ui/table";
+import { DataTable, TableSkeleton, type TableColumn } from "@/components/ui/table";
 import { MaskIcon } from "@/components/ui/mask-icon";
-import { tickets, type HelpTicket } from "./help-data";
+import { useHelpTicketsSWR, type HelpTicketOut } from "@/lib/api/help-desk";
+import { formatDisplayDate } from "@/lib/format";
+import { TicketDetailModal } from "./ticket-detail-modal";
 import {
   TicketPriorityBadge,
   TicketStatusBadge,
 } from "./ticket-status-badge";
 
-const columns: TableColumn<HelpTicket>[] = [
-  {
-    id: "ticketId",
-    header: "Ticket",
-    cell: (row) => (
-      <span className="font-semibold text-foreground">{row.ticketId}</span>
-    ),
-  },
-  {
-    id: "subject",
-    header: "Subject",
-    cell: (row) => (
-      <div className="min-w-0">
-        <p className="truncate font-medium text-foreground">{row.subject}</p>
-        <p className="truncate text-xs text-muted">{row.category}</p>
-      </div>
-    ),
-  },
-  {
-    id: "priority",
-    header: "Priority",
-    cell: (row) => <TicketPriorityBadge priority={row.priority} />,
-  },
-  {
-    id: "status",
-    header: "Status",
-    cell: (row) => <TicketStatusBadge status={row.status} />,
-  },
-  {
-    id: "updatedAt",
-    header: "Updated",
-    cell: (row) => <span className="text-muted">{row.updatedAt}</span>,
-  },
-  {
-    id: "actions",
-    header: "View",
-    headerClassName: "text-right",
-    className: "text-right",
-    cell: (row) => (
-      <button
-        type="button"
-        aria-label={`View ${row.ticketId}`}
-        className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
-      >
-        <Eye className="size-3.5" strokeWidth={1.75} />
-      </button>
-    ),
-  },
-];
+function shortId(id: string): string {
+  return `#${id.slice(0, 8).toUpperCase()}`;
+}
+
+function buildColumns(onView: (row: HelpTicketOut) => void): TableColumn<HelpTicketOut>[] {
+  return [
+    {
+      id: "ticketId",
+      header: "Ticket",
+      cell: (row) => (
+        <span className="font-semibold text-foreground">{shortId(row.id)}</span>
+      ),
+    },
+    {
+      id: "subject",
+      header: "Subject",
+      cell: (row) => (
+        <div className="min-w-0">
+          <p className="truncate font-medium text-foreground">{row.subject}</p>
+          <p className="truncate text-xs text-muted">{row.category}</p>
+        </div>
+      ),
+    },
+    {
+      id: "priority",
+      header: "Priority",
+      cell: (row) => <TicketPriorityBadge priority={row.priority} />,
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: (row) => <TicketStatusBadge status={row.status} />,
+    },
+    {
+      id: "updatedAt",
+      header: "Updated",
+      cell: (row) => (
+        <span className="text-muted">
+          {formatDisplayDate(new Date(row.updated_at))}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: "View",
+      headerClassName: "text-right",
+      className: "text-right",
+      cell: (row) => (
+        <button
+          type="button"
+          onClick={() => onView(row)}
+          aria-label={`View ${shortId(row.id)}`}
+          className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
+        >
+          <Eye className="size-3.5" strokeWidth={1.75} />
+        </button>
+      ),
+    },
+  ];
+}
 
 export function TicketsTable() {
+  const { data, isLoading } = useHelpTicketsSWR();
   const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<HelpTicketOut | null>(null);
+
+  const tickets = data?.items ?? [];
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return tickets;
     return tickets.filter(
       (t) =>
-        t.ticketId.toLowerCase().includes(q) ||
+        shortId(t.id).toLowerCase().includes(q) ||
         t.subject.toLowerCase().includes(q) ||
         t.category.toLowerCase().includes(q) ||
         t.status.toLowerCase().includes(q) ||
         t.priority.toLowerCase().includes(q),
     );
-  }, [query]);
+  }, [query, tickets]);
 
   return (
     <section className="rounded-md bg-surface p-4 sm:p-5">
@@ -107,13 +124,19 @@ export function TicketsTable() {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filtered}
-        rowKey={(row) => row.id}
-        pageSize={5}
-        emptyMessage="No tickets match your search"
-      />
+      {isLoading ? (
+        <TableSkeleton columns={6} />
+      ) : (
+        <DataTable
+          columns={buildColumns(setSelected)}
+          data={filtered}
+          rowKey={(row) => row.id}
+          pageSize={5}
+          emptyMessage="No tickets yet — submit one above and it'll show up here."
+        />
+      )}
+
+      <TicketDetailModal ticket={selected} onClose={() => setSelected(null)} />
     </section>
   );
 }

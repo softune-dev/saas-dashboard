@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listOwnedTemplateKeys } from "@/lib/api";
+import { listOwnedTemplateKeys, listTemplates, type SiteOut } from "@/lib/api";
 import { useSession } from "@/components/providers/session-provider";
-import { ThemeAddCard } from "./theme-add-card";
 import { ThemeCard } from "./theme-card";
 import { themes } from "./themes-data";
 
@@ -21,7 +20,7 @@ function ThemeCardSkeleton() {
         </div>
       </div>
       <div
-        className="aspect-[16/11] w-full animate-pulse bg-search-bg"
+        className="aspect-[375/460] w-full animate-pulse bg-search-bg"
         style={{
           borderRadius: "0.5rem 0.5rem 1.25rem 1.25rem",
         }}
@@ -40,7 +39,7 @@ function ThemeCardSkeleton() {
 function ThemesGridSkeleton() {
   return (
     <div
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
       role="status"
       aria-label="Loading themes"
     >
@@ -69,13 +68,24 @@ function ThemesGridSkeleton() {
 export function ThemesGrid() {
   const { sites, loading: sessionLoading } = useSession();
   const [ownedKeys, setOwnedKeys] = useState<Set<string> | null>(null);
+  // template key -> the real site that uses it, so cards can show the
+  // tenant's actual shop name instead of the catalog's fictional one.
+  const [siteByKey, setSiteByKey] = useState<Map<string, SiteOut>>(new Map());
 
   useEffect(() => {
     if (sessionLoading) return;
     let cancelled = false;
-    listOwnedTemplateKeys(sites)
-      .then((keys) => {
-        if (!cancelled) setOwnedKeys(keys);
+    Promise.all([listOwnedTemplateKeys(sites), listTemplates()])
+      .then(([keys, templates]) => {
+        if (cancelled) return;
+        setOwnedKeys(keys);
+        const byTemplateId = new Map(templates.map((t) => [t.id, t.key]));
+        const map = new Map<string, SiteOut>();
+        for (const site of sites) {
+          const key = byTemplateId.get(site.template_id);
+          if (key) map.set(key, site);
+        }
+        setSiteByKey(map);
       })
       .catch(() => {
         if (!cancelled) setOwnedKeys(new Set());
@@ -91,14 +101,19 @@ export function ThemesGrid() {
     return <ThemesGridSkeleton />;
   }
 
-  const ownedThemes = themes.filter((theme) => ownedKeys.has(theme.id));
+  // Locked cards (e.g. "Add Funnels") aren't tied to a real owned site —
+  // they're an upsell placeholder, so they always show regardless of
+  // ownership, unlike active cards which are filtered to what this tenant
+  // actually has a site for.
+  const ownedThemes = themes.filter(
+    (theme) => theme.status === "locked" || ownedKeys.has(theme.id),
+  );
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
       {ownedThemes.map((theme) => (
-        <ThemeCard key={theme.id} theme={theme} />
+        <ThemeCard key={theme.id} theme={theme} site={siteByKey.get(theme.id) ?? null} />
       ))}
-      <ThemeAddCard />
     </div>
   );
 }

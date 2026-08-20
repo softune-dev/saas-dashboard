@@ -1,4 +1,4 @@
-import type { TicketPriority, TicketStatus } from "./help-data";
+import type { TicketPriority, TicketStatus } from "@/lib/api/help-desk";
 
 const statusStyles: Record<TicketStatus, string> = {
   Open: "bg-blue-500/10 text-blue-600",

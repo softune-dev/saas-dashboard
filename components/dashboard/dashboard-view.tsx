@@ -7,10 +7,10 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { TableSkeleton } from "@/components/ui/table";
 import { useCategoriesSWR, useOrdersSWR, useProductsSWR } from "@/lib/api/commerce";
 import { formatTaka } from "@/lib/format";
+import { customerKey } from "@/lib/order-customer";
 import {
   bucketByCalendarMonth,
   bucketRevenueByMonth,
-  countAsOfEndOfLastMonth,
   monthOverMonth,
 } from "@/lib/trends";
 import { RecentOrders } from "./recent-orders/recent-orders";
@@ -53,15 +53,6 @@ export function DashboardView() {
   const cats = categories ?? [];
   const revenueCents = orders.reduce((sum, o) => sum + o.total_cents, 0);
 
-  const productsTrend = monthOverMonth(
-    productPage?.total ?? 0,
-    countAsOfEndOfLastMonth(products),
-  );
-  const categoriesTrend = monthOverMonth(
-    cats.length,
-    countAsOfEndOfLastMonth(cats),
-  );
-
   const { thisMonth, lastMonth } = bucketByCalendarMonth(orders);
   const ordersTrend = monthOverMonth(thisMonth.length, lastMonth.length);
   const revenueTrend = monthOverMonth(
@@ -70,30 +61,37 @@ export function DashboardView() {
     (cents) => formatTaka(cents / 100),
   );
 
+  // No Customer table — same derivation as the Customers page (dedupe by
+  // email, then phone, then a per-order fallback) so the two counts agree.
+  // Pending count and customer count are both computed off this page's
+  // fetched orders (capped at 500, see useOrdersSWR above), not a true
+  // database aggregate — same known limitation as the 6-month sales chart
+  // until a store has more than 500 orders.
+  const customerCount = new Set(
+    orders.map((o) => customerKey(o.customer, o.id)),
+  ).size;
+  const pendingCount = orders.filter((o) => o.status === "pending").length;
+
   const stats: StatCardData[] = ordersPage
     ? [
-        {
-          id: "products",
-          title: "Total Products",
-          value: String(productPage?.total ?? 0),
-          icon: "/sidebar/products.svg",
-          className: "hidden xl:flex",
-          ...productsTrend,
-        },
-        {
-          id: "categories",
-          title: "Categories",
-          value: String(cats.length),
-          icon: "/sidebar/categories.svg",
-          className: "hidden xl:flex",
-          ...categoriesTrend,
-        },
         {
           id: "orders",
           title: "Total Orders",
           value: String(ordersPage.total),
           icon: "/sidebar/orders.svg",
           ...ordersTrend,
+        },
+        {
+          id: "pending-orders",
+          title: "Pending Orders",
+          value: String(pendingCount),
+          icon: "/sidebar/orders.svg",
+        },
+        {
+          id: "customers",
+          title: "Total Customers",
+          value: String(customerCount),
+          icon: "/sidebar/customers.svg",
         },
         {
           id: "revenue",

@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { TourProvider } from "@/components/tour";
+import { useAutoHideScrollbar } from "@/lib/hooks/use-auto-hide-scrollbar";
 import { Header } from "./header/header";
 import { MobileSidebar } from "./sidebar/mobile-sidebar";
 import { Sidebar } from "./sidebar/sidebar";
@@ -13,13 +14,15 @@ type DashboardShellProps = {
 
 /**
  * Dashboard chrome: floating white header + sidebar over #EAEAEA.
- * Theme editor routes hide the main sidebar (editor has its own toolbar).
- * Below md the docked sidebar becomes a hamburger drawer.
+ * Theme editor hides the main sidebar (editor has its own toolbar).
+ * Onboarding keeps the real sidebar so Getting Started / Onboarding stay reachable.
  */
 export function DashboardShell({ children }: DashboardShellProps) {
   const pathname = usePathname();
   const isThemeEditor = pathname.startsWith("/themes/editor");
+  const isOnboarding = pathname.startsWith("/onboarding");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mainScroll = useAutoHideScrollbar();
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -44,10 +47,16 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </>
           ) : null}
           <main
+            onScroll={isThemeEditor || isOnboarding ? undefined : mainScroll.onScroll}
             className={[
               "min-w-0 flex-1",
-              isThemeEditor ? "overflow-hidden" : "overflow-auto",
-            ].join(" ")}
+              isThemeEditor || isOnboarding
+                ? "overflow-hidden"
+                : "scrollbar-auto-hide overflow-auto",
+              mainScroll.className,
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {children}
           </main>

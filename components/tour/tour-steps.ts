@@ -28,8 +28,8 @@ export const PRE_EDITOR_STEPS: TourStep[] = [
   {
     id: "setup",
     selector: '[data-tour="nav-setup"]',
-    title: "Setup checklist",
-    body: "Getting Started walks you through the launch checklist — products, payments, courier, and publishing — so you always know what’s left before going live.",
+    title: "Setup",
+    body: "Setup walks you through launching your store: branding, catalog, courier, payments, and publish.",
     placement: "right",
   },
   {

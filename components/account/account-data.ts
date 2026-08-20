@@ -33,15 +33,6 @@ export const defaultProfile: AccountProfile = {
   timezone: "Asia/Dhaka (GMT+6)",
 };
 
-export const defaultBusinessProfile: BusinessProfile = {
-  legalName: "Modhu Bon Enterprise",
-  tradeName: "Modhu Bon",
-  businessType: "online",
-  tradeLicense: "",
-  tin: "",
-  billingEmail: "billing@modhubon.com",
-};
-
 export const businessTypeOptions = [
   { value: "retail", label: "Retail store" },
   { value: "online", label: "Online only" },

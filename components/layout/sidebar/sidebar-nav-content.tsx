@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { clearToken } from "@/lib/api";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useSession } from "@/components/providers/session-provider";
-import { useGettingStartedProgress } from "@/components/getting-started";
+import { useOnboardingSidebarProgress } from "@/components/onboarding/use-onboarding-sidebar-progress";
 import { useTour } from "@/components/tour";
 import { useNotificationsSWR } from "@/lib/api/notifications";
+import { useAutoHideScrollbar } from "@/lib/hooks/use-auto-hide-scrollbar";
 import {
   logoutItem,
   menuItems,
@@ -41,8 +42,7 @@ export function SidebarNavContent({
 }: SidebarNavContentProps) {
   const pathname = usePathname();
   const [logoutOpen, setLogoutOpen] = useState(false);
-  const [scrolling, setScrolling] = useState(false);
-  const scrollHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const navScroll = useAutoHideScrollbar();
   const { currentSite } = useSession();
   const siteId = currentSite?.id ?? null;
   const { startTour } = useTour();
@@ -51,43 +51,35 @@ export function SidebarNavContent({
   const unreadOrderCount = notifications.filter(
     (n) => n.type === "order_created" && !n.read_at,
   ).length;
-  const { badgeLabel: setupBadge, allDone: setupComplete } =
-    useGettingStartedProgress();
-
-  useEffect(() => {
-    return () => {
-      if (scrollHideTimer.current) clearTimeout(scrollHideTimer.current);
-    };
-  }, []);
-
-  function handleNavScroll() {
-    setScrolling(true);
-    if (scrollHideTimer.current) clearTimeout(scrollHideTimer.current);
-    scrollHideTimer.current = setTimeout(() => setScrolling(false), 700);
-  }
+  const { badgeLabel: setupBadge } = useOnboardingSidebarProgress();
+  const showSetup = currentSite ? currentSite.status !== "published" : true;
 
   return (
     <>
       {headerExtras}
 
       <div
-        onScroll={handleNavScroll}
+        onScroll={navScroll.onScroll}
         className={[
           "scrollbar-auto-hide flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-3",
-          scrolling ? "is-scrolling" : "",
-        ].join(" ")}
+          navScroll.className,
+        ]
+          .filter(Boolean)
+          .join(" ")}
       >
-        {/* Temporarily always shown — re-hide with !setupComplete when ready. */}
-        <div data-tour="nav-setup">
-          <SidebarSection title="Getting Started">
-            <SidebarNavItem
-              item={setupItem}
-              active={isActivePath(pathname, setupItem.href)}
-              badgeLabel={setupComplete ? "Done" : setupBadge}
-              onNavigate={onNavigate}
-            />
-          </SidebarSection>
-        </div>
+        {showSetup ? (
+          <div data-tour="nav-setup">
+            <SidebarSection title="Getting Started">
+              <SidebarNavItem
+                item={setupItem}
+                active={isActivePath(pathname, setupItem.href)}
+                badgeLabel={setupBadge}
+                tourId={tourIdForHref(setupItem.href)}
+                onNavigate={onNavigate}
+              />
+            </SidebarSection>
+          </div>
+        ) : null}
 
         <SidebarSection title="Menu">
           {menuItems.map((item) => (

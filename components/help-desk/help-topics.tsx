@@ -2,6 +2,9 @@ import { ChevronRight } from "lucide-react";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { helpTopics } from "./help-data";
 
+const LANDING_URL =
+  process.env.NEXT_PUBLIC_LANDING_URL || "http://localhost:3060";
+
 export function HelpTopics() {
   return (
     <section className="flex h-full flex-col rounded-md bg-surface p-4 sm:p-5">
@@ -13,8 +16,10 @@ export function HelpTopics() {
       <ul className="grid flex-1 grid-cols-1 gap-2.5 content-stretch sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
         {helpTopics.map((topic) => (
           <li key={topic.id} className="flex min-h-[5.5rem]">
-            <button
-              type="button"
+            <a
+              href={`${LANDING_URL}/support/documentation/${topic.docSlug}`}
+              target="_blank"
+              rel="noreferrer"
               className="group flex w-full items-center gap-3 rounded-xl bg-search-bg px-3.5 py-3.5 text-left transition-colors hover:bg-primary/5"
             >
               <div className="flex min-w-0 flex-1 flex-col items-start gap-2.5">
@@ -35,7 +40,7 @@ export function HelpTopics() {
                 className="size-5 shrink-0 self-center text-muted-soft transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
                 strokeWidth={1.75}
               />
-            </button>
+            </a>
           </li>
         ))}
       </ul>

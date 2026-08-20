@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { SWRConfig } from "swr";
 import { AuthGate } from "@/components/auth/auth-gate";
+import { OnboardingGuard } from "@/components/onboarding/onboarding-guard";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
@@ -39,7 +40,9 @@ export function Providers({ children }: { children: ReactNode }) {
       >
         <ToastProvider>
           <AuthGate>
-            <SessionProvider>{children}</SessionProvider>
+            <SessionProvider>
+              <OnboardingGuard>{children}</OnboardingGuard>
+            </SessionProvider>
           </AuthGate>
         </ToastProvider>
       </SWRConfig>

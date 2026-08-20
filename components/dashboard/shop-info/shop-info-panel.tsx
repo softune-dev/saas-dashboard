@@ -88,9 +88,6 @@ function CountTile({
           <span className="text-xs text-muted">{label}</span>
         </span>
       </span>
-      <span className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-primary text-white sm:inline-flex">
-        <ArrowUpRight className="size-4" strokeWidth={2} aria-hidden />
-      </span>
     </Link>
   );
 }
@@ -286,7 +283,7 @@ export function ShopInfoPanel({
             {media ? formatBytes(usedBytes) : "—"}
           </p>
           <p className="text-xs text-muted">
-            of {formatBytes(limitBytes)} media storage
+            of {formatBytes(limitBytes)} storage
           </p>
         </div>
         <Link
@@ -311,11 +308,6 @@ export function ShopInfoPanel({
                 <span className="text-sm font-medium text-foreground">
                   Add product
                 </span>
-                <ArrowUpRight
-                  className="hidden size-4 shrink-0 text-muted sm:block"
-                  strokeWidth={2}
-                  aria-hidden
-                />
               </span>
             </Link>
             <Link
@@ -329,11 +321,6 @@ export function ShopInfoPanel({
                 <span className="text-sm font-medium text-foreground">
                   Add category
                 </span>
-                <ArrowUpRight
-                  className="hidden size-4 shrink-0 text-muted sm:block"
-                  strokeWidth={2}
-                  aria-hidden
-                />
               </span>
             </Link>
           </>

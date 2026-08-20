@@ -1,25 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { updateTenantBusiness } from "@/lib/api";
+import { useSession } from "@/components/providers/session-provider";
 import { SettingsActions } from "@/components/settings/site/ui/settings-actions";
 import {
   SettingsInput,
   SettingsSelect,
 } from "@/components/settings/site/ui/settings-field";
-import {
-  businessTypeOptions,
-  defaultBusinessProfile,
-} from "./account-data";
+import { SettingsRowSkeleton } from "@/components/settings/site/ui/settings-skeleton";
+import { useToast } from "@/components/ui/toast";
+import { businessTypeOptions } from "./account-data";
 
 /**
- * Legal / business identity for the account owner.
- * Not shown as storefront contact — that lives in Site settings → Contact.
+ * Legal / tax identity for the account (billing & invoicing) — not shown as
+ * storefront contact, that lives in Site settings -> Contact.
  */
 export function AccountBusinessForm() {
-  const [form, setForm] = useState(defaultBusinessProfile);
+  const { me, loading, refetch } = useSession();
+  const { toast } = useToast();
+  const [legalName, setLegalName] = useState("");
+  const [tradeName, setTradeName] = useState("");
+  const [businessType, setBusinessType] = useState("");
+  const [tradeLicense, setTradeLicense] = useState("");
+  const [tin, setTin] = useState("");
+  const [billingEmail, setBillingEmail] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  function setField<K extends keyof typeof form>(key: K, value: string) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  useEffect(() => {
+    const business = me?.tenant.business;
+    setLegalName(business?.legal_name ?? "");
+    setTradeName(business?.trade_name ?? "");
+    setBusinessType(business?.business_type ?? "");
+    setTradeLicense(business?.trade_license ?? "");
+    setTin(business?.tin ?? "");
+    setBillingEmail(business?.billing_email ?? "");
+  }, [me?.tenant.business]);
+
+  if (loading) {
+    return (
+      <section className="rounded-md bg-surface p-4 sm:p-5">
+        <h2 className="mb-5 text-base font-semibold text-foreground">
+          Business details
+        </h2>
+        <SettingsRowSkeleton />
+      </section>
+    );
+  }
+
+  async function handleSave() {
+    if (!me || busy) return;
+    setBusy(true);
+    try {
+      await updateTenantBusiness({
+        legal_name: legalName.trim(),
+        trade_name: tradeName.trim(),
+        business_type: businessType,
+        trade_license: tradeLicense.trim(),
+        tin: tin.trim(),
+        billing_email: billingEmail.trim(),
+      });
+      refetch();
+      toast({ title: "Business details updated", variant: "success" });
+    } catch (err) {
+      toast({
+        title: "Couldn't update business details",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "info",
+      });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -33,41 +84,50 @@ export function AccountBusinessForm() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SettingsInput
           label="Legal business name"
-          value={form.legalName}
-          onChange={(e) => setField("legalName", e.target.value)}
+          value={legalName}
+          onChange={(e) => setLegalName(e.target.value)}
+          disabled={!me}
         />
         <SettingsInput
           label="Trade / brand name"
-          value={form.tradeName}
-          onChange={(e) => setField("tradeName", e.target.value)}
+          value={tradeName}
+          onChange={(e) => setTradeName(e.target.value)}
+          disabled={!me}
         />
         <SettingsSelect
           label="Business type"
-          value={form.businessType}
+          value={businessType}
           options={businessTypeOptions}
-          onChange={(e) => setField("businessType", e.target.value)}
+          onChange={(e) => setBusinessType(e.target.value)}
+          disabled={!me}
         />
         <SettingsInput
           label="Trade license no."
-          value={form.tradeLicense}
-          onChange={(e) => setField("tradeLicense", e.target.value)}
+          value={tradeLicense}
+          onChange={(e) => setTradeLicense(e.target.value)}
           placeholder="Optional"
+          disabled={!me}
         />
         <SettingsInput
           label="TIN / VAT"
-          value={form.tin}
-          onChange={(e) => setField("tin", e.target.value)}
+          value={tin}
+          onChange={(e) => setTin(e.target.value)}
           placeholder="Optional"
+          disabled={!me}
         />
         <SettingsInput
           label="Billing email"
           type="email"
-          value={form.billingEmail}
-          onChange={(e) => setField("billingEmail", e.target.value)}
+          value={billingEmail}
+          onChange={(e) => setBillingEmail(e.target.value)}
+          disabled={!me}
         />
       </div>
 
-      <SettingsActions saveLabel="Save business details" />
+      <SettingsActions
+        saveLabel={busy ? "Saving…" : "Save business details"}
+        onSave={handleSave}
+      />
     </section>
   );
 }

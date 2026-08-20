@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSWRConfig } from "swr";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -8,22 +9,25 @@ import {
   SettingsSelect,
   SettingsTextarea,
 } from "@/components/settings/site/ui/settings-field";
+import { createHelpTicket, type TicketPriority } from "@/lib/api/help-desk";
 import { priorityOptions, ticketCategories } from "./help-data";
 
 export function NewTicketForm() {
   const { toast } = useToast();
+  const { mutate } = useSWRConfig();
   const [form, setForm] = useState({
     subject: "",
     category: "Technical",
-    priority: "Medium",
+    priority: "Medium" as TicketPriority,
     message: "",
   });
+  const [busy, setBusy] = useState(false);
 
   function setField<K extends keyof typeof form>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function submit() {
+  async function submit() {
     if (!form.subject.trim() || !form.message.trim()) {
       toast({
         title: "Missing details",
@@ -32,19 +36,30 @@ export function NewTicketForm() {
       });
       return;
     }
-
-    toast({
-      title: "Ticket submitted",
-      description: "We'll reply by email when there's an update.",
-      variant: "success",
-    });
-
-    setForm({
-      subject: "",
-      category: "Technical",
-      priority: "Medium",
-      message: "",
-    });
+    setBusy(true);
+    try {
+      await createHelpTicket({
+        subject: form.subject.trim(),
+        category: form.category,
+        priority: form.priority,
+        message: form.message.trim(),
+      });
+      await mutate("help-tickets");
+      toast({
+        title: "Ticket submitted",
+        description: "We'll reply by email when there's an update.",
+        variant: "success",
+      });
+      setForm({ subject: "", category: "Technical", priority: "Medium", message: "" });
+    } catch (err) {
+      toast({
+        title: "Couldn't submit ticket",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "error",
+      });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -90,8 +105,8 @@ export function NewTicketForm() {
         </div>
 
         <div className="mt-auto flex justify-end pt-1">
-          <PrimaryButton type="button" onClick={submit}>
-            Submit ticket
+          <PrimaryButton type="button" onClick={submit} disabled={busy}>
+            {busy ? "Submitting…" : "Submit ticket"}
           </PrimaryButton>
         </div>
       </div>

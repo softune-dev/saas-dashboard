@@ -23,8 +23,18 @@ export function SalesSection({
   categoryImages = [],
 }: SalesSectionProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-      {/* Sales Analysis */}
+    <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+      {/* Shop info — left on xl */}
+      <section className="hidden rounded-md bg-surface p-4 sm:p-5 xl:block">
+        <ShopInfoPanel
+          productsCount={productsCount}
+          categoriesCount={categoriesCount}
+          productImages={productImages}
+          categoryImages={categoryImages}
+        />
+      </section>
+
+      {/* Sales Analysis — right on xl */}
       <section className="rounded-md bg-surface p-4 sm:p-5">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-foreground">
@@ -42,16 +52,6 @@ export function SalesSection({
             </p>
           </div>
         )}
-      </section>
-
-      {/* Shop info */}
-      <section className="hidden rounded-md bg-surface p-4 sm:p-5 xl:block">
-        <ShopInfoPanel
-          productsCount={productsCount}
-          categoriesCount={categoriesCount}
-          productImages={productImages}
-          categoryImages={categoryImages}
-        />
       </section>
     </div>
   );

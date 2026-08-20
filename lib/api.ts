@@ -8,6 +8,11 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const TOKEN_KEY = "softune.auth.token";
 const REFRESH_TOKEN_KEY = "softune.auth.refreshToken";
+// Which Web Storage the tokens actually live in — itself always in
+// localStorage (just a one-byte flag, nothing sensitive) so a page reload
+// or a token refresh later knows where to read/write without the caller
+// having to pass `remember` through every call site again.
+const PERSIST_KEY = "softune.auth.persist";
 
 /** Fired when both the access token AND a refresh attempt have failed —
  * AuthGate listens for this to drop back to the login screen. Plain
@@ -15,24 +20,43 @@ const REFRESH_TOKEN_KEY = "softune.auth.refreshToken";
  * a same-tab session expiry needs its own signal. */
 export const AUTH_EXPIRED_EVENT = "softune-auth-expired";
 
+/** "Remember me" unchecked -> sessionStorage, so the token disappears the
+ * moment the tab/browser closes instead of surviving indefinitely. Checked
+ * (the default) -> localStorage, same as before. */
+function activeStorage(): Storage {
+  const persist = localStorage.getItem(PERSIST_KEY) !== "0";
+  return persist ? localStorage : sessionStorage;
+}
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return activeStorage().getItem(TOKEN_KEY);
 }
 
 function getRefreshToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+  return activeStorage().getItem(REFRESH_TOKEN_KEY);
 }
 
-function setTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem(TOKEN_KEY, accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+function setTokens(accessToken: string, refreshToken: string, remember?: boolean) {
+  // remember is only ever passed on the initial login() call — a later
+  // silent refresh (see refreshAccessToken below) omits it and just keeps
+  // writing to whichever storage was already chosen, so a session-only
+  // login never silently gets promoted to "remembered" on its first refresh.
+  if (remember !== undefined) {
+    localStorage.setItem(PERSIST_KEY, remember ? "1" : "0");
+  }
+  const storage = activeStorage();
+  storage.setItem(TOKEN_KEY, accessToken);
+  storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 }
 
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(PERSIST_KEY);
 }
 
 /** Every list endpoint that supports pagination returns this exact envelope
@@ -101,12 +125,16 @@ export async function request<T>(
   return res.json() as Promise<T>;
 }
 
-export async function login(email: string, password: string): Promise<void> {
+export async function login(
+  email: string,
+  password: string,
+  remember: boolean = true,
+): Promise<void> {
   const data = await request<TokenPair>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
-  setTokens(data.access_token, data.refresh_token);
+  setTokens(data.access_token, data.refresh_token, remember);
 }
 
 export type UserOut = {
@@ -121,12 +149,22 @@ export type UserOut = {
   created_at: string;
 };
 
+export type TenantBusiness = {
+  legal_name: string | null;
+  trade_name: string | null;
+  business_type: string | null;
+  trade_license: string | null;
+  tin: string | null;
+  billing_email: string | null;
+};
+
 export type TenantOut = {
   id: string;
   slug: string;
   name: string;
   plan: string;
   status: string;
+  business: TenantBusiness;
   created_at: string;
 };
 
@@ -148,6 +186,22 @@ export async function updateMe(data: {
   avatar_url?: string;
 }): Promise<MeOut> {
   return request<MeOut>("/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/** PATCH /auth/tenant — legal/tax identity (Account -> Business details).
+ * Distinct from Site Settings' business (customer-facing storefront contact). */
+export async function updateTenantBusiness(data: {
+  legal_name?: string;
+  trade_name?: string;
+  business_type?: string;
+  trade_license?: string;
+  tin?: string;
+  billing_email?: string;
+}): Promise<TenantOut> {
+  return request<TenantOut>("/auth/tenant", {
     method: "PATCH",
     body: JSON.stringify(data),
   });
@@ -191,6 +245,9 @@ export type SiteOut = {
   theme: Record<string, unknown>;
   /** Contact/business JSONB — may include logo_url when set in Site Settings. */
   business?: Record<string, unknown>;
+  /** Mobile-viewport screenshot captured by the worker after each publish
+   * (see app/screenshot.py) — null until the first publish's job completes. */
+  screenshot_url?: string | null;
 };
 
 /** Prefer theme brand image, then business.logo_url. Empty/missing → null
