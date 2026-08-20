@@ -1,5 +1,6 @@
 "use client";
 
+import { Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { useSession } from "@/components/providers/session-provider";
@@ -7,13 +8,14 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { useToast } from "@/components/ui/toast";
 import {
-  cleanupSiteMedia,
   deleteSiteMedia,
   listAllSiteMedia,
+  uploadSiteMedia,
   type MediaCategory,
   type MediaImage,
 } from "@/lib/api";
 import { formatBytes, formatNumber } from "@/lib/format";
+import { UploadMediaModal } from "./upload-media-modal";
 
 const CATEGORY_LABELS: Record<MediaCategory, string> = {
   hero: "Hero",
@@ -49,7 +51,7 @@ export function MediaSection() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pendingDelete, setPendingDelete] = useState<MediaImage[] | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [cleaning, setCleaning] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const images = useMemo(() => {
     const all = data?.images ?? [];
@@ -105,33 +107,48 @@ export function MediaSection() {
     }
   }
 
-  async function handleCleanup() {
+  /** Uploads standalone, ahead of use in any product/category form — the
+   * point is stocking the library so MediaSourceMenu's "Choose from Media"
+   * has real options later, not attaching to anything right now. Sequential,
+   * not Promise.all: a plan-storage-limit rejection partway through should
+   * stop cleanly (see app/api/media.py's _assert_storage_available) instead
+   * of firing every remaining request in parallel against an already-full
+   * quota. */
+  async function handleUpload(files: File[], category: MediaCategory) {
     if (!siteId) return;
-    setCleaning(true);
-    try {
-      const result = await cleanupSiteMedia(siteId);
-      await mutate();
+    let uploaded = 0;
+    let firstError: string | null = null;
+    for (const file of files) {
+      try {
+        await uploadSiteMedia(siteId, file, category);
+        uploaded += 1;
+      } catch (err) {
+        firstError = err instanceof Error ? err.message : "Something went wrong.";
+        break;
+      }
+    }
+    await mutate();
+    if (uploaded > 0) {
       toast({
-        title:
-          result.deleted > 0
-            ? `Removed ${result.deleted} unused image${result.deleted === 1 ? "" : "s"}`
-            : "No unused images found",
-        description: `Checked ${result.checked} uploaded file${result.checked === 1 ? "" : "s"}.`,
+        title: uploaded === 1 ? "Image uploaded" : `${uploaded} images uploaded`,
         variant: "success",
       });
-    } catch (err) {
+    }
+    if (firstError) {
       toast({
-        title: "Couldn't run cleanup",
-        description: err instanceof Error ? err.message : "Something went wrong.",
+        title: uploaded > 0 ? "Stopped before finishing" : "Upload failed",
+        description: firstError,
         variant: "info",
       });
-    } finally {
-      setCleaning(false);
     }
   }
 
   const selectedImages = images.filter((img) => selected.has(img.public_id));
   const anyInUse = (pendingDelete ?? []).some((img) => img.in_use);
+  const storagePct =
+    data && data.limit_bytes > 0
+      ? Math.min(1, Math.max(0, data.total_bytes / data.limit_bytes))
+      : 0;
 
   if (isLoading) {
     return (
@@ -148,8 +165,13 @@ export function MediaSection() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatTile label="Images" value={formatNumber(data?.total_count ?? 0)} />
-        <StatTile label="Storage used" value={formatBytes(data?.total_bytes ?? 0)} />
-        {(["hero", "products"] as MediaCategory[]).map((cat) => (
+        <StorageStatTile
+          usedBytes={data?.total_bytes ?? 0}
+          limitBytes={data?.limit_bytes ?? 0}
+          plan={data?.plan}
+          pct={storagePct}
+        />
+        {(["products", "categories"] as MediaCategory[]).map((cat) => (
           <StatTile
             key={cat}
             label={CATEGORY_LABELS[cat]}
@@ -158,7 +180,7 @@ export function MediaSection() {
         ))}
       </div>
 
-      {/* Filters + cleanup */}
+      {/* Filters & Actions */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-1.5">
           {FILTERS.map((f) => (
@@ -170,24 +192,23 @@ export function MediaSection() {
                 "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
                 filter === f.value
                   ? "bg-primary text-white"
-                  : "bg-search-bg text-slate-500 hover:text-foreground",
+                  : "bg-search-bg text-muted hover:text-foreground",
               ].join(" ")}
             >
               {f.label}
             </button>
           ))}
         </div>
-
         <button
           type="button"
-          onClick={handleCleanup}
-          disabled={!siteId || cleaning}
-          className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          onClick={() => setUploadOpen(true)}
+          disabled={!siteId}
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {cleaning ? "Checking…" : "Clean up unused images"}
+          <Upload className="size-3.5" strokeWidth={2} />
+          Upload
         </button>
       </div>
-
       {/* Bulk selection bar */}
       {selectedImages.length > 0 ? (
         <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-4 py-2.5">
@@ -198,7 +219,7 @@ export function MediaSection() {
             <button
               type="button"
               onClick={() => setSelected(new Set())}
-              className="text-xs font-medium text-slate-500 hover:text-foreground"
+              className="text-xs font-medium text-muted hover:text-foreground"
             >
               Clear
             </button>
@@ -215,11 +236,20 @@ export function MediaSection() {
 
       {/* Gallery */}
       {images.length === 0 ? (
-        <p className="rounded-md bg-search-bg px-4 py-12 text-center text-sm text-muted">
-          {filter === "all"
-            ? "No images uploaded yet."
-            : `No images in ${CATEGORY_LABELS[filter as MediaCategory]} yet.`}
-        </p>
+        <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-search-bg px-4 py-12 text-center">
+          <p className="text-sm font-medium text-foreground">
+            {filter === "all"
+              ? "No images uploaded yet."
+              : `No images in ${CATEGORY_LABELS[filter as MediaCategory]} yet.`}
+          </p>
+          <button
+            type="button"
+            onClick={() => setUploadOpen(true)}
+            className="text-xs font-medium text-primary hover:underline"
+          >
+            Upload your first image
+          </button>
+        </div>
       ) : (
         // Masonry via CSS columns, not grid — a grid row stretches every
         // tile in it to match its tallest neighbor, which with real (not
@@ -256,15 +286,84 @@ export function MediaSection() {
         onConfirm={confirmDelete}
         onCancel={() => setPendingDelete(null)}
       />
+
+      <UploadMediaModal
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUpload={handleUpload}
+      />
     </div>
   );
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-search-bg/40 p-3.5">
+    <div className="rounded-xl border border-border bg-search-bg/40 p-3.5">
       <p className="text-lg font-semibold text-foreground">{value}</p>
       <p className="mt-0.5 text-xs text-muted">{label}</p>
+    </div>
+  );
+}
+
+/** Same ring language as the dashboard's My Shop panel
+ * (StorageProgressRing in shop-info-panel.tsx) — real used/limit from
+ * app/media.py's PLAN_STORAGE_LIMIT_BYTES, not a decorative estimate. */
+function StorageStatTile({
+  usedBytes,
+  limitBytes,
+  plan,
+  pct,
+}: {
+  usedBytes: number;
+  limitBytes: number;
+  plan: string | undefined;
+  pct: number;
+}) {
+  const size = 34;
+  const stroke = 4.5;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const offset = c * (1 - pct);
+  const low = pct >= 0.9;
+
+  return (
+    <div className="flex items-center gap-2.5 rounded-xl border border-border bg-search-bg/40 p-3.5">
+      <span className="relative flex shrink-0 items-center justify-center" aria-hidden>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={stroke}
+            className="text-border"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={c}
+            strokeDashoffset={offset}
+            className={[
+              "transition-[stroke-dashoffset] duration-500",
+              low ? "text-red-500" : "text-primary",
+            ].join(" ")}
+          />
+        </svg>
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-foreground">
+          {formatBytes(usedBytes)}
+        </p>
+        <p className="truncate text-xs text-muted">
+          of {formatBytes(limitBytes)}{plan ? ` · ${plan}` : ""}
+        </p>
+      </div>
     </div>
   );
 }
@@ -285,8 +384,8 @@ function ImageTile({
   return (
     <div
       className={[
-        "group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border bg-white transition-colors",
-        selected ? "border-primary ring-2 ring-primary/30" : "border-slate-200",
+        "group relative mb-3 break-inside-avoid overflow-hidden rounded-xl border bg-surface transition-colors",
+        selected ? "border-primary ring-2 ring-primary/30" : "border-border",
       ].join(" ")}
     >
       <button
@@ -317,7 +416,7 @@ function ImageTile({
         onClick={onToggleSelect}
       />
 
-      <div className="flex items-center justify-between gap-2 border-t border-slate-100 px-2.5 py-2">
+      <div className="flex items-center justify-between gap-2 border-t border-border dark:border-transparent px-2.5 py-2">
         <span className="truncate text-[11px] text-muted-soft">
           {formatBytes(image.bytes ?? 0)}
         </span>

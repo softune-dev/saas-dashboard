@@ -13,7 +13,7 @@ export function PlanCards() {
   const [target, setTarget] = useState<Plan | null>(null);
 
   return (
-    <section className="h-full rounded-md bg-white p-4 sm:p-5">
+    <section className="h-full rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4">
         <h2 className="text-base font-semibold text-foreground">Plans</h2>
       </div>
@@ -29,7 +29,7 @@ export function PlanCards() {
                 "flex flex-col rounded-md border p-4",
                 isCurrent
                   ? "border-primary bg-primary/5"
-                  : "border-slate-200 bg-white",
+                  : "border-border bg-surface",
               ].join(" ")}
             >
               <div className="flex items-start justify-between gap-2">

@@ -74,9 +74,9 @@ export function MediaSourceMenu({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 w-full max-w-xs overflow-hidden rounded-2xl bg-white"
+              className="relative z-10 w-full max-w-xs overflow-hidden rounded-2xl bg-surface"
             >
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+              <div className="flex items-center justify-between border-b border-border dark:border-transparent px-4 py-3">
                 <h3 className="text-sm font-semibold text-foreground">Add image</h3>
                 <button
                   type="button"

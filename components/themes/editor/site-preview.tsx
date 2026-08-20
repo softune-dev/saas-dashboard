@@ -196,12 +196,28 @@ export function SitePreview({
     widthMv.set(resolveWidth(device, available));
   }, [device, available, widthMv]);
 
+  // Editing on a small screen: only the Mobile preview makes sense, and the
+  // "Desktop = fill available width" case below only has ~mobile-width
+  // available anyway, so force + lock to Mobile rather than showing a
+  // Desktop/Tablet toggle that produces a squashed, useless preview.
+  const [mobileOnly, setMobileOnly] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setMobileOnly(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  useEffect(() => {
+    if (mobileOnly && device !== "mobile") onDeviceChange("mobile");
+  }, [mobileOnly, device, onDeviceChange]);
+
   return (
     <div
       ref={stageRef}
-      className="relative flex h-full min-h-0 flex-1 items-center justify-center overflow-hidden bg-[#F0F0F0] p-4"
+      className="relative flex h-full min-h-0 flex-1 items-center justify-center overflow-hidden bg-[#F0F0F0] p-4 [--stage-dot:#d4d4d4] dark:bg-[#1c1d1e] dark:[--stage-dot:#3a3b3d]"
       style={{
-        backgroundImage: "radial-gradient(#d4d4d4 1px, transparent 1px)",
+        backgroundImage: "radial-gradient(var(--stage-dot) 1px, transparent 1px)",
         backgroundSize: "20px 20px",
       }}
     >
@@ -212,8 +228,12 @@ export function SitePreview({
         className="flex h-full w-full items-stretch justify-center"
       >
         <motion.div
-          style={{ width: widthSpring, maxWidth: "100%" }}
-          className="flex h-full flex-col overflow-hidden rounded-2xl bg-white"
+          style={
+            device === "desktop"
+              ? { width: "100%", maxWidth: "100%" }
+              : { width: widthSpring, maxWidth: "100%" }
+          }
+          className="flex h-full w-full flex-col overflow-hidden rounded-2xl bg-white"
         >
           {/* Browser chrome */}
           <div
@@ -224,6 +244,7 @@ export function SitePreview({
               onChange={onDeviceChange}
               tone={chromeTheme}
               size="sm"
+              mobileOnly={mobileOnly}
             />
 
             {/* Click to select the whole URL: this is the real running route,
@@ -266,6 +287,7 @@ export function SitePreview({
             {onPublishClick ? (
               <button
                 type="button"
+                data-tour="editor-publish"
                 onClick={onPublishClick}
                 disabled={publishing || publishDisabled}
                 title={
@@ -273,10 +295,12 @@ export function SitePreview({
                     ? "No unpublished changes"
                     : "Publish changes to the live site"
                 }
-                className="inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-[11px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-2.5 text-[11px] font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
               >
                 <Upload className="size-3" strokeWidth={2} />
-                {publishing ? "Publishing…" : "Publish"}
+                <span className="hidden sm:inline">
+                  {publishing ? "Publishing…" : "Publish"}
+                </span>
               </button>
             ) : null}
           </div>

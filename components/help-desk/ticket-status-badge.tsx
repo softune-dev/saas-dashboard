@@ -1,16 +1,16 @@
 import type { TicketPriority, TicketStatus } from "./help-data";
 
 const statusStyles: Record<TicketStatus, string> = {
-  Open: "bg-blue-50 text-blue-600",
-  "In Progress": "bg-amber-50 text-amber-600",
-  Resolved: "bg-emerald-50 text-emerald-600",
-  Closed: "bg-slate-100 text-slate-500",
+  Open: "bg-blue-500/10 text-blue-600",
+  "In Progress": "bg-amber-500/10 text-amber-600",
+  Resolved: "bg-primary/10 text-primary",
+  Closed: "bg-search-bg text-muted",
 };
 
 const priorityStyles: Record<TicketPriority, string> = {
-  Low: "bg-slate-100 text-slate-500",
-  Medium: "bg-amber-50 text-amber-600",
-  High: "bg-red-50 text-red-500",
+  Low: "bg-search-bg text-muted",
+  Medium: "bg-amber-500/10 text-amber-600",
+  High: "bg-rose-500/10 text-red-500",
 };
 
 export function TicketStatusBadge({ status }: { status: TicketStatus }) {

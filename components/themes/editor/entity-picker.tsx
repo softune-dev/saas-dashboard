@@ -73,7 +73,7 @@ export function CategoryPicker({
       </div>
 
       {selected.length === 0 ? (
-        <p className="rounded-xl bg-search-bg px-3 py-4 text-center text-xs text-slate-500">
+        <p className="rounded-xl bg-search-bg px-3 py-4 text-center text-xs text-muted">
           No categories yet — add from your catalog
         </p>
       ) : (
@@ -88,7 +88,7 @@ export function CategoryPicker({
                 <p className="truncate text-sm font-semibold text-foreground">
                   {cat.name}
                 </p>
-                <p className="truncate text-[11px] text-slate-500">
+                <p className="truncate text-[11px] text-muted">
                   {cat.products} products
                 </p>
               </div>
@@ -96,7 +96,7 @@ export function CategoryPicker({
                 type="button"
                 aria-label={`Remove ${cat.name}`}
                 onClick={() => remove(cat.id)}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
               >
                 <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
               </button>
@@ -110,14 +110,14 @@ export function CategoryPicker({
           type="button"
           disabled={available.length === 0}
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-slate-200 text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
+          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-border text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
         >
           <Plus className="size-3.5" strokeWidth={2} />
           Add category
         </button>
 
         {open && available.length > 0 ? (
-          <ul className="scrollbar-thin absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-52 overflow-y-auto rounded-xl border border-slate-100 bg-white p-1.5">
+          <ul className="scrollbar-thin absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-52 overflow-y-auto rounded-xl border border-border dark:border-transparent bg-surface p-1.5">
             {available.map((cat) => (
               <li key={cat.id}>
                 <button
@@ -130,7 +130,7 @@ export function CategoryPicker({
                     <p className="truncate text-sm font-medium text-foreground">
                       {cat.name}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-muted">
                       {cat.products} products
                     </p>
                   </div>
@@ -186,7 +186,7 @@ export function ProductPicker({
       </div>
 
       {selected.length === 0 ? (
-        <p className="rounded-xl bg-search-bg px-3 py-4 text-center text-xs text-slate-500">
+        <p className="rounded-xl bg-search-bg px-3 py-4 text-center text-xs text-muted">
           No products yet — pick from your catalog
         </p>
       ) : (
@@ -205,7 +205,7 @@ export function ProductPicker({
                 <p className="truncate text-sm font-semibold text-foreground">
                   {product.name}
                 </p>
-                <p className="truncate text-[11px] text-slate-500">
+                <p className="truncate text-[11px] text-muted">
                   {product.category} · {productDisplayPrice(product)}
                 </p>
               </div>
@@ -213,7 +213,7 @@ export function ProductPicker({
                 type="button"
                 aria-label={`Remove ${product.name}`}
                 onClick={() => remove(product.id)}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
               >
                 <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
               </button>
@@ -227,14 +227,14 @@ export function ProductPicker({
           type="button"
           disabled={available.length === 0}
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-slate-200 text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
+          className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-border text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
         >
           <Plus className="size-3.5" strokeWidth={2} />
           Add product
         </button>
 
         {open && available.length > 0 ? (
-          <ul className="scrollbar-thin absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-56 overflow-y-auto rounded-xl border border-slate-100 bg-white p-1.5">
+          <ul className="scrollbar-thin absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-56 overflow-y-auto rounded-xl border border-border dark:border-transparent bg-surface p-1.5">
             {available.map((product) => (
               <li key={product.id}>
                 <button
@@ -251,7 +251,7 @@ export function ProductPicker({
                     <p className="truncate text-sm font-medium text-foreground">
                       {product.name}
                     </p>
-                    <p className="truncate text-[11px] text-slate-500">
+                    <p className="truncate text-[11px] text-muted">
                       {product.category} · {productDisplayPrice(product)}
                     </p>
                   </div>
@@ -278,7 +278,7 @@ export function ProductSinglePicker({
 }) {
   if (options.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-slate-500">
+      <p className="py-8 text-center text-sm text-muted">
         No products yet — add some in Products first.
       </p>
     );
@@ -289,7 +289,7 @@ export function ProductSinglePicker({
       {options.map((product) => {
         const active = product.id === value;
         return (
-          <li key={product.id} className="border-b border-slate-100 last:border-b-0">
+          <li key={product.id} className="border-b border-border dark:border-transparent last:border-b-0">
             <button
               type="button"
               onClick={() => onChange(product.id)}
@@ -307,7 +307,7 @@ export function ProductSinglePicker({
                 <p className="truncate text-sm font-semibold text-foreground">
                   {product.name}
                 </p>
-                <p className="truncate text-[11px] text-slate-500">
+                <p className="truncate text-[11px] text-muted">
                   {product.category} · {productDisplayPrice(product)}
                 </p>
               </div>

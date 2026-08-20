@@ -62,8 +62,8 @@ export const siteSettingsNav: SiteSettingsNavItem[] = [
   },
   {
     id: "media",
-    label: "Media",
+    label: "Gallery",
     href: "/settings/site/media",
-    LucideIcon: Image,
+    iconSrc: "/sidebar/media.svg",
   },
 ];

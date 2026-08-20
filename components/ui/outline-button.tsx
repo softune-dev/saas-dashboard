@@ -14,7 +14,7 @@ export function OutlineButton({
     <button
       type={type}
       className={[
-        "inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-slate-300 disabled:opacity-50",
+        "inline-flex items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-slate-300 disabled:opacity-50",
         className,
       ].join(" ")}
       {...props}

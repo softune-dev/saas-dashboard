@@ -10,6 +10,8 @@ type SalesSectionProps = {
   hasOrders: boolean;
   productsCount: number;
   categoriesCount: number;
+  productImages?: string[];
+  categoryImages?: string[];
 };
 
 export function SalesSection({
@@ -17,11 +19,13 @@ export function SalesSection({
   hasOrders,
   productsCount,
   categoriesCount,
+  productImages = [],
+  categoryImages = [],
 }: SalesSectionProps) {
   return (
     <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
       {/* Sales Analysis */}
-      <section className="rounded-md bg-white p-4 sm:p-5">
+      <section className="rounded-md bg-surface p-4 sm:p-5">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-foreground">
             Sales Analysis
@@ -41,8 +45,13 @@ export function SalesSection({
       </section>
 
       {/* Shop info */}
-      <section className="rounded-md bg-white p-4 sm:p-5">
-        <ShopInfoPanel productsCount={productsCount} categoriesCount={categoriesCount} />
+      <section className="hidden rounded-md bg-surface p-4 sm:p-5 xl:block">
+        <ShopInfoPanel
+          productsCount={productsCount}
+          categoriesCount={categoriesCount}
+          productImages={productImages}
+          categoryImages={categoryImages}
+        />
       </section>
     </div>
   );

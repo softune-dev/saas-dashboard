@@ -73,7 +73,7 @@ export function GatewayConnectModal({
     >
       <div className="flex flex-col gap-3">
         {error ? (
-          <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">
+          <p className="rounded-lg bg-rose-500/10 px-3 py-2 text-sm text-rose-600">
             {error}
           </p>
         ) : null}

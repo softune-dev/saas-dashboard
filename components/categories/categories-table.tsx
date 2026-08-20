@@ -145,7 +145,7 @@ export function CategoriesTable({
             type="button"
             aria-label={`Delete ${row.name}`}
             onClick={() => onDelete(row)}
-            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-red-500"
+            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-red-500"
           >
             <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
           </button>
@@ -155,7 +155,7 @@ export function CategoriesTable({
   ];
 
   return (
-    <section className="rounded-md bg-white p-4 sm:p-5">
+    <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
           All Categories
@@ -172,7 +172,7 @@ export function CategoriesTable({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search categories..."
-              className="h-9 w-44 rounded-full border border-slate-200 bg-white pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
+              className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <TableFilterPanel

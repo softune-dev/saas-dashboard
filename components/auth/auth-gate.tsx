@@ -138,11 +138,11 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <div className="flex h-dvh w-full items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm rounded-md bg-white p-6 shadow-sm">
+      <div className="w-full max-w-sm rounded-md bg-surface p-6 shadow-sm">
         <h1 className="text-lg font-semibold text-foreground">
           Sign in to Softune
         </h1>
-        <p className="mt-1.5 text-sm text-slate-500">
+        <p className="mt-1.5 text-sm text-muted">
           Enter your account to access the dashboard.
         </p>
 
@@ -154,7 +154,7 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-10 w-full rounded-full border border-border bg-white px-4 text-sm outline-none focus:border-primary"
+            className="h-10 w-full rounded-full border border-border bg-surface px-4 text-sm outline-none focus:border-primary"
           />
           <input
             type="password"
@@ -162,7 +162,7 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="h-10 w-full rounded-full border border-border bg-white px-4 text-sm outline-none focus:border-primary"
+            className="h-10 w-full rounded-full border border-border bg-surface px-4 text-sm outline-none focus:border-primary"
           />
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
           <button

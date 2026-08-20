@@ -28,7 +28,7 @@ export function CreditsPill() {
   return (
     <>
       <div
-        className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-border/70 bg-white py-1 pr-1.5 pl-1.5"
+        className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-border/70 bg-surface py-1 pr-1.5 pl-1.5"
         aria-label={
           typeof remaining === "number"
             ? `${remaining} AI credits remaining today`

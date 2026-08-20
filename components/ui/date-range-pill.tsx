@@ -41,7 +41,7 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm text-foreground transition-colors hover:border-slate-300"
+        className="flex items-center gap-2.5 rounded-full border border-border bg-surface px-3.5 py-2 text-sm text-foreground transition-colors hover:border-slate-300"
         aria-expanded={open}
         aria-haspopup="dialog"
       >
@@ -60,7 +60,7 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
         <div
           role="dialog"
           aria-label="Select date range"
-          className="absolute top-[calc(100%+0.5rem)] right-0 z-30 flex w-72 flex-col gap-3 rounded-md border border-slate-200 bg-white p-3"
+          className="absolute top-[calc(100%+0.5rem)] right-0 z-30 flex w-72 flex-col gap-3 rounded-md border border-border bg-surface p-3"
         >
           <div className="flex flex-col gap-1.5">
             <label htmlFor={fromId} className="text-xs font-medium text-muted">
@@ -77,7 +77,7 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
                   to: value.to,
                 })
               }
-              className="h-9 rounded-md border border-slate-200 bg-white px-2.5 text-sm outline-none focus:border-primary"
+              className="h-9 rounded-md border border-border bg-surface px-2.5 text-sm outline-none focus:border-primary"
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -95,7 +95,7 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
                   to: fromInputDate(e.target.value),
                 })
               }
-              className="h-9 rounded-md border border-slate-200 bg-white px-2.5 text-sm outline-none focus:border-primary"
+              className="h-9 rounded-md border border-border bg-surface px-2.5 text-sm outline-none focus:border-primary"
             />
           </div>
         </div>

@@ -1,12 +1,14 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import useSWR from "swr";
 import { useSession } from "@/components/providers/session-provider";
-import { clearToken, resolveSiteLogoUrl } from "@/lib/api";
+import { getThemeById } from "@/components/themes/themes-data";
+import { clearToken, listTemplates, resolveSiteLogoUrl } from "@/lib/api";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import {
   logoutItem,
@@ -66,6 +68,27 @@ export function StorePill() {
     : (me?.user.full_name ?? me?.user.email ?? "");
   const logoUrl = resolveSiteLogoUrl(currentSite);
 
+  // Same shop URL rules as the My Shop panel — published domain when live,
+  // otherwise the template preview with ?__site= for drafts.
+  const { data: templates } = useSWR("templates", listTemplates);
+  const templateKey = templates?.find(
+    (t) => t.id === currentSite?.template_id,
+  )?.key;
+  const theme = templateKey ? getThemeById(templateKey) : undefined;
+  const host = currentSite?.custom_domain || currentSite?.subdomain;
+  const siteBaseDomain =
+    process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz";
+  const realShopUrl =
+    currentSite?.status === "published" && host
+      ? `https://${host.includes(".") ? host : `${host}.${siteBaseDomain}`}`
+      : null;
+  const shopUrl =
+    realShopUrl ??
+    (theme?.previewUrl && host ? `${theme.previewUrl}?__site=${host}` : null);
+
+  const displayName = me?.user.full_name?.trim() || "";
+  const email = me?.user.email?.trim() || "";
+
   function handleLogout() {
     clearToken();
     setOpen(false);
@@ -77,7 +100,7 @@ export function StorePill() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex max-w-[11.5rem] shrink-0 items-center gap-2 rounded-full bg-border py-1.5 pr-2.5 pl-1.5 transition-opacity hover:opacity-90 sm:max-w-[13rem] sm:gap-2.5 sm:pr-3"
+        className="flex max-w-[11.5rem] shrink-0 items-center gap-2 rounded-full bg-border py-1.5 pr-1.5 pl-1.5 transition-opacity hover:opacity-90 md:max-w-[13rem] md:gap-2.5 md:pr-3"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Account menu: ${title}${subtitle ? ` — ${subtitle}` : ""}`}
@@ -101,7 +124,8 @@ export function StorePill() {
           </span>
         )}
 
-        <span className="hidden min-w-0 flex-col items-start text-left leading-tight sm:flex">
+        {/* Name/email hidden below md so the mobile header stays avatar-only. */}
+        <span className="hidden min-w-0 flex-col items-start text-left leading-tight md:flex">
           <span className="w-full max-w-[6.5rem] truncate text-sm font-semibold text-foreground">
             {title}
           </span>
@@ -114,7 +138,7 @@ export function StorePill() {
 
         <ChevronDown
           className={[
-            "size-4 shrink-0 text-muted transition-transform",
+            "hidden size-4 shrink-0 text-muted transition-transform md:block",
             open ? "rotate-180" : "",
           ].join(" ")}
           strokeWidth={1.75}
@@ -127,27 +151,59 @@ export function StorePill() {
           role="menu"
           // right-0 keeps the panel inside the viewport — left-0 was growing
           // past the page edge and expanding horizontal scroll.
-          className="absolute top-full right-0 z-50 mt-2 w-[min(17.5rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-slate-200 bg-white"
+          className="absolute top-full right-0 z-50 mt-2 w-[min(17.5rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-border bg-surface"
         >
-          {/* Account header */}
-          <div className="border-b border-slate-100 px-3.5 py-3">
-            <p className="truncate text-sm font-semibold text-foreground">
-              {me?.user.full_name || me?.user.email || "Account"}
-            </p>
-            {me?.user.email ? (
-              <p className="mt-0.5 truncate text-xs text-muted">{me.user.email}</p>
+          {/* Account header — email once; site host + open-shop arrow under it */}
+          <div className="border-b border-border dark:border-transparent px-3.5 py-3">
+            {displayName ? (
+              <p className="truncate text-sm font-semibold text-foreground">
+                {displayName}
+              </p>
+            ) : null}
+            {email ? (
+              <p
+                className={[
+                  "truncate",
+                  displayName
+                    ? "mt-0.5 text-xs text-muted"
+                    : "text-sm font-semibold text-foreground",
+                ].join(" ")}
+              >
+                {email}
+              </p>
+            ) : !displayName ? (
+              <p className="truncate text-sm font-semibold text-foreground">
+                Account
+              </p>
             ) : null}
             {currentSite ? (
-              <p className="mt-1.5 truncate text-xs text-muted">
-                <span className="text-muted-soft">Site · </span>
-                {currentSite.name}
-              </p>
+              <div className="mt-2 flex min-w-0 items-center gap-2">
+                <MaskIcon
+                  src="/sidebar/domain.svg"
+                  className="size-4 shrink-0 text-muted"
+                />
+                <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
+                  {host ?? "No domain yet"}
+                </p>
+                {shopUrl ? (
+                  <a
+                    href={shopUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Open shop in a new tab"
+                    onClick={() => setOpen(false)}
+                    className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-primary"
+                  >
+                    <ArrowUpRight className="size-3.5" strokeWidth={2} />
+                  </a>
+                ) : null}
+              </div>
             ) : null}
           </div>
 
           {/* Site switcher */}
           {sites.length > 1 ? (
-            <div className="border-b border-slate-100 p-1.5">
+            <div className="border-b border-border dark:border-transparent p-1.5">
               <p className="px-2 py-1.5 text-[10px] font-semibold tracking-wide text-muted-soft uppercase">
                 Switch site
               </p>
@@ -212,7 +268,7 @@ export function StorePill() {
           </div>
 
           {/* Logout */}
-          <div className="border-t border-slate-100 p-1.5">
+          <div className="border-t border-border dark:border-transparent p-1.5">
             <button
               type="button"
               role="menuitem"

@@ -64,8 +64,11 @@ export function AISuggestBox({
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3">
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+    <div
+      data-tour="editor-ai-suggest"
+      className="flex flex-col gap-2 rounded-xl border border-border dark:border-transparent bg-search-bg p-3"
+    >
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
         <img
           src="/sidebar/gemini.svg"
           alt=""
@@ -78,7 +81,7 @@ export function AISuggestBox({
         onChange={(e) => setPrompt(e.target.value)}
         placeholder="e.g. make it feel warmer, like a bakery"
         rows={2}
-        className="w-full resize-none rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs outline-none focus:border-primary"
+        className="w-full resize-none rounded-lg border border-border dark:border-transparent bg-surface px-2.5 py-2 text-xs text-foreground placeholder:text-muted-soft outline-none focus:border-primary"
       />
       <button
         type="button"
@@ -89,22 +92,22 @@ export function AISuggestBox({
         {loading ? "Thinking…" : "Suggest"}
       </button>
 
-      {error && <p className="text-[11px] text-red-500">{error}</p>}
+      {error && <p className="text-[11px] text-rose-500">{error}</p>}
 
       {patch && (
-        <div className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
-          <p className="text-[11px] font-medium text-slate-500">Suggested changes</p>
+        <div className="flex flex-col gap-2 rounded-lg border border-border dark:border-transparent bg-surface p-2.5">
+          <p className="text-[11px] font-medium text-muted">Suggested changes</p>
           <ul className="flex flex-col gap-1">
             {Object.entries(patch).map(([key, value]) => (
-              <li key={key} className="flex items-center gap-2 text-xs text-slate-700">
+              <li key={key} className="flex items-center gap-2 text-xs text-foreground">
                 {key.toLowerCase().includes("color") && (
                   <span
-                    className="size-3 shrink-0 rounded-full border border-slate-200"
+                    className="size-3 shrink-0 rounded-full border border-border dark:border-transparent"
                     style={{ background: String(value) }}
                   />
                 )}
                 <span className="font-medium">{FIELD_LABELS[key] ?? key}:</span>
-                <span className="truncate text-slate-500">{String(value)}</span>
+                <span className="truncate text-muted">{String(value)}</span>
               </li>
             ))}
           </ul>
@@ -119,7 +122,7 @@ export function AISuggestBox({
             <button
               type="button"
               onClick={() => setPatch(null)}
-              className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600"
+              className="flex-1 rounded-lg border border-border dark:border-transparent bg-search-bg px-3 py-1.5 text-xs font-medium text-muted"
             >
               Discard
             </button>

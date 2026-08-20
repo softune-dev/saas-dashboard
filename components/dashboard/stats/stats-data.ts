@@ -13,4 +13,5 @@ export type StatCardData = {
    * for any card that could in principle have a trend. */
   lastMonthValue?: string;
   icon: string;
+  className?: string;
 };

@@ -316,11 +316,11 @@ export function ProductFormPage({ productId }: { productId?: string }) {
   if (sessionLoading || loading) {
     return (
       <div className="flex flex-col gap-5">
-        <div className="h-11 w-full max-w-md animate-pulse rounded-xl bg-white" />
-        <div className="h-72 animate-pulse rounded-2xl bg-white" />
+        <div className="h-11 w-full max-w-md animate-pulse rounded-xl bg-surface" />
+        <div className="h-72 animate-pulse rounded-2xl bg-surface" />
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          <div className="h-80 animate-pulse rounded-2xl bg-white lg:col-span-2" />
-          <div className="h-80 animate-pulse rounded-2xl bg-white" />
+          <div className="h-80 animate-pulse rounded-2xl bg-surface lg:col-span-2" />
+          <div className="h-80 animate-pulse rounded-2xl bg-surface" />
         </div>
       </div>
     );
@@ -346,7 +346,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             type="button"
             onClick={() => router.push("/products")}
             aria-label="Back to products"
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-white hover:text-foreground"
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-foreground"
           >
             <ArrowLeft className="size-4" strokeWidth={1.75} />
           </button>
@@ -364,7 +364,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             type="button"
             onClick={() => router.push("/products")}
             disabled={busy}
-            className="hidden h-10 items-center justify-center rounded-full bg-white px-5 text-sm font-medium text-foreground shadow-sm ring-1 ring-slate-200/80 transition-colors hover:bg-search-bg disabled:opacity-60 sm:inline-flex"
+            className="hidden h-10 items-center justify-center rounded-full bg-surface px-5 text-sm font-medium text-foreground shadow-sm ring-1 ring-slate-200/80 transition-colors hover:bg-search-bg disabled:opacity-60 sm:inline-flex"
           >
             Cancel
           </button>
@@ -391,7 +391,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       {/* Details + variants (left) · organization (right) */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="flex flex-col gap-5 lg:col-span-2">
-          <section className="rounded-2xl bg-white p-5 sm:p-6">
+          <section className="rounded-2xl bg-surface p-5 sm:p-6">
             <h2 className="mb-4 text-[15px] font-semibold text-foreground">Details</h2>
             <div className="flex flex-col gap-4">
               <SettingsInput
@@ -438,7 +438,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             </div>
           </section>
 
-          <section className="rounded-2xl bg-white p-5 sm:p-6">
+          <section className="rounded-2xl bg-surface p-5 sm:p-6">
             <h2 className="mb-4 text-[15px] font-semibold text-foreground">Video</h2>
             <ProductVideoField
               value={form.videoUrl}
@@ -456,7 +456,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             ) : null}
           </section>
 
-          <section className="rounded-2xl bg-white p-5 sm:p-6">
+          <section className="rounded-2xl bg-surface p-5 sm:p-6">
             <div className="mb-3 flex items-baseline justify-between gap-2">
               <h2 className="text-[15px] font-semibold text-foreground">Variants</h2>
               <p className="text-xs text-muted">Optional · Size, Weight, Color…</p>
@@ -468,7 +468,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             />
           </section>
 
-          <section className="rounded-2xl bg-white p-5 sm:p-6">
+          <section className="rounded-2xl bg-surface p-5 sm:p-6">
             <div className="mb-3 flex items-baseline justify-between gap-2">
               <h2 className="text-[15px] font-semibold text-foreground">
                 Feature highlights
@@ -485,7 +485,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
         </div>
 
         <div className="flex flex-col gap-5">
-          <section className="flex flex-col gap-4 rounded-2xl bg-white p-5 sm:p-6">
+          <section className="flex flex-col gap-4 rounded-2xl bg-surface p-5 sm:p-6">
             <h2 className="text-[15px] font-semibold text-foreground">Organization</h2>
             <SettingsSelect
               label="Status"
@@ -515,7 +515,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             />
           </section>
 
-          <section className="flex flex-col gap-4 rounded-2xl bg-white p-5 sm:p-6">
+          <section className="flex flex-col gap-4 rounded-2xl bg-surface p-5 sm:p-6">
             <h2 className="text-[15px] font-semibold text-foreground">Inventory</h2>
             <div className="grid grid-cols-2 gap-4">
               <SettingsInput
@@ -561,7 +561,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             </p>
           </section>
 
-          <section className="flex flex-col gap-4 rounded-2xl bg-white p-5 sm:p-6">
+          <section className="flex flex-col gap-4 rounded-2xl bg-surface p-5 sm:p-6">
             <h2 className="text-[15px] font-semibold text-foreground">Shipping</h2>
             <button
               type="button"
@@ -581,13 +581,13 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                   form.freeDelivery ? "justify-end bg-primary" : "justify-start bg-slate-300",
                 ].join(" ")}
               >
-                <span className="size-5 rounded-full bg-white shadow-sm" />
+                <span className="size-5 rounded-full bg-surface shadow-sm" />
               </span>
             </button>
             {!form.freeDelivery ? (
               shippingLocations.length > 0 ? (
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-slate-500">
+                  <span className="text-sm font-medium text-muted">
                     Delivery charges
                   </span>
                   <ul className="flex flex-col gap-1.5">
@@ -595,7 +595,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                       const checked = form.deliveryCharges.some((dc) => dc.name === loc.name);
                       return (
                         <li key={loc.id}>
-                          <label className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 text-sm text-foreground">
+                          <label className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm text-foreground">
                             <span className="flex items-center gap-2.5">
                               <input
                                 type="checkbox"

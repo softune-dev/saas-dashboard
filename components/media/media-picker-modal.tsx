@@ -108,9 +108,9 @@ export function MediaPickerModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white"
+            className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-surface"
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-border dark:border-transparent px-5 py-4">
               <h3 id="media-picker-title" className="text-[15px] font-semibold text-foreground">
                 Choose from Media
               </h3>
@@ -124,7 +124,7 @@ export function MediaPickerModal({
               </button>
             </div>
 
-            <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-slate-100 px-5 py-3">
+            <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-border dark:border-transparent px-5 py-3">
               {FILTERS.map((f) => (
                 <button
                   key={f.value}
@@ -193,7 +193,7 @@ export function MediaPickerModal({
             </div>
 
             {multiple ? (
-              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-slate-100 px-5 py-4">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border dark:border-transparent px-5 py-4">
                 <p className="text-xs text-muted">
                   {selected.size} selected
                 </p>

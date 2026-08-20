@@ -35,8 +35,19 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
+  // New assistant replies animate letter-by-letter; history stays instant.
+  const [streamingId, setStreamingId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesListRef = useRef<HTMLDivElement>(null);
+
+  const scrollMessagesToBottom = () => {
+    const list = messagesListRef.current;
+    if (list) {
+      list.scrollTop = list.scrollHeight;
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    }
+  };
 
   // Load conversations from local storage on mount
   useEffect(() => {
@@ -55,15 +66,10 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
   useEffect(() => {
     if (!open) return;
     const frame = requestAnimationFrame(() => {
-      const list = messagesListRef.current;
-      if (list) {
-        list.scrollTop = list.scrollHeight;
-      } else {
-        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-      }
+      scrollMessagesToBottom();
     });
     return () => cancelAnimationFrame(frame);
-  }, [open, conversations, activeId, isThinking]);
+  }, [open, conversations, activeId, isThinking, streamingId]);
 
   const activeConv = conversations.find((c) => c.id === activeId);
   const messages = activeConv?.messages ?? [];
@@ -129,6 +135,7 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
 
     updateConversationsState(updatedAllConvs, updatedConv.id);
     setInput("");
+    setStreamingId(null);
     setIsThinking(true);
 
     // History sent as context — attachments aren't uploaded to the AI yet,
@@ -176,6 +183,7 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
           c.id === finalConv.id ? finalConv : c
         );
         updateConversationsState(finalAllConvs, finalConv.id);
+        setStreamingId(aiMsg.id);
       })
       .catch((err) => {
         const errMsg: ChatMessage = {
@@ -196,6 +204,7 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
           c.id === finalConv.id ? finalConv : c
         );
         updateConversationsState(finalAllConvs, finalConv.id);
+        setStreamingId(errMsg.id);
       })
       .finally(() => {
         setIsThinking(false);
@@ -277,8 +286,14 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
             <AiChatHeader
               conversations={conversations}
               activeConversationId={activeId}
-              onSelectConversation={(id) => setActiveId(id)}
-              onNewChat={handleNewChat}
+              onSelectConversation={(id) => {
+                setStreamingId(null);
+                setActiveId(id);
+              }}
+              onNewChat={() => {
+                setStreamingId(null);
+                handleNewChat();
+              }}
               onDeleteChat={handleDeleteChat}
               onClose={onClose}
             />
@@ -304,6 +319,11 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
                       onResolveAction={(outcome, note) =>
                         handleResolveAction(msg.id, outcome, note)
                       }
+                      animate={msg.id === streamingId}
+                      onAnimateComplete={() =>
+                        setStreamingId((id) => (id === msg.id ? null : id))
+                      }
+                      onAnimateProgress={scrollMessagesToBottom}
                     />
                   ))}
 

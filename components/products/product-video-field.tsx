@@ -48,7 +48,7 @@ export function ProductVideoField({
               onClick={() => setMode(m)}
               className={[
                 "rounded-md px-2.5 py-1 text-[11px] font-semibold transition-colors",
-                mode === m ? "bg-white text-foreground shadow-sm" : "text-muted",
+                mode === m ? "bg-surface text-foreground shadow-sm" : "text-muted",
               ].join(" ")}
             >
               {m === "upload" ? "Upload" : "Link"}
@@ -64,7 +64,7 @@ export function ProductVideoField({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="https://youtube.com/watch?v=… or https://vimeo.com/…"
-            className="h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-search-bg/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary focus:bg-white"
+            className="h-9 w-full min-w-0 rounded-lg border border-border bg-search-bg/60 px-2.5 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary focus:bg-surface"
           />
         </div>
       ) : value ? (
@@ -75,7 +75,7 @@ export function ProductVideoField({
             type="button"
             aria-label="Remove video"
             onClick={() => onChange("")}
-            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-muted-soft transition-colors hover:bg-white hover:text-red-500"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full text-muted-soft transition-colors hover:bg-surface hover:text-red-500"
           >
             <X className="size-3.5" strokeWidth={2.5} />
           </button>
@@ -105,7 +105,7 @@ export function ProductVideoField({
           ) : (
             <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
           )}
-          <span className="text-xs font-medium text-slate-500">
+          <span className="text-xs font-medium text-muted">
             {uploading ? "Uploading…" : "Click or drag a video to upload"}
           </span>
           {!uploading ? (

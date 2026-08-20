@@ -1,5 +1,6 @@
 "use client";
 
+import { Calendar } from "lucide-react";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import { formatTaka } from "@/lib/format";
 import type { SalesReportRow } from "@/lib/api/analytics";
@@ -9,7 +10,10 @@ const columns: TableColumn<SalesReportRow>[] = [
     id: "period",
     header: "Period",
     cell: (row) => (
-      <span className="font-semibold text-foreground">{row.period}</span>
+      <span className="flex items-center gap-2 font-semibold text-foreground">
+        <Calendar className="size-4 text-muted" strokeWidth={2} />
+        {row.period}
+      </span>
     ),
   },
   {

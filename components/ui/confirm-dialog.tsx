@@ -47,7 +47,7 @@ export function ConfirmDialog({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 w-full max-w-xs rounded-2xl bg-white p-5"
+            className="relative z-10 w-full max-w-xs rounded-2xl bg-surface p-5"
           >
             <h3 id="confirm-title" className="text-[15px] font-semibold text-foreground">
               {title}

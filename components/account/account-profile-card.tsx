@@ -1,6 +1,11 @@
 "use client";
 
+import { Pencil } from "lucide-react";
+import { useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
+import { useToast } from "@/components/ui/toast";
+import { updateMe } from "@/lib/api";
+import { AvatarPickerModal } from "./avatar-picker-modal";
 
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -8,14 +13,19 @@ function initials(name: string): string {
   return (parts[0][0] + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-/** Avatar upload isn't built yet — there's no field for it on User, and no
- * media route scoped to a user (only sites have one). The circle below
- * shows initials instead of pretending a photo exists. */
 export function AccountProfileCard() {
-  const { me, loading } = useSession();
+  const { me, currentSite, loading, refetch } = useSession();
+  const { toast } = useToast();
+  const [pickerOpen, setPickerOpen] = useState(false);
   const user = me?.user;
   const tenant = me?.tenant;
   const name = user?.full_name || user?.email || "Account";
+
+  async function handleAvatarSelect(url: string) {
+    await updateMe({ avatar_url: url });
+    refetch();
+    toast({ title: "Profile picture updated", variant: "success" });
+  }
 
   if (loading) {
     return (
@@ -44,9 +54,22 @@ export function AccountProfileCard() {
       </p>
 
       <div className="mt-4 flex flex-col items-center gap-2.5 text-center">
-        <span className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/20 border-4 border-white/10 shadow-sm text-xl font-semibold">
-          {initials(name)}
-        </span>
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          aria-label="Change profile picture"
+          className="group relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white/10 bg-white/20 text-xl font-semibold shadow-sm"
+        >
+          {user?.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={user.avatar_url} alt="" className="size-full object-cover" />
+          ) : (
+            initials(name)
+          )}
+          <span className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+            <Pencil className="size-5 text-white" strokeWidth={1.75} />
+          </span>
+        </button>
         <div className="min-w-0 mt-0.5">
           <h2 className="truncate text-xl font-semibold tracking-tight">{name}</h2>
           <p className="truncate text-[13px] font-medium text-white/80">{user?.email ?? ""}</p>
@@ -72,6 +95,14 @@ export function AccountProfileCard() {
           </dd>
         </div>
       </dl>
+
+      <AvatarPickerModal
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        currentUrl={user?.avatar_url ?? null}
+        siteId={currentSite?.id ?? null}
+        onSelect={handleAvatarSelect}
+      />
     </section>
   );
 }

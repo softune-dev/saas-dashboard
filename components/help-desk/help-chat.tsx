@@ -130,7 +130,7 @@ export function HelpChat() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.96 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="pointer-events-auto flex h-[min(480px,72dvh)] w-[min(100vw-2rem,380px)] flex-col overflow-hidden rounded-2xl bg-white"
+            className="pointer-events-auto flex h-[min(480px,72dvh)] w-[min(100vw-2rem,380px)] flex-col overflow-hidden rounded-2xl bg-surface"
           >
             {/* Header */}
             <div className="relative shrink-0 overflow-hidden bg-primary px-4 py-4 text-white">
@@ -144,7 +144,7 @@ export function HelpChat() {
               />
 
               <div className="relative flex items-center gap-3">
-                <span className="relative flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-primary">
+                <span className="relative flex size-11 shrink-0 items-center justify-center rounded-full bg-[#ffffff] text-primary">
                   <MaskIcon src="/sidebar/chat.svg" className="size-5" />
                   <span className="absolute right-0 bottom-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-primary" />
                 </span>
@@ -170,7 +170,7 @@ export function HelpChat() {
             {/* Messages */}
             <div
               ref={listRef}
-              className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-[#F7F7F8] px-3.5 py-4"
+              className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-search-bg px-3.5 py-4"
             >
               {messages.map((msg) => {
                 const mine = msg.role === "user";
@@ -199,7 +199,7 @@ export function HelpChat() {
                           "px-3.5 py-2.5 text-sm leading-relaxed",
                           mine
                             ? "rounded-2xl rounded-br-md bg-primary text-white"
-                            : "rounded-2xl rounded-bl-md bg-white text-foreground",
+                            : "rounded-2xl rounded-bl-md bg-surface text-foreground",
                         ].join(" ")}
                       >
                         {msg.body}
@@ -217,11 +217,11 @@ export function HelpChat() {
                   <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <MaskIcon src="/sidebar/chat.svg" className="size-3.5" />
                   </span>
-                  <div className="rounded-2xl rounded-bl-md bg-white px-3.5 py-3">
+                  <div className="rounded-2xl rounded-bl-md bg-surface px-3.5 py-3">
                     <span className="flex gap-1">
-                      <span className="size-1.5 animate-bounce rounded-full bg-slate-300 [animation-delay:0ms]" />
-                      <span className="size-1.5 animate-bounce rounded-full bg-slate-300 [animation-delay:120ms]" />
-                      <span className="size-1.5 animate-bounce rounded-full bg-slate-300 [animation-delay:240ms]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-muted-soft [animation-delay:0ms]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-muted-soft [animation-delay:120ms]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-muted-soft [animation-delay:240ms]" />
                     </span>
                   </div>
                 </div>
@@ -229,14 +229,14 @@ export function HelpChat() {
             </div>
 
             {/* Quick replies */}
-            <div className="flex gap-1.5 overflow-x-auto bg-[#F7F7F8] px-3.5 pb-2">
+            <div className="flex gap-1.5 overflow-x-auto bg-search-bg px-3.5 pb-2">
               {QUICK_REPLIES.map((reply) => (
                 <button
                   key={reply}
                   type="button"
                   disabled={typing}
                   onClick={() => pushUserMessage(reply)}
-                  className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary disabled:opacity-50"
+                  className="shrink-0 rounded-full border border-border bg-surface px-3 py-1.5 text-[11px] font-medium text-muted transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary disabled:opacity-50"
                 >
                   {reply}
                 </button>
@@ -246,7 +246,7 @@ export function HelpChat() {
             {/* Composer */}
             <form
               onSubmit={onSubmit}
-              className="flex items-end gap-2 border-t border-slate-100 bg-white p-3"
+              className="flex items-end gap-2 border-t border-border bg-surface p-3"
             >
               <div className="flex min-h-11 flex-1 items-end rounded-2xl bg-search-bg px-3 py-1.5">
                 <textarea

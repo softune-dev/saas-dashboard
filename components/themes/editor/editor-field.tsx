@@ -21,7 +21,7 @@ function previewFontFamily(kind: "display" | "body", value: string): string {
 
 export function EditorLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="text-[11px] font-medium tracking-wide text-slate-500">
+    <span className="text-[11px] font-medium tracking-wide text-muted">
       {children}
     </span>
   );
@@ -41,7 +41,7 @@ export function EditorInput({
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className="h-9 w-full rounded-lg border border-slate-200 bg-search-bg/60 px-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-white"
+      className="h-9 w-full rounded-lg border border-border bg-search-bg/60 px-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-surface"
     />
   );
 }
@@ -86,7 +86,7 @@ export function SegmentedControl<T extends string>({
               "relative z-10 flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition-colors",
               active
                 ? "text-white"
-                : "text-slate-500 hover:text-foreground",
+                : "text-muted hover:text-foreground",
             ].join(" ")}
           >
             {active ? (
@@ -171,7 +171,7 @@ export function FontPicker<T extends string>({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-search-bg/60 px-2.5 py-2 text-left text-[13px] text-slate-700 transition-colors hover:border-slate-300"
+        className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-search-bg/60 px-2.5 py-2 text-left text-[13px] text-foreground transition-colors hover:border-muted-soft"
         style={{ fontFamily: activeCurated?.fontFamily ?? `"${value}", sans-serif` }}
       >
         <span className="truncate">{activeLabel}</span>
@@ -197,9 +197,9 @@ export function FontPicker<T extends string>({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 flex max-h-[75vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl"
+              className="relative z-10 flex max-h-[75vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-surface shadow-xl"
             >
-              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border dark:border-transparent px-4 py-3">
                 <h3 className="shrink-0 text-[13px] font-semibold text-foreground">Choose a font</h3>
                 <button
                   type="button"
@@ -210,14 +210,14 @@ export function FontPicker<T extends string>({
                   <X className="size-4" strokeWidth={2} />
                 </button>
               </div>
-              <div className="relative shrink-0 border-b border-slate-100 px-4 py-2.5">
+              <div className="relative shrink-0 border-b border-border dark:border-transparent px-4 py-2.5">
                 <Search className="pointer-events-none absolute left-6.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
                 <input
                   autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={`Search ${GOOGLE_FONTS.length}+ fonts…`}
-                  className="w-full rounded-lg border border-slate-200 bg-search-bg/60 py-1.5 pr-3 pl-7 text-[13px] text-slate-700 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-search-bg/60 py-1.5 pr-3 pl-7 text-[13px] text-foreground outline-none focus:border-primary"
                 />
               </div>
               <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-1.5">
@@ -254,7 +254,7 @@ export function FontPicker<T extends string>({
                 )}
               </div>
               {hasMore ? (
-                <div className="shrink-0 border-t border-slate-100 p-2.5">
+                <div className="shrink-0 border-t border-border dark:border-transparent p-2.5">
                   <button
                     type="button"
                     onClick={() => setPage((p) => p + 1)}
@@ -302,7 +302,7 @@ export function FontPairGrid({
               "relative flex flex-col items-start gap-0.5 rounded-xl border p-2.5 text-left transition-colors",
               active
                 ? "border-primary bg-primary/5"
-                : "border-slate-200 bg-search-bg/60 hover:border-slate-300",
+                : "border-border bg-search-bg/60 hover:border-muted-soft",
             ].join(" ")}
           >
             {active ? (
@@ -317,7 +317,7 @@ export function FontPairGrid({
               Aa
             </span>
             <span
-              className="text-[11px] font-medium text-slate-500"
+              className="text-[11px] font-medium text-muted"
               style={{ fontFamily: previewFontFamily("body", p.bodyFont) }}
             >
               {p.name}
@@ -331,7 +331,7 @@ export function FontPairGrid({
       <div
         className={[
           "flex flex-col items-start gap-0.5 rounded-xl border p-2.5",
-          isCustom ? "border-primary bg-primary/5" : "border-dashed border-slate-300",
+          isCustom ? "border-primary bg-primary/5" : "border-dashed border-border",
         ].join(" ")}
       >
         <span
@@ -340,7 +340,7 @@ export function FontPairGrid({
         >
           Aa
         </span>
-        <span className="text-[11px] font-medium text-slate-500">Custom</span>
+        <span className="text-[11px] font-medium text-muted">Custom</span>
       </div>
 
       {/* Randomize — a fresh, tasteful pair pulled from the curated
@@ -349,10 +349,10 @@ export function FontPairGrid({
       <button
         type="button"
         onClick={() => onApply(randomFontPair())}
-        className="flex flex-col items-start justify-center gap-0.5 rounded-xl border border-dashed border-slate-300 p-2.5 text-left transition-colors hover:border-primary hover:bg-primary/5"
+        className="flex flex-col items-start justify-center gap-0.5 rounded-xl border border-dashed border-border p-2.5 text-left transition-colors hover:border-primary hover:bg-primary/5"
       >
-        <Shuffle className="size-4 text-slate-500" strokeWidth={1.75} />
-        <span className="text-[11px] font-medium text-slate-500">Randomize</span>
+        <Shuffle className="size-4 text-muted" strokeWidth={1.75} />
+        <span className="text-[11px] font-medium text-muted">Randomize</span>
       </button>
     </div>
   );
@@ -375,9 +375,13 @@ const ICON_PAGE_SIZE = 120;
 export function IconPicker({
   value,
   onChange,
+  trigger,
 }: {
   value: string | null;
   onChange: (v: string) => void;
+  /** Optional custom trigger (e.g. a circle on a banner). Default is the
+   * full-width preview bar used in the theme editor. */
+  trigger?: (args: { open: () => void; name: IconName }) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -398,16 +402,20 @@ export function IconPicker({
 
   return (
     <>
-      {/* Same footprint as SingleImagePicker's "banner" frame (h-16) so
-       * swapping Icon ↔ Image never changes the reserved space below it. */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex h-16 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-search-bg/60 text-slate-600 transition-colors hover:border-slate-300 hover:text-foreground"
-      >
-        <DynamicIcon name={activeName} className="size-6" strokeWidth={1.5} />
-        <span className="text-[13px] font-medium">{activeName.replace(/-/g, " ")}</span>
-      </button>
+      {trigger ? (
+        trigger({ open: () => setOpen(true), name: activeName })
+      ) : (
+        /* Same footprint as SingleImagePicker's "banner" frame (h-16) so
+         * swapping Icon ↔ Image never changes the reserved space below it. */
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex h-16 w-full items-center justify-center gap-2 rounded-lg border border-border bg-search-bg/60 text-muted transition-colors hover:border-muted-soft hover:text-foreground"
+        >
+          <DynamicIcon name={activeName} className="size-6" strokeWidth={1.5} />
+          <span className="text-[13px] font-medium">{activeName.replace(/-/g, " ")}</span>
+        </button>
+      )}
 
       <AnimatePresence>
         {open ? (
@@ -431,9 +439,9 @@ export function IconPicker({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="relative z-10 flex max-h-[75vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-xl"
+              className="relative z-10 flex max-h-[75vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-surface shadow-xl"
             >
-              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-slate-100 px-4 py-3">
+              <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border dark:border-transparent px-4 py-3">
                 <h3 className="shrink-0 text-[13px] font-semibold text-foreground">Choose an icon</h3>
                 <button
                   type="button"
@@ -447,14 +455,14 @@ export function IconPicker({
                   <X className="size-4" strokeWidth={2} />
                 </button>
               </div>
-              <div className="relative shrink-0 border-b border-slate-100 px-4 py-2.5">
+              <div className="relative shrink-0 border-b border-border dark:border-transparent px-4 py-2.5">
                 <Search className="pointer-events-none absolute left-6.5 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
                 <input
                   autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search 2000+ icons…"
-                  className="w-full rounded-lg border border-slate-200 bg-search-bg/60 py-1.5 pr-3 pl-7 text-[13px] text-slate-700 outline-none focus:border-primary"
+                  className="w-full rounded-lg border border-border bg-search-bg/60 py-1.5 pr-3 pl-7 text-[13px] text-foreground outline-none focus:border-primary"
                 />
               </div>
               <div className="scrollbar-thin grid min-h-0 flex-1 grid-cols-7 content-start gap-1.5 overflow-y-auto p-3">
@@ -480,7 +488,7 @@ export function IconPicker({
                           "flex aspect-square items-center justify-center rounded-lg border transition-colors",
                           isActive
                             ? "border-primary bg-primary/10 text-primary"
-                            : "border-slate-200 bg-search-bg/60 text-slate-500 hover:border-slate-300 hover:text-foreground",
+                            : "border-border bg-search-bg/60 text-muted hover:border-muted-soft hover:text-foreground",
                         ].join(" ")}
                       >
                         <DynamicIcon name={name} className="size-4" strokeWidth={1.75} />
@@ -490,7 +498,7 @@ export function IconPicker({
                 )}
               </div>
               {hasMore ? (
-                <div className="shrink-0 border-t border-slate-100 p-2.5">
+                <div className="shrink-0 border-t border-border dark:border-transparent p-2.5">
                   <button
                     type="button"
                     onClick={() => setPage((p) => p + 1)}
@@ -626,7 +634,7 @@ export function ColorSwatches({
               ].join(" ")
             : dark
               ? "border border-dashed border-white/30 bg-white/10 hover:bg-white/15"
-              : "border border-dashed border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50",
+              : "border border-dashed border-border bg-surface hover:border-muted-soft hover:bg-search-bg",
         ].join(" ")}
         style={isCustom ? { backgroundColor: value } : undefined}
       >
@@ -761,7 +769,7 @@ export function PaletteGrid({
               "flex flex-col items-center gap-2 rounded-xl border p-3 transition-colors",
               active
                 ? "border-primary bg-primary/5"
-                : "border-slate-200 bg-search-bg/60 hover:border-slate-300",
+                : "border-border bg-search-bg/60 hover:border-muted-soft",
             ].join(" ")}
           >
             <div className="relative">
@@ -782,7 +790,7 @@ export function PaletteGrid({
       <div
         className={[
           "flex flex-col items-center gap-2 rounded-xl border p-3",
-          isCustom ? "border-primary bg-primary/5" : "border-dashed border-slate-300",
+          isCustom ? "border-primary bg-primary/5" : "border-dashed border-border",
         ].join(" ")}
       >
         <div className="relative">
@@ -801,9 +809,9 @@ export function PaletteGrid({
       <button
         type="button"
         onClick={() => onApply(randomPalette())}
-        className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-search-bg/60 p-3 transition-colors hover:border-slate-400 hover:bg-search-bg"
+        className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-search-bg/60 p-3 transition-colors hover:border-muted hover:bg-search-bg"
       >
-        <span className="flex size-8 items-center justify-center rounded-full bg-white text-foreground ring-1 ring-inset ring-black/10">
+        <span className="flex size-8 items-center justify-center rounded-full bg-surface text-foreground ring-1 ring-inset ring-black/10">
           <Shuffle className="size-4" strokeWidth={2} />
         </span>
         <span className="text-[11px] font-medium text-foreground">Random</span>
@@ -868,7 +876,7 @@ export function ColorRoleCard({
             <p
               className={[
                 "mt-0.5 text-[11px] leading-snug",
-                darkTone ? "text-white/50" : "text-slate-500",
+                darkTone ? "text-white/50" : "text-muted",
               ].join(" ")}
             >
               {description}
@@ -881,7 +889,7 @@ export function ColorRoleCard({
             "flex shrink-0 items-center gap-1.5 rounded-lg py-1 pr-1.5 pl-1",
             darkTone
               ? "bg-white/10 ring-1 ring-white/10"
-              : "bg-white ring-1 ring-slate-200/80",
+              : "bg-surface ring-1 ring-border/80",
           ].join(" ")}
         >
           <span
@@ -911,7 +919,7 @@ export function ColorRoleCard({
             }}
             className={[
               "w-[4.75rem] bg-transparent text-center font-mono text-[11px] font-medium uppercase tracking-wide outline-none",
-              darkTone ? "text-white/90" : "text-slate-600",
+              darkTone ? "text-white/90" : "text-muted",
             ].join(" ")}
           />
         </div>
@@ -947,12 +955,12 @@ export function ToggleRow({
         onClick={() => onChange(!checked)}
         className={[
           "relative h-6 w-11 shrink-0 rounded-full transition-colors",
-          checked ? "bg-primary" : "bg-slate-200",
+          checked ? "bg-primary" : "bg-border",
         ].join(" ")}
       >
         <span
           className={[
-            "absolute top-0.5 left-0.5 size-5 rounded-full bg-white transition-transform",
+            "absolute top-0.5 left-0.5 size-5 rounded-full bg-[#ffffff] transition-transform",
             checked ? "translate-x-5" : "translate-x-0",
           ].join(" ")}
         />

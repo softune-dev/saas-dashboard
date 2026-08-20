@@ -68,7 +68,7 @@ export function RecentOrders({ orders }: { orders: OrderOut[] }) {
   ];
 
   return (
-    <section className="rounded-md bg-white p-4 sm:p-5">
+    <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
           Recent Orders
@@ -84,7 +84,7 @@ export function RecentOrders({ orders }: { orders: OrderOut[] }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search orders..."
-            className="h-9 w-44 rounded-full border border-slate-200 bg-white pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
+            className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
           />
         </div>
       </div>

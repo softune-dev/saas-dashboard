@@ -48,11 +48,11 @@ export function NewTicketForm() {
   }
 
   return (
-    <section className="flex h-full flex-col rounded-md bg-white p-4 sm:p-5">
+    <section className="flex h-full flex-col rounded-md bg-surface p-4 sm:p-5">
       <h2 className="mb-1 text-base font-semibold text-foreground">
         New ticket
       </h2>
-      <p className="mb-5 text-sm text-slate-500">
+      <p className="mb-5 text-sm text-muted">
         Tell us what you need help with
       </p>
 

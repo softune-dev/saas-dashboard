@@ -60,14 +60,14 @@ export function FormModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white"
+            className="relative z-10 flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-surface"
           >
             <div
               className={[
                 "flex shrink-0 items-center justify-between",
                 padX,
                 padY,
-                headerBorder ? "border-b border-slate-100" : "",
+                headerBorder ? "border-b border-border dark:border-transparent" : "",
               ].join(" ")}
             >
               <h3
@@ -102,7 +102,7 @@ export function FormModal({
               </div>
               <div
                 className={[
-                  "flex shrink-0 gap-2 border-t border-slate-100",
+                  "flex shrink-0 gap-2 border-t border-border dark:border-transparent",
                   padX,
                   padY,
                 ].join(" ")}

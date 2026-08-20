@@ -243,18 +243,33 @@ export function EditorSidebar({
     [collapsed, onWidthChange, width],
   );
 
+  // On narrow viewports keep the panel expanded — collapse is desktop-only.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setNarrow(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  const effectivelyCollapsed = narrow ? false : collapsed;
   // Collapsed = tools rail only; never narrower than the rail itself
-  const displayWidth = collapsed ? SIDEBAR_RAIL : Math.max(width, SIDEBAR_MIN);
+  const displayWidth = effectivelyCollapsed
+    ? SIDEBAR_RAIL
+    : Math.max(width, SIDEBAR_MIN);
 
   return (
     <aside
-      style={{ width: displayWidth }}
-      className="relative flex h-full shrink-0 overflow-hidden rounded-2xl bg-white transition-[width] duration-150 ease-out"
+      data-tour="editor-sidebar"
+      style={narrow ? undefined : { width: displayWidth }}
+      className="relative flex h-full w-full shrink-0 overflow-hidden rounded-2xl bg-surface transition-[width] duration-150 ease-out md:w-auto"
     >
       {/* Tools rail — fixed width always matches SIDEBAR_RAIL */}
       <div
+        data-tour="editor-tools"
         style={{ width: SIDEBAR_RAIL }}
-        className="flex shrink-0 flex-col items-center gap-1.5 border-r border-slate-100 py-3"
+        className="flex shrink-0 flex-col items-center gap-1.5 border-r border-border dark:border-transparent py-3"
       >
         <button
           type="button"
@@ -269,7 +284,7 @@ export function EditorSidebar({
           type="button"
           onClick={() => onCollapsedChange(!collapsed)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="mb-1 inline-flex size-11 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-search-bg hover:text-foreground"
+          className="mb-1 hidden size-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground md:inline-flex"
         >
           {collapsed ? (
             <PanelLeftOpen className="size-5" strokeWidth={1.75} />
@@ -286,6 +301,7 @@ export function EditorSidebar({
               label={label}
               active={panel === id}
               onClick={() => selectPanel(id)}
+              tourId={`editor-tool-${id}`}
             >
               <MaskIcon src={icon} className="size-5" />
             </RailButton>
@@ -293,12 +309,13 @@ export function EditorSidebar({
         </div>
 
         {(showSectionRail || showPageContentRail) && (
-          <span className="my-1.5 h-px w-7 shrink-0 bg-slate-100" />
+          <span className="my-1.5 h-px w-7 shrink-0 bg-search-bg" />
         )}
 
         <div className="relative min-h-0 w-full flex-1">
           <div
             ref={toolsScrollRef}
+            data-tour="editor-section-rail"
             className="scrollbar-none flex h-full w-full flex-col items-center gap-1.5 overflow-y-auto overscroll-contain px-1"
           >
             {showSectionRail
@@ -330,7 +347,7 @@ export function EditorSidebar({
             <>
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-white to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-surface to-transparent"
               />
               <button
                 type="button"
@@ -341,7 +358,7 @@ export function EditorSidebar({
                     behavior: "smooth",
                   });
                 }}
-                className="absolute top-0.5 left-1/2 z-10 inline-flex size-6 -translate-x-1/2 items-center justify-center rounded-full bg-white text-slate-400 transition-colors hover:text-foreground"
+                className="absolute top-0.5 left-1/2 z-10 inline-flex size-6 -translate-x-1/2 items-center justify-center rounded-full bg-surface text-muted-soft ring-1 ring-border dark:ring-transparent transition-colors hover:text-foreground"
               >
                 <ChevronUp className="size-3.5" strokeWidth={2.25} />
               </button>
@@ -351,7 +368,7 @@ export function EditorSidebar({
             <>
               <div
                 aria-hidden
-                className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent"
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface to-transparent"
               />
               <button
                 type="button"
@@ -362,7 +379,7 @@ export function EditorSidebar({
                     behavior: "smooth",
                   });
                 }}
-                className="absolute bottom-0.5 left-1/2 z-10 inline-flex size-6 -translate-x-1/2 items-center justify-center rounded-full bg-white text-slate-400 transition-colors hover:text-foreground"
+                className="absolute bottom-0.5 left-1/2 z-10 inline-flex size-6 -translate-x-1/2 items-center justify-center rounded-full bg-surface text-muted-soft ring-1 ring-border dark:ring-transparent transition-colors hover:text-foreground"
               >
                 <ChevronDown className="size-3.5" strokeWidth={2.25} />
               </button>
@@ -389,7 +406,7 @@ export function EditorSidebar({
 
       {/* Expanded panel */}
       <AnimatePresence initial={false}>
-        {!collapsed ? (
+        {!effectivelyCollapsed ? (
           <motion.div
             key="panel"
             initial={{ opacity: 0 }}
@@ -398,7 +415,7 @@ export function EditorSidebar({
             transition={{ duration: 0.15 }}
             className="flex min-w-0 flex-1 flex-col overflow-hidden"
           >
-            <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-slate-100 px-4">
+            <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border dark:border-transparent px-4">
               <p className="truncate text-sm font-semibold text-foreground">
                 {panelTitle(panel, activePage?.title)}
               </p>
@@ -407,7 +424,7 @@ export function EditorSidebar({
                   type="button"
                   aria-label="Remove section"
                   onClick={() => onRemoveSection(activeSection.id)}
-                  className="inline-flex size-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                  className="inline-flex size-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
                 >
                   <MaskIcon src="/sidebar/delete.svg" className="size-4" />
                 </button>
@@ -446,16 +463,16 @@ export function EditorSidebar({
         ) : null}
       </AnimatePresence>
 
-      {/* Right-edge resize handle (extension width) */}
-      {!collapsed ? (
+      {/* Right-edge resize handle (extension width) — desktop only */}
+      {!effectivelyCollapsed ? (
         <div
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize sidebar"
           onPointerDown={onResizePointerDown}
-          className="group absolute top-0 right-0 z-20 flex h-full w-2 cursor-col-resize items-center justify-center"
+          className="group absolute top-0 right-0 z-20 hidden h-full w-2 cursor-col-resize items-center justify-center md:flex"
         >
-          <span className="h-12 w-1 rounded-full bg-slate-200 transition-colors group-hover:bg-primary group-active:bg-primary" />
+          <span className="h-12 w-1 rounded-full bg-border transition-colors group-hover:bg-primary group-active:bg-primary" />
         </div>
       ) : null}
     </aside>
@@ -467,11 +484,13 @@ function RailButton({
   active,
   onClick,
   children,
+  tourId,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  tourId?: string;
 }) {
   return (
     <button
@@ -480,11 +499,12 @@ function RailButton({
       aria-label={label}
       aria-pressed={active}
       onClick={onClick}
+      data-tour={tourId}
       className={[
         "inline-flex size-11 shrink-0 items-center justify-center rounded-full transition-colors",
         active
           ? "bg-primary text-white"
-          : "text-slate-500 hover:bg-search-bg hover:text-foreground",
+          : "text-muted hover:bg-search-bg hover:text-foreground",
       ].join(" ")}
     >
       {children}
@@ -515,7 +535,7 @@ function NumberRailButton({
         "inline-flex size-11 shrink-0 items-center justify-center rounded-full border text-sm font-bold tabular-nums transition-colors",
         active
           ? "border-primary bg-primary text-white"
-          : "border-slate-200 bg-transparent text-slate-600 hover:border-slate-300 hover:bg-white",
+          : "border-border bg-transparent text-muted hover:border-muted-soft hover:bg-surface",
       ].join(" ")}
     >
       {children}
@@ -689,7 +709,7 @@ function PanelFields({
       <div className="flex flex-col gap-3">
         <AISuggestBox siteId={siteId} onApply={onChange} />
         <div className="flex flex-col gap-2">
-          <p className="text-[11px] font-medium text-slate-500">Palettes</p>
+          <p className="text-[11px] font-medium text-muted">Palettes</p>
           <PaletteGrid
             palettes={themePalettes}
             current={{
@@ -733,9 +753,9 @@ function PanelFields({
           minCount={1}
         />
 
-        <div className="flex flex-col gap-2 border-t border-slate-100 pt-4">
+        <div className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-4">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-medium text-slate-500">Buttons</p>
+            <p className="text-[11px] font-medium text-muted">Buttons</p>
             <button
               type="button"
               onClick={() =>
@@ -760,7 +780,7 @@ function PanelFields({
             {settings.headerButtons.map((btn) => (
               <li
                 key={btn.id}
-                className="flex flex-col gap-2 rounded-xl border border-slate-200 p-2.5"
+                className="flex flex-col gap-2 rounded-xl border border-border p-2.5"
               >
                 <div className="flex items-center gap-1.5">
                   <EditorInput
@@ -783,7 +803,7 @@ function PanelFields({
                         ),
                       })
                     }
-                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
                   >
                     <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
                   </button>
@@ -812,25 +832,27 @@ function PanelFields({
 
   if (panel === "pages") {
     return (
-      <PagesManager
-        pages={settings.pages}
-        activePageId={activePageId}
-        onActivePageChange={onActivePageChange}
-        onChangePage={onChangePage}
-        onAddPage={onAddPage}
-        onRemovePage={onRemovePage}
-      />
+      <div data-tour="editor-pages">
+        <PagesManager
+          pages={settings.pages}
+          activePageId={activePageId}
+          onActivePageChange={onActivePageChange}
+          onChangePage={onChangePage}
+          onAddPage={onAddPage}
+          onRemovePage={onRemovePage}
+        />
+      </div>
     );
   }
 
   if (panel === "pageContent") {
     if (!activePage) {
-      return <p className="text-sm text-slate-500">Select a page to edit.</p>;
+      return <p className="text-sm text-muted">Select a page to edit.</p>;
     }
     if (pageSupportsSections(activePage.type)) {
       return (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted">
             Home uses numbered section tools in the rail.
           </p>
           <button
@@ -845,7 +867,7 @@ function PanelFields({
     }
     if (!pageSupportsContentEdit(activePage.type)) {
       return (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted">
           This page is system-managed and has no content editor. Preview only.
         </p>
       );
@@ -872,7 +894,7 @@ function PanelFields({
       const homeId = settings.pages.find((p) => p.type === "home")?.id;
       return (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted">
             Sections only apply to the Home page.
           </p>
           {homeId ? (
@@ -890,25 +912,30 @@ function PanelFields({
 
     return (
       <>
-        <p className="text-[11px] font-medium text-slate-500">
+        <p className="text-[11px] font-medium text-muted">
           Home sections · drag to reorder
         </p>
-        <SectionsSortableList
-          sections={settings.sections}
-          onReorder={onReorderSections}
-          onRemove={onRemoveSection}
-        />
+        <div data-tour="editor-sections-list">
+          <SectionsSortableList
+            sections={settings.sections}
+            onReorder={onReorderSections}
+            onRemove={onRemoveSection}
+          />
+        </div>
 
         {availableToAdd.length > 0 ? (
-          <div className="flex flex-col gap-2 border-t border-slate-100 pt-4">
-            <p className="text-[11px] font-medium text-slate-500">Add section</p>
+          <div
+            data-tour="editor-add-section"
+            className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-4"
+          >
+            <p className="text-[11px] font-medium text-muted">Add section</p>
             <div className="flex flex-col gap-1.5">
               {availableToAdd.map((item) => (
                 <button
                   key={item.type}
                   type="button"
                   onClick={() => onAddSection(item.type)}
-                  className="flex items-center gap-2 rounded-xl border border-dashed border-slate-200 px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/5"
+                  className="flex items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/5"
                 >
                   <Plus className="size-4 text-primary" strokeWidth={1.75} />
                   {item.label}
@@ -917,7 +944,7 @@ function PanelFields({
             </div>
           </div>
         ) : (
-          <p className="text-xs text-slate-500">All sections added</p>
+          <p className="text-xs text-muted">All sections added</p>
         )}
       </>
     );
@@ -1107,7 +1134,7 @@ function PanelFields({
         {items.map(({ n, title, body, iconKind, icon, image }) => {
           const kind = (settings[iconKind] as "icon" | "image" | undefined) ?? "icon";
           return (
-            <div key={n} className="flex flex-col gap-3 border-t border-slate-200/70 pt-4 first:border-t-0 first:pt-0">
+            <div key={n} className="flex flex-col gap-3 border-t border-border/70 dark:border-transparent pt-4 first:border-t-0 first:pt-0">
               <EditorField label={`Feature ${n} — title`}>
                 <EditorInput
                   value={settings[title] as string}

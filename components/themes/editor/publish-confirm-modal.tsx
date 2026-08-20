@@ -46,7 +46,7 @@ export function PublishConfirmModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 w-full max-w-sm rounded-2xl bg-white p-5"
+            className="relative z-10 w-full max-w-sm rounded-2xl bg-surface p-5"
           >
             <h3
               id="publish-title"
@@ -54,12 +54,12 @@ export function PublishConfirmModal({
             >
               Publish changes?
             </h3>
-            <p className="mt-1 text-[13px] text-slate-500">
+            <p className="mt-1 text-[13px] text-muted">
               This updates your live storefront.
             </p>
 
             {changes.length > 0 ? (
-              <div className="mt-3 max-h-40 overflow-y-auto rounded-xl border border-slate-100 bg-search-bg/60 p-3">
+              <div className="mt-3 max-h-40 overflow-y-auto rounded-xl border border-border dark:border-transparent bg-search-bg/60 p-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   What&apos;s changing
                 </p>
@@ -98,7 +98,7 @@ export function PublishConfirmModal({
                     transition={{ duration: 0.3, ease: "easeOut" }}
                   />
                 </div>
-                <p className="mt-2 text-center text-xs font-medium tabular-nums text-slate-500">
+                <p className="mt-2 text-center text-xs font-medium tabular-nums text-muted">
                   {progress}%
                 </p>
               </div>

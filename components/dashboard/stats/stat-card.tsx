@@ -12,7 +12,14 @@ export function StatCard({ stat }: StatCardProps) {
   const changeAbs = Math.abs(stat.changePercent ?? 0).toFixed(1);
 
   return (
-    <article className="relative flex min-h-[132px] flex-col justify-between rounded-md bg-white p-4 pr-16">
+    <article
+      className={[
+        "relative flex min-h-[132px] flex-col justify-between rounded-md bg-surface p-4 pr-16",
+        stat.className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
         <MaskIcon src={stat.icon} className="size-5" />
       </div>
@@ -28,8 +35,8 @@ export function StatCard({ stat }: StatCardProps) {
             className={[
               "inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium",
               isUp
-                ? "bg-emerald-50 text-emerald-600"
-                : "bg-red-50 text-red-500",
+                ? "bg-primary/10 text-primary"
+                : "bg-rose-500/10 text-red-500",
             ].join(" ")}
           >
             {isUp ? (

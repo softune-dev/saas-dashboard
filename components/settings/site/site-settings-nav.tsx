@@ -12,7 +12,7 @@ export function SiteSettingsNav() {
     <aside className="w-full shrink-0 sm:sticky sm:top-3 sm:w-56 sm:self-start">
       <nav
         aria-label="Site settings sections"
-        className="flex flex-col gap-0.5 rounded-md bg-white p-2"
+        className="flex flex-col gap-0.5 rounded-md bg-surface p-2"
       >
         <p className="px-3 py-2 text-[11px] font-semibold tracking-wider text-muted-soft uppercase">
           Sections

@@ -14,7 +14,7 @@ export function SettingsActions({
   onReset,
 }: SettingsActionsProps) {
   return (
-    <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+    <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border dark:border-transparent pt-4">
       <PrimaryButton type="button" onClick={onSave}>
         <MaskIcon src="/sidebar/save.svg" className="size-4" />
         {saveLabel}

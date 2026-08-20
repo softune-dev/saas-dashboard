@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ChevronRight,
   Copy,
@@ -16,11 +16,22 @@ import { ActionConfirmCard } from "./action-confirm-card";
 import type { ChatMessage } from "./ai-chat-store";
 import { useToast } from "@/components/ui/toast";
 
+function formatAiMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
+    .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, "<em>$1</em>")
+    .replace(/`(.*?)`/g, '<code class="bg-primary/10 text-primary px-1 rounded">$1</code>');
+}
+
 type AiMessageItemProps = {
   message: ChatMessage;
   onEditUserMessage?: (text: string) => void;
   onRetryAiMessage?: () => void;
   onResolveAction?: (outcome: "confirmed" | "cancelled", resultNote: string) => void;
+  /** When true, reveal the assistant reply letter-by-letter (API is non-streaming). */
+  animate?: boolean;
+  onAnimateComplete?: () => void;
+  onAnimateProgress?: () => void;
 };
 
 export function AiMessageItem({
@@ -28,13 +39,50 @@ export function AiMessageItem({
   onEditUserMessage,
   onRetryAiMessage,
   onResolveAction,
+  animate = false,
+  onAnimateComplete,
+  onAnimateProgress,
 }: AiMessageItemProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [showThought, setShowThought] = useState(false);
   const [liked, setLiked] = useState<boolean | null>(null);
+  const [visibleLen, setVisibleLen] = useState(() =>
+    animate ? 0 : message.content.length,
+  );
+  const onCompleteRef = useRef(onAnimateComplete);
+  const onProgressRef = useRef(onAnimateProgress);
+  onCompleteRef.current = onAnimateComplete;
+  onProgressRef.current = onAnimateProgress;
 
   const isUser = message.role === "user";
+  const isAnimating = !isUser && animate && visibleLen < message.content.length;
+
+  // Client typewriter — the chat API returns the full reply in one shot.
+  useEffect(() => {
+    if (isUser || !animate) {
+      setVisibleLen(message.content.length);
+      return;
+    }
+
+    setVisibleLen(0);
+    const full = message.content;
+    // Keep long replies snappy while short ones still feel letter-by-letter.
+    const step = full.length > 800 ? 3 : full.length > 400 ? 2 : 1;
+    const tickMs = 18;
+    let len = 0;
+    const id = window.setInterval(() => {
+      len = Math.min(full.length, len + step);
+      setVisibleLen(len);
+      onProgressRef.current?.();
+      if (len >= full.length) {
+        window.clearInterval(id);
+        onCompleteRef.current?.();
+      }
+    }, tickMs);
+
+    return () => window.clearInterval(id);
+  }, [animate, isUser, message.id, message.content]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -57,7 +105,7 @@ export function AiMessageItem({
               {message.attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="flex items-center gap-2 rounded-xl bg-white p-1.5 pr-2.5 border border-border/60"
+                  className="flex items-center gap-2 rounded-xl bg-surface p-1.5 pr-2.5 border border-border/60"
                 >
                   {att.type === "image" ? (
                     <img
@@ -148,17 +196,21 @@ export function AiMessageItem({
       ) : null}
 
       {/* AI Reply Text: No background, no padding */}
-      <div
-        className="whitespace-pre-line text-[15px] leading-[1.65] text-foreground"
-        dangerouslySetInnerHTML={{
-          __html: message.content
-            .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
-            .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
-            .replace(/`(.*?)`/g, '<code class="bg-primary/10 text-primary px-1 rounded">$1</code>')
-        }}
-      />
+      <div className="whitespace-pre-line text-[15px] leading-[1.65] text-foreground">
+        <span
+          dangerouslySetInnerHTML={{
+            __html: formatAiMarkdown(message.content.slice(0, visibleLen)),
+          }}
+        />
+        {isAnimating ? (
+          <span
+            aria-hidden
+            className="ml-0.5 inline-block h-[1.05em] w-[2px] translate-y-[2px] animate-pulse bg-primary align-baseline"
+          />
+        ) : null}
+      </div>
 
-      {message.pendingAction ? (
+      {!isAnimating && message.pendingAction ? (
         <ActionConfirmCard
           action={message.pendingAction}
           resolved={message.actionResolved}
@@ -166,58 +218,60 @@ export function AiMessageItem({
         />
       ) : null}
 
-      {/* AI Action Icons at Bottom: No padding, no background */}
-      <div className="flex items-center gap-2 pt-1 text-muted-soft">
-        {onRetryAiMessage ? (
+      {/* Actions stay hidden until the typewriter finishes */}
+      {!isAnimating ? (
+        <div className="flex items-center gap-2 pt-1 text-muted-soft">
+          {onRetryAiMessage ? (
+            <button
+              type="button"
+              onClick={onRetryAiMessage}
+              aria-label="Retry response"
+              title="Retry"
+              className="inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-search-bg hover:text-foreground"
+            >
+              <RotateCcw className="size-3.5" />
+            </button>
+          ) : null}
+
           <button
             type="button"
-            onClick={onRetryAiMessage}
-            aria-label="Retry response"
-            title="Retry"
+            onClick={handleCopy}
+            aria-label="Copy response"
+            title="Copy"
             className="inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-search-bg hover:text-foreground"
           >
-            <RotateCcw className="size-3.5" />
+            {copied ? (
+              <Check className="size-3.5 text-emerald-500" />
+            ) : (
+              <Copy className="size-3.5" />
+            )}
           </button>
-        ) : null}
 
-        <button
-          type="button"
-          onClick={handleCopy}
-          aria-label="Copy response"
-          title="Copy"
-          className="inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-search-bg hover:text-foreground"
-        >
-          {copied ? (
-            <Check className="size-3.5 text-emerald-500" />
-          ) : (
-            <Copy className="size-3.5" />
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={() => setLiked(liked === true ? null : true)}
+            aria-label="Good response"
+            title="Good response"
+            className={`inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-search-bg ${
+              liked === true ? "text-primary font-semibold" : "hover:text-foreground"
+            }`}
+          >
+            <ThumbsUp className="size-3.5" />
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setLiked(liked === true ? null : true)}
-          aria-label="Good response"
-          title="Good response"
-          className={`inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-search-bg ${
-            liked === true ? "text-primary font-semibold" : "hover:text-foreground"
-          }`}
-        >
-          <ThumbsUp className="size-3.5" />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setLiked(liked === false ? null : false)}
-          aria-label="Poor response"
-          title="Poor response"
-          className={`inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-search-bg ${
-            liked === false ? "text-rose-500 font-semibold" : "hover:text-foreground"
-          }`}
-        >
-          <ThumbsDown className="size-3.5" />
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setLiked(liked === false ? null : false)}
+            aria-label="Poor response"
+            title="Poor response"
+            className={`inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-search-bg ${
+              liked === false ? "text-rose-500 font-semibold" : "hover:text-foreground"
+            }`}
+          >
+            <ThumbsDown className="size-3.5" />
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

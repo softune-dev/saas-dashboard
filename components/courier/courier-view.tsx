@@ -107,15 +107,15 @@ export function CourierView() {
       <PageHeading title="Courier" />
 
       {showSkeleton ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-56 animate-pulse rounded-2xl bg-white" />
+        <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-56 animate-pulse rounded-2xl bg-surface" />
           ))}
         </div>
       ) : error ? (
         <EmptyState icon={Truck} title="Couldn't load couriers" description={error} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {COURIER_CATALOG.map((entry) => {
             const connection = connections.find((c) => c.provider === entry.provider) ?? null;
             return (

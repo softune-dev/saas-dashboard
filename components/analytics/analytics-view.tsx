@@ -9,9 +9,11 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { PeriodPill } from "@/components/ui/period-pill";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useAnalyticsSWR } from "@/lib/api/analytics";
+import { downloadCsv } from "@/lib/export";
 import { AnalyticsStats } from "./analytics-stats";
 import { BestSellers } from "./best-sellers";
 import { CategoryPieChart } from "./category-pie-chart";
+import { ExportMenu } from "./export-menu";
 import { RevenueCurveChart } from "./revenue-curve-chart";
 import { SalesReportTable } from "./sales-report-table";
 
@@ -53,10 +55,13 @@ export function AnalyticsView() {
         actions={
           <>
             <DateRangePill value={range} onChange={setRange} />
-            <PrimaryButton>
-              <Download className="size-4" strokeWidth={2} />
-              Export
-            </PrimaryButton>
+            {data ? (
+              <ExportMenu
+                data={data}
+                siteName={currentSite?.name ?? "store"}
+                periodLabel={`Last ${weeksFromRange(range)} weeks`}
+              />
+            ) : null}
           </>
         }
       />
@@ -71,12 +76,12 @@ export function AnalyticsView() {
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-[132px] animate-pulse rounded-md bg-white" />
+              <div key={i} className="h-[132px] animate-pulse rounded-md bg-surface" />
             ))}
           </div>
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-            <div className="h-[280px] animate-pulse rounded-md bg-white" />
-            <div className="h-[280px] animate-pulse rounded-md bg-white" />
+            <div className="h-[280px] animate-pulse rounded-md bg-surface" />
+            <div className="h-[280px] animate-pulse rounded-md bg-surface" />
           </div>
         </>
       ) : errorMessage ? (
@@ -87,7 +92,7 @@ export function AnalyticsView() {
 
           {/* Curve + category pie */}
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-            <section className="rounded-md bg-white p-4 sm:p-5">
+            <section className="rounded-md bg-surface p-4 sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold text-foreground">
@@ -102,20 +107,22 @@ export function AnalyticsView() {
               <RevenueCurveChart curve={data.revenue_curve} />
             </section>
 
-            <section className="rounded-md bg-white p-4 sm:p-5">
+            <section className="flex flex-col rounded-md bg-surface p-4 sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-foreground">
                   Best Selling Categories
                 </h2>
                 <PeriodPill />
               </div>
-              <CategoryPieChart shares={data.category_shares} />
+              <div className="flex min-h-0 flex-1 flex-col justify-center">
+                <CategoryPieChart shares={data.category_shares} />
+              </div>
             </section>
           </div>
 
           {/* Best products + sales report */}
           <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
-            <section className="rounded-md bg-white p-4 sm:p-5">
+            <section className="rounded-md bg-surface p-4 sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-foreground">
                   Best Selling Products
@@ -125,7 +132,7 @@ export function AnalyticsView() {
               <BestSellers items={data.best_sellers} />
             </section>
 
-            <section className="rounded-md bg-white p-4 sm:p-5">
+            <section className="rounded-md bg-surface p-4 sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold text-foreground">
@@ -135,7 +142,25 @@ export function AnalyticsView() {
                     Weekly breakdown with net sales
                   </p>
                 </div>
-                <PrimaryButton className="!px-3 !py-1.5 text-xs">
+                <PrimaryButton
+                  className="!px-3 !py-1.5 text-xs"
+                  onClick={() =>
+                    downloadCsv(
+                      `${(currentSite?.name ?? "store").toLowerCase().replace(/\s+/g, "-")}-sales-report.csv`,
+                      [
+                        ["Period", "Orders", "Customers", "Revenue", "Refunds", "Net Sales"],
+                        ...data.sales_report.map((r) => [
+                          r.period,
+                          r.orders,
+                          r.customers,
+                          (r.revenue_cents / 100).toFixed(2),
+                          (r.refunds_cents / 100).toFixed(2),
+                          (r.net_cents / 100).toFixed(2),
+                        ]),
+                      ],
+                    )
+                  }
+                >
                   <Download className="size-3.5" strokeWidth={2} />
                   Export CSV
                 </PrimaryButton>

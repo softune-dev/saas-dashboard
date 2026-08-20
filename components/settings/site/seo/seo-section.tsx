@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/toast";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { saveSiteSeo, useSiteSettingsSWR, type SiteSeo } from "@/lib/api/site-settings";
+import { MaskIcon } from "@/components/ui/mask-icon";
 import { SettingsActions } from "../ui/settings-actions";
 import {
   SettingsInput,
@@ -93,11 +94,11 @@ export function SeoSection() {
         <SettingsRowSkeleton />
         <SettingsTextareaSkeleton />
         <SettingsRowSkeleton cols={2} />
-        <div className="border-t border-slate-100 pt-5">
+        <div className="border-t border-border dark:border-transparent pt-5">
           <SettingsRowSkeleton />
         </div>
         <SettingsTextareaSkeleton />
-        <div className="border-t border-slate-100 pt-5">
+        <div className="border-t border-border dark:border-transparent pt-5">
           <SettingsRowSkeleton cols={3} />
         </div>
       </div>
@@ -137,7 +138,7 @@ export function SeoSection() {
         placeholder="comma, separated, keywords"
       />
 
-      <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 border-t border-border dark:border-transparent pt-5 sm:grid-cols-2">
         <SettingsInput
           label="OG title"
           value={form.og_title ?? ""}
@@ -161,7 +162,7 @@ export function SeoSection() {
         className="!min-h-[72px]"
       />
 
-      <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 border-t border-border dark:border-transparent pt-5 sm:grid-cols-2">
         <SettingsSelect
           label="Indexing"
           value={form.noindex ? "noindex" : "index"}
@@ -210,8 +211,8 @@ export function SeoSection() {
       </div>
 
       <div className="rounded-xl bg-search-bg p-4">
-        <p className="truncate text-sm text-[#1a0dab]">{previewTitle}</p>
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600">
+        <p className="truncate text-sm font-medium text-primary">{previewTitle}</p>
+        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">
           {form.meta_description || "No meta description set yet."}
         </p>
       </div>
@@ -240,14 +241,14 @@ function ImageUploadField({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium text-slate-500">{label}</span>
+      <span className="text-sm font-medium text-muted">{label}</span>
       <div className="flex items-center gap-2">
         {value ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={value}
             alt=""
-            className="size-10 shrink-0 rounded-md border border-slate-200 bg-white object-contain p-1"
+            className="size-10 shrink-0 rounded-md border border-border bg-surface object-contain p-1"
           />
         ) : null}
         <MediaSourceMenu
@@ -265,7 +266,7 @@ function ImageUploadField({
               type="button"
               onClick={open}
               disabled={uploading}
-              className="flex h-10 flex-1 cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-slate-500 transition-colors hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-10 flex-1 cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-muted transition-colors hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {uploading ? "Uploading…" : value ? "Replace image" : "Add image"}
             </button>
@@ -275,9 +276,10 @@ function ImageUploadField({
           <button
             type="button"
             onClick={onClear}
-            className="text-xs font-medium text-muted-soft hover:text-red-500"
+            aria-label="Remove image"
+            className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors hover:bg-primary/20"
           >
-            Remove
+            <MaskIcon src="/sidebar/delete.svg" className="size-4" />
           </button>
         ) : null}
       </div>

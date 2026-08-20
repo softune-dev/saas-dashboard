@@ -2,6 +2,7 @@
 
 import { ShoppingBag } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -12,6 +13,7 @@ import {
   useNotificationsSWR,
 } from "@/lib/api/notifications";
 import {
+  getOrder,
   updateOrderStatus,
   useOrdersSWR,
   type OrderOut,
@@ -28,6 +30,7 @@ import {
 export function OrdersView() {
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const siteId = currentSite?.id ?? null;
 
   const [filters, setFilters] = useState<OrderFilters>(emptyOrderFilters);
@@ -84,6 +87,32 @@ export function OrdersView() {
       ? ordersError.message
       : "Failed to load orders"
     : null;
+
+  // Deep-link from header search: /orders?order=<id>
+  const deepOrderId = searchParams.get("order");
+  const openedDeepLink = useRef<string | null>(null);
+  useEffect(() => {
+    if (!siteId || !deepOrderId || openedDeepLink.current === deepOrderId) return;
+    const cached = orders.find((o) => o.id === deepOrderId);
+    if (cached) {
+      openedDeepLink.current = deepOrderId;
+      setViewing(cached);
+      return;
+    }
+    let cancelled = false;
+    getOrder(siteId, deepOrderId)
+      .then((order) => {
+        if (cancelled) return;
+        openedDeepLink.current = deepOrderId;
+        setViewing(order);
+      })
+      .catch(() => {
+        /* missing/unauthorized — leave list as-is */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [siteId, deepOrderId, orders]);
 
   async function handleStatusChange(order: OrderOut, status: OrderStatus) {
     if (!currentSite || order.status === status) return;
@@ -146,7 +175,7 @@ export function OrdersView() {
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-[132px] animate-pulse rounded-md bg-white" />
+              <div key={i} className="h-[132px] animate-pulse rounded-md bg-surface" />
             ))}
           </div>
           <TableSkeleton columns={6} />

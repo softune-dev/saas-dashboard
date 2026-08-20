@@ -112,8 +112,8 @@ export function ProductsTable({
           className={[
             "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
             row.is_active
-              ? "bg-emerald-50 text-emerald-600"
-              : "bg-slate-100 text-slate-500",
+              ? "bg-primary/10 text-primary"
+              : "bg-search-bg text-muted",
           ].join(" ")}
         >
           {row.is_active ? "Active" : "Inactive"}
@@ -139,7 +139,7 @@ export function ProductsTable({
             type="button"
             aria-label={`Delete ${row.name}`}
             onClick={() => onDelete(row)}
-            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-red-500"
+            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-red-500"
           >
             <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
           </button>
@@ -149,7 +149,7 @@ export function ProductsTable({
   ];
 
   return (
-    <section className="rounded-md bg-white p-4 sm:p-5">
+    <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
           All Products
@@ -169,7 +169,7 @@ export function ProductsTable({
                 onSearch(e.target.value);
               }}
               placeholder="Search products..."
-              className="h-9 w-44 rounded-full border border-slate-200 bg-white pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
+              className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <ProductsFilterPanel

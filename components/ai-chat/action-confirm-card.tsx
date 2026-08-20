@@ -54,7 +54,7 @@ export function ActionConfirmCard({
 
   if (resolved === "confirmed") {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-[13px] text-emerald-700">
+      <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-[13px] text-emerald-700">
         <Check className="size-3.5 shrink-0" strokeWidth={2.5} />
         Applied
       </div>
@@ -62,7 +62,7 @@ export function ActionConfirmCard({
   }
   if (resolved === "cancelled") {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-search-bg/60 px-3 py-2 text-[13px] text-slate-500">
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-search-bg/60 px-3 py-2 text-[13px] text-muted">
         <X className="size-3.5 shrink-0" strokeWidth={2.5} />
         Discarded
       </div>
@@ -91,10 +91,10 @@ export function ActionConfirmCard({
   };
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3">
+    <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface p-3">
       {action.type === "set_categories" ? (
         <>
-          <p className="text-[11px] font-medium text-slate-500">
+          <p className="text-[11px] font-medium text-muted">
             Replace categories with
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -110,18 +110,18 @@ export function ActionConfirmCard({
         </>
       ) : action.type === "create_product" ? (
         <>
-          <p className="text-[11px] font-medium text-slate-500">New product</p>
+          <p className="text-[11px] font-medium text-muted">New product</p>
           <div className="flex flex-col gap-1 text-[13px] text-foreground">
             <span className="font-semibold">{action.product.name}</span>
             {action.product.price_cents != null ? (
-              <span className="text-slate-500">
+              <span className="text-muted">
                 {(action.product.price_cents / 100).toFixed(2)}
                 {action.product.category_name ? ` · ${action.product.category_name}` : ""}
                 {action.product.unit ? ` · per ${action.product.unit}` : ""}
               </span>
             ) : null}
             {action.product.variants?.length ? (
-              <span className="text-slate-500">
+              <span className="text-muted">
                 {action.product.variants.map((v) => `${v.type}: ${v.values.map((val) => val.value).join(", ")}`).join(" · ")}
               </span>
             ) : null}
@@ -129,7 +129,7 @@ export function ActionConfirmCard({
         </>
       ) : (
         <>
-          <p className="text-[11px] font-medium text-slate-500">
+          <p className="text-[11px] font-medium text-muted">
             Edit {action.product.product_name ?? "product"}
           </p>
           <ul className="flex flex-col gap-1">
@@ -137,7 +137,7 @@ export function ActionConfirmCard({
               .filter(([field]) => field !== "product_id" && field !== "product_name")
               .map(([field, value]) => (
                 <li key={field} className="flex items-center justify-between gap-2 text-[13px]">
-                  <span className="text-slate-500">{UPDATE_FIELD_LABELS[field] ?? field}</span>
+                  <span className="text-muted">{UPDATE_FIELD_LABELS[field] ?? field}</span>
                   <span className="truncate font-medium text-foreground">
                     {formatUpdateValue(field, value)}
                   </span>
@@ -169,7 +169,7 @@ export function ActionConfirmCard({
           type="button"
           onClick={() => onResolve("cancelled", "Discarded.")}
           disabled={loading}
-          className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 disabled:opacity-60"
+          className="flex-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted disabled:opacity-60"
         >
           Cancel
         </button>

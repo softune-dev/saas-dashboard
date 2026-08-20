@@ -1,8 +1,8 @@
 import type { CategoryStatus } from "./categories-data";
 
 const styles: Record<CategoryStatus, string> = {
-  Active: "bg-emerald-50 text-emerald-600",
-  Inactive: "bg-slate-100 text-slate-500",
+  Active: "bg-primary/10 text-primary",
+  Inactive: "bg-search-bg text-muted",
 };
 
 type CategoryStatusBadgeProps = {

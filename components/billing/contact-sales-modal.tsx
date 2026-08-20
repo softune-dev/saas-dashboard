@@ -56,9 +56,9 @@ export function ContactSalesModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 flex w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-white"
+            className="relative z-10 flex w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-surface"
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-border dark:border-transparent px-5 py-4">
               <h3 id="contact-sales-title" className="text-[15px] font-semibold text-foreground">
                 Switch to {targetPlan.name}
               </h3>
@@ -88,7 +88,7 @@ export function ContactSalesModal({
               </div>
             </div>
 
-            <div className="flex shrink-0 gap-2 border-t border-slate-100 px-5 py-4">
+            <div className="flex shrink-0 gap-2 border-t border-border dark:border-transparent px-5 py-4">
               <button
                 type="button"
                 onClick={onClose}

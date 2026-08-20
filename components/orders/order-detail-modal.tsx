@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ImageOff, Package, X } from "lucide-react";
+import { ImageOff, Package, Printer, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
@@ -52,93 +52,6 @@ function ItemThumb({
   );
 }
 
-const FLOW: { key: OrderStatus; label: string }[] = [
-  { key: "pending", label: "Pending" },
-  { key: "paid", label: "Paid" },
-  { key: "fulfilled", label: "Fulfilled" },
-];
-
-function StatusSteps({ status }: { status: OrderStatus }) {
-  const isTerminal = status === "cancelled" || status === "refunded";
-  const activeIdx = FLOW.findIndex((s) => s.key === status);
-
-  if (isTerminal) {
-    return (
-      <div className="flex items-center gap-2">
-        <OrderStatusBadge status={status} />
-        <span className="text-sm text-muted">
-          {status === "cancelled"
-            ? "This order was cancelled."
-            : "This order was refunded."}
-        </span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex w-full items-start">
-      {FLOW.map((step, i) => {
-        const done = activeIdx > i;
-        const current = activeIdx === i;
-        const reached = done || current;
-        const segmentFilled = activeIdx > i;
-        const isLast = i === FLOW.length - 1;
-
-        return (
-          <div
-            key={step.key}
-            className={[
-              "flex items-start",
-              isLast ? "shrink-0" : "min-w-0 flex-1",
-            ].join(" ")}
-          >
-            <div className="flex shrink-0 flex-col items-center gap-1.5">
-              <span
-                className={[
-                  "flex size-7 items-center justify-center rounded-full text-[11px] font-semibold",
-                  reached
-                    ? "bg-primary text-white"
-                    : "border border-slate-200 bg-white text-muted-soft",
-                ].join(" ")}
-              >
-                {done ? (
-                  <Check className="size-3.5" strokeWidth={2.5} />
-                ) : (
-                  i + 1
-                )}
-              </span>
-              <span
-                className={[
-                  "text-[11px] font-medium whitespace-nowrap",
-                  current
-                    ? "text-primary"
-                    : reached
-                      ? "text-foreground"
-                      : "text-muted-soft",
-                ].join(" ")}
-              >
-                {step.label}
-              </span>
-            </div>
-            {!isLast ? (
-              <div
-                className="mx-2 mt-3 h-px min-w-[1rem] flex-1 bg-slate-200"
-                aria-hidden
-              >
-                <div
-                  className={[
-                    "h-full transition-all duration-300",
-                    segmentFilled ? "w-full bg-primary" : "w-0 bg-primary",
-                  ].join(" ")}
-                />
-              </div>
-            ) : null}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 
 /** Flat, simple order detail. Status control sits beside customer info. */
 export function OrderDetailModal({
@@ -190,6 +103,103 @@ export function OrderDetailModal({
     ? order.items.reduce((n, i) => n + i.quantity, 0)
     : 0;
 
+  const handlePrint = () => {
+    if (!order) return;
+    const printWindow = window.open('', '', 'width=800,height=800');
+    if (!printWindow) return;
+    
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Order ${order.order_number}</title>
+          <style>
+            body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #111; line-height: 1.5; }
+            h1 { margin: 0 0 5px; font-size: 24px; }
+            .header { border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
+            .meta { color: #666; font-size: 14px; }
+            .row { display: flex; justify-content: space-between; gap: 40px; margin-bottom: 40px; }
+            .col { flex: 1; }
+            h3 { font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+            p { margin: 0; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+            th, td { padding: 12px 0; text-align: left; border-bottom: 1px solid #eee; }
+            th { font-weight: 600; color: #666; font-size: 14px; }
+            .text-right { text-align: right; }
+            .totals { margin-left: auto; width: 300px; }
+            .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
+            .totals-row:last-child { border-bottom: none; font-weight: bold; font-size: 16px; padding-top: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Delivery Slip / Invoice</h1>
+            <div class="meta">Order #${order.order_number} &bull; ${formatDisplayDate(new Date(order.created_at))}</div>
+          </div>
+          
+          <div class="row">
+            <div class="col">
+              <h3>Customer Details</h3>
+              <p><strong>${name}</strong><br/>${email ? email + '<br/>' : ''}${phone ? phone : ''}</p>
+            </div>
+            <div class="col">
+              <h3>Shipping Address</h3>
+              <p>${address || 'No address provided'}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th class="text-right">Price</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.map(item => `
+                <tr>
+                  <td>
+                    <strong>${item.name_snapshot}</strong>
+                    ${item.sku_snapshot ? `<br/><span style="color:#666;font-size:12px;">SKU: ${item.sku_snapshot}</span>` : ''}
+                  </td>
+                  <td>${item.quantity}</td>
+                  <td class="text-right">${formatTaka(item.unit_price_cents / 100)}</td>
+                  <td class="text-right">${formatTaka(item.total_cents / 100)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div class="totals-row">
+              <span>Subtotal</span>
+              <span>${formatTaka(order.subtotal_cents / 100)}</span>
+            </div>
+            <div class="totals-row">
+              <span>Shipping</span>
+              <span>${formatTaka(order.shipping_cents / 100)}</span>
+            </div>
+            <div class="totals-row">
+              <span>Tax</span>
+              <span>${formatTaka(order.tax_cents / 100)}</span>
+            </div>
+            <div class="totals-row">
+              <span>Total</span>
+              <span>${formatTaka(order.total_cents / 100)} ${order.currency}</span>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   return (
     <AnimatePresence>
       {open && order ? (
@@ -211,46 +221,52 @@ export function OrderDetailModal({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             transition={{ duration: 0.18 }}
-            className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-slate-200 bg-white"
+            className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-surface"
           >
             {/* Header */}
-            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-primary/10 bg-primary px-5 py-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3
                     id="order-detail-title"
-                    className="text-base font-semibold text-foreground"
+                    className="text-base font-semibold text-white"
                   >
                     {order.order_number}
                   </h3>
                   <OrderStatusBadge status={order.status} />
                 </div>
-                <p className="mt-1 text-sm text-muted">
+                <p className="mt-1 text-sm text-white/80">
                   {formatDisplayDate(new Date(order.created_at))}
-                  <span className="mx-1.5 text-muted-soft">·</span>
+                  <span className="mx-1.5 text-white/50">·</span>
                   {itemCount} {itemCount === 1 ? "item" : "items"}
                 </p>
               </div>
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={onClose}
-                disabled={busy}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg disabled:opacity-60"
-              >
-                <X className="size-4" strokeWidth={2} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  aria-label="Print Invoice"
+                  onClick={handlePrint}
+                  disabled={busy}
+                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30 disabled:opacity-60"
+                  title="Print Delivery Slip"
+                >
+                  <Printer className="size-5" strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={onClose}
+                  disabled={busy}
+                  className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-60"
+                >
+                  <X className="size-5" strokeWidth={2} />
+                </button>
+              </div>
             </div>
 
             <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
-              {/* Progress */}
-              <div>
-                <p className="mb-3 text-xs font-medium text-muted">Progress</p>
-                <StatusSteps status={order.status} />
-              </div>
-
               {/* Customer + status side by side */}
-              <div className="flex flex-col gap-4 border-t border-slate-100 pt-5 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="mb-2 text-xs font-medium text-muted">Customer</p>
                   <p className="font-medium text-foreground">{name}</p>
@@ -283,7 +299,7 @@ export function OrderDetailModal({
                       onChange={(e) => {
                         setLocalStatus(e.target.value as OrderStatus);
                       }}
-                      className="h-9 w-full rounded-md border border-slate-200 bg-white px-2.5 text-sm text-foreground outline-none focus:border-primary disabled:opacity-60"
+                      className="h-9 w-full rounded-md border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary disabled:opacity-60"
                     >
                       {ORDER_STATUS_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -308,40 +324,44 @@ export function OrderDetailModal({
                 </div>
               </div>
 
-              {address ? (
-                <div className="border-t border-slate-100 pt-5">
-                  <p className="mb-1.5 text-xs font-medium text-muted">
-                    Shipping address
-                  </p>
-                  <p className="text-sm leading-relaxed text-foreground">
-                    {address}
-                  </p>
-                </div>
-              ) : null}
+              {(address || order.meta?.payment_method) ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 border-t border-border dark:border-transparent pt-5">
+                  {address ? (
+                    <div>
+                      <p className="mb-1.5 text-xs font-medium text-muted">
+                        Shipping address
+                      </p>
+                      <p className="text-sm leading-relaxed text-foreground">
+                        {address}
+                      </p>
+                    </div>
+                  ) : null}
 
-              {order.meta?.payment_method ? (
-                <div className="border-t border-slate-100 pt-5">
-                  <p className="mb-1.5 text-xs font-medium text-muted">Payment</p>
-                  <p className="text-sm leading-relaxed text-foreground">
-                    {order.meta.payment_method === "manual"
-                      ? "Manual payment"
-                      : order.meta.payment_method === "cod"
-                        ? "Cash on Delivery"
-                        : order.meta.payment_method}
-                  </p>
-                  {order.meta.transaction_id ? (
-                    <p className="mt-0.5 text-sm text-muted">
-                      Transaction ID:{" "}
-                      <span className="font-mono text-foreground">
-                        {order.meta.transaction_id}
-                      </span>
-                    </p>
+                  {order.meta?.payment_method ? (
+                    <div>
+                      <p className="mb-1.5 text-xs font-medium text-muted">Payment</p>
+                      <p className="text-sm leading-relaxed text-foreground">
+                        {order.meta.payment_method === "manual"
+                          ? "Manual payment"
+                          : order.meta.payment_method === "cod"
+                            ? "Cash on Delivery"
+                            : order.meta.payment_method}
+                      </p>
+                      {order.meta.transaction_id ? (
+                        <p className="mt-0.5 text-sm text-muted">
+                          Transaction ID:{" "}
+                          <span className="font-mono text-foreground">
+                            {order.meta.transaction_id}
+                          </span>
+                        </p>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               ) : null}
 
               {order.notes ? (
-                <div className="border-t border-slate-100 pt-5">
+                <div className="border-t border-border dark:border-transparent pt-5">
                   <p className="mb-1.5 text-xs font-medium text-muted">Notes</p>
                   <p className="text-sm leading-relaxed text-foreground">
                     {order.notes}
@@ -350,7 +370,7 @@ export function OrderDetailModal({
               ) : null}
 
               {/* Products */}
-              <div className="border-t border-slate-100 pt-5">
+              <div className="border-t border-border dark:border-transparent pt-5">
                 <p className="mb-3 text-xs font-medium text-muted">
                   Products ordered
                 </p>
@@ -360,7 +380,7 @@ export function OrderDetailModal({
                     <p className="text-sm">No products on this order.</p>
                   </div>
                 ) : (
-                  <ul className="divide-y divide-slate-100">
+                  <ul className="divide-y divide-border dark:divide-transparent">
                     {order.items.map((item) => (
                       <li
                         key={item.id}
@@ -393,27 +413,31 @@ export function OrderDetailModal({
               </div>
 
               {/* Totals */}
-              <div className="space-y-1.5 border-t border-slate-100 pt-4 text-sm">
-                <div className="flex justify-between text-muted">
+              <div className="space-y-1.5 border-t border-border dark:border-transparent pt-4 text-sm">
+                <div className="flex items-center justify-between text-muted">
                   <span>Subtotal</span>
+                  <span className="mx-2 flex-1 border-b border-dashed border-slate-300" />
                   <span className="tabular-nums">
                     {formatTaka(order.subtotal_cents / 100)}
                   </span>
                 </div>
-                <div className="flex justify-between text-muted">
+                <div className="flex items-center justify-between text-muted">
                   <span>Shipping</span>
+                  <span className="mx-2 flex-1 border-b border-dashed border-slate-300" />
                   <span className="tabular-nums">
                     {formatTaka(order.shipping_cents / 100)}
                   </span>
                 </div>
-                <div className="flex justify-between text-muted">
+                <div className="flex items-center justify-between text-muted">
                   <span>Tax</span>
+                  <span className="mx-2 flex-1 border-b border-dashed border-slate-300" />
                   <span className="tabular-nums">
                     {formatTaka(order.tax_cents / 100)}
                   </span>
                 </div>
-                <div className="flex justify-between pt-2 text-[15px] font-semibold text-foreground">
+                <div className="flex items-center justify-between pt-2 text-[15px] font-semibold text-foreground">
                   <span>Total</span>
+                  <span className="mx-2 flex-1 border-b border-dashed border-slate-300" />
                   <span className="tabular-nums">
                     {formatTaka(order.total_cents / 100)}
                     <span className="ml-1 text-xs font-normal text-muted">

@@ -458,38 +458,89 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
     goThemes();
   }, [settings, toast, goThemes, siteId]);
 
+  // Mobile (< md): Edit | Preview tabs instead of side-by-side.
+  const [mobileTab, setMobileTab] = useState<"edit" | "preview">("edit");
+
   return (
     <>
-      <div className="flex h-full min-h-0 gap-3">
-        <EditorSidebar
-          settings={settings}
-          loading={!themeReady}
-          siteId={realSiteId}
-          themeId={siteId}
-          previewUrl={previewUrl}
-          categories={catalogCategories}
-          products={catalogProducts}
-          panel={panel}
-          activePageId={activePage?.id ?? ""}
-          dirty={dirty}
-          collapsed={collapsed}
-          width={sidebarWidth}
-          onWidthChange={setSidebarWidth}
-          onCollapsedChange={setCollapsed}
-          onPanelChange={setPanel}
-          onActivePageChange={handleActivePageChange}
-          onChange={patch}
-          onAddSection={addSection}
-          onRemoveSection={removeSection}
-          onReorderSections={reorderSections}
-          onChangePage={changePage}
-          onAddPage={addPage}
-          onRemovePage={removePage}
-          onBack={handleBack}
-          onSave={save}
-        />
+      <div className="flex h-full min-h-0 flex-col gap-2 md:flex-row md:gap-3">
+        <div className="flex shrink-0 gap-1 rounded-full bg-surface p-1 md:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileTab("edit")}
+            className={[
+              "flex-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors",
+              mobileTab === "edit"
+                ? "bg-primary text-white"
+                : "text-muted hover:text-foreground",
+            ].join(" ")}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileTab("preview")}
+            className={[
+              "flex-1 rounded-full px-3 py-2 text-xs font-semibold transition-colors",
+              mobileTab === "preview"
+                ? "bg-primary text-white"
+                : "text-muted hover:text-foreground",
+            ].join(" ")}
+          >
+            Preview
+          </button>
+        </div>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white">
+        <div
+          className={[
+            "min-h-0 min-w-0",
+            mobileTab === "edit" ? "flex flex-1" : "hidden",
+            // flex-1 above is mobile-only (full-width Edit tab). On desktop the
+            // sidebar must NOT grow — md:shrink-0 alone doesn't cancel the
+            // flex-grow:1 it inherits from flex-1, so without md:flex-none it
+            // competes with the preview panel for free space and leaves a
+            // large empty gap between the sidebar's real (fixed) width and
+            // the preview panel that starts after its inflated flex-basis.
+            "md:flex md:h-full md:shrink-0 md:flex-none",
+          ].join(" ")}
+        >
+          <EditorSidebar
+            settings={settings}
+            loading={!themeReady}
+            siteId={realSiteId}
+            themeId={siteId}
+            previewUrl={previewUrl}
+            categories={catalogCategories}
+            products={catalogProducts}
+            panel={panel}
+            activePageId={activePage?.id ?? ""}
+            dirty={dirty}
+            collapsed={collapsed}
+            width={sidebarWidth}
+            onWidthChange={setSidebarWidth}
+            onCollapsedChange={setCollapsed}
+            onPanelChange={setPanel}
+            onActivePageChange={handleActivePageChange}
+            onChange={patch}
+            onAddSection={addSection}
+            onRemoveSection={removeSection}
+            onReorderSections={reorderSections}
+            onChangePage={changePage}
+            onAddPage={addPage}
+            onRemovePage={removePage}
+            onBack={handleBack}
+            onSave={save}
+          />
+        </div>
+
+        <div
+          className={[
+            "min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface",
+            mobileTab === "preview" ? "flex" : "hidden",
+            "md:flex",
+          ].join(" ")}
+          data-tour="editor-preview"
+        >
           <SitePreview
             settings={settings}
             activePage={activePage}

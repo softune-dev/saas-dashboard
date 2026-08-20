@@ -42,7 +42,7 @@ export function AccountSecurity() {
   }
 
   return (
-    <section className="rounded-md bg-white p-4 sm:p-5">
+    <section className="rounded-md bg-surface p-4 sm:p-5">
       <h2 className="mb-4 text-base font-semibold text-foreground">Security</h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -77,12 +77,12 @@ export function AccountSecurity() {
         />
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-4 border-t border-slate-200 pt-6">
+      <div className="mt-8 flex items-center justify-between gap-4 border-t border-border dark:border-transparent pt-6">
         <div>
           <h3 className="mb-1 text-sm font-semibold text-foreground">
             Two-Factor Authentication (2FA)
           </h3>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted">
             Add an extra layer of security to your account.
           </p>
         </div>
@@ -90,7 +90,7 @@ export function AccountSecurity() {
           type="button"
           disabled
           title="Coming soon"
-          className="shrink-0 inline-flex h-9 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-muted-soft transition-colors disabled:cursor-not-allowed"
+          className="shrink-0 inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-muted-soft transition-colors disabled:cursor-not-allowed"
         >
           Coming soon
         </button>

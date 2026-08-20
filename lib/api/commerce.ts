@@ -336,6 +336,8 @@ export type OrderOut = {
 
 export type ListOrdersParams = {
   status?: OrderStatus;
+  /** Matches order_number or customer JSON (name/email/phone). */
+  q?: string;
   limit?: number;
   offset?: number;
 };
@@ -346,6 +348,7 @@ export async function listOrders(
 ): Promise<Page<OrderOut>> {
   const search = new URLSearchParams();
   if (params.status) search.set("status", params.status);
+  if (params.q) search.set("q", params.q);
   search.set("limit", String(params.limit ?? 50));
   search.set("offset", String(params.offset ?? 0));
   return request<Page<OrderOut>>(
@@ -407,7 +410,14 @@ export function useOrdersSWR(
   params: ListOrdersParams = {},
 ): SWRResponse<Page<OrderOut>> {
   const key = siteId
-    ? [siteId, "orders", params.status ?? "", params.limit ?? 50, params.offset ?? 0]
+    ? [
+        siteId,
+        "orders",
+        params.status ?? "",
+        params.q ?? "",
+        params.limit ?? 50,
+        params.offset ?? 0,
+      ]
     : null;
   return useSWR(key, () => listOrders(siteId as string, params));
 }

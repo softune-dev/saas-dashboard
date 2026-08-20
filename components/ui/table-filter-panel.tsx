@@ -47,7 +47,7 @@ export function TableFilterPanel({
   }, [open]);
 
   const selectClass =
-    "h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-foreground outline-none focus:border-primary";
+    "h-9 w-full rounded-lg border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary";
 
   return (
     <div ref={rootRef} className="relative">
@@ -61,7 +61,7 @@ export function TableFilterPanel({
           "relative inline-flex size-9 items-center justify-center rounded-full border text-foreground transition-colors",
           open || activeCount > 0
             ? "border-primary bg-primary/5 text-primary"
-            : "border-slate-200 hover:border-slate-300",
+            : "border-border hover:border-slate-300",
         ].join(" ")}
       >
         <MaskIcon src="/sidebar/filter.svg" className="size-4" />
@@ -76,7 +76,7 @@ export function TableFilterPanel({
         <div
           role="dialog"
           aria-label={ariaLabel}
-          className="absolute top-full right-0 z-30 mt-2 w-72 rounded-xl bg-white p-4 shadow-lg ring-1 ring-slate-200/80"
+          className="absolute top-full right-0 z-30 mt-2 w-72 rounded-xl bg-surface p-4 shadow-lg ring-1 ring-slate-200/80"
         >
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">Filters</p>

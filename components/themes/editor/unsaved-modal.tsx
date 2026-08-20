@@ -38,7 +38,7 @@ export function UnsavedModal({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 w-full max-w-sm rounded-md bg-white p-5"
+            className="relative z-10 w-full max-w-sm rounded-md bg-surface p-5"
           >
             <h3
               id="unsaved-title"
@@ -46,7 +46,7 @@ export function UnsavedModal({
             >
               Save changes?
             </h3>
-            <p className="mt-1.5 text-sm text-slate-500">
+            <p className="mt-1.5 text-sm text-muted">
               You have unsaved site changes. Save before leaving or discard them.
             </p>
 

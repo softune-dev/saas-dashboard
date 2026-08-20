@@ -115,7 +115,7 @@ export function TestimonialsEditor({
                     type="button"
                     onClick={open}
                     disabled={uploadingId === item.id}
-                    className="group relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white disabled:opacity-60"
+                    className="group relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface disabled:opacity-60"
                   >
                     {item.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -141,7 +141,7 @@ export function TestimonialsEditor({
               </MediaSourceMenu>
 
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-medium text-slate-500">
+                <p className="text-[11px] font-medium text-muted">
                   Client {index + 1}
                 </p>
               </div>
@@ -150,7 +150,7 @@ export function TestimonialsEditor({
                 type="button"
                 aria-label="Remove testimonial"
                 onClick={() => remove(item.id)}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
               >
                 <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
               </button>
@@ -175,7 +175,7 @@ export function TestimonialsEditor({
               <button
                 type="button"
                 onClick={() => patch(item.id, { image: "" })}
-                className="self-start text-[11px] font-semibold text-slate-500 transition-colors hover:text-red-500"
+                className="self-start text-[11px] font-semibold text-muted transition-colors hover:text-red-500"
               >
                 Remove photo
               </button>
@@ -187,7 +187,7 @@ export function TestimonialsEditor({
       <button
         type="button"
         onClick={add}
-        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-slate-200 text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5"
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-border text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5"
       >
         <Plus className="size-3.5" strokeWidth={2} />
         Add testimonial

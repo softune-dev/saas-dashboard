@@ -24,7 +24,7 @@ const columns: TableColumn<HelpTicket>[] = [
     cell: (row) => (
       <div className="min-w-0">
         <p className="truncate font-medium text-foreground">{row.subject}</p>
-        <p className="truncate text-xs text-slate-500">{row.category}</p>
+        <p className="truncate text-xs text-muted">{row.category}</p>
       </div>
     ),
   },
@@ -77,7 +77,7 @@ export function TicketsTable() {
   }, [query]);
 
   return (
-    <section className="rounded-md bg-white p-4 sm:p-5">
+    <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
           Your tickets
@@ -94,13 +94,13 @@ export function TicketsTable() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search tickets..."
-              className="h-9 w-44 rounded-full border border-slate-200 bg-white pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
+              className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <button
             type="button"
             aria-label="Filter tickets"
-            className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 text-foreground transition-colors hover:border-slate-300"
+            className="inline-flex size-9 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:border-slate-300"
           >
             <MaskIcon src="/sidebar/filter.svg" className="size-4" />
           </button>

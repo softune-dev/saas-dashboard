@@ -272,11 +272,11 @@ export function FraudView() {
       <div className="flex flex-col gap-4 pb-2">
         <PageHeading title="Fraud Protection" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="h-[100px] animate-pulse rounded-md bg-white" />
-          <div className="h-[100px] animate-pulse rounded-md bg-white" />
+          <div className="h-[100px] animate-pulse rounded-md bg-surface" />
+          <div className="h-[100px] animate-pulse rounded-md bg-surface" />
         </div>
-        <div className="h-48 animate-pulse rounded-md bg-white" />
-        <div className="h-56 animate-pulse rounded-md bg-white" />
+        <div className="h-48 animate-pulse rounded-md bg-surface" />
+        <div className="h-56 animate-pulse rounded-md bg-surface" />
       </div>
     );
   }
@@ -308,7 +308,7 @@ export function FraudView() {
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <article className="relative flex min-h-[100px] flex-col justify-between rounded-md bg-white p-4 pr-16">
+        <article className="relative flex min-h-[100px] flex-col justify-between rounded-md bg-surface p-4 pr-16">
           <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
             <MaskIcon src="/sidebar/lock.svg" className="size-5" />
           </div>
@@ -317,7 +317,7 @@ export function FraudView() {
             {draftBlocklist.length}
           </p>
         </article>
-        <article className="relative flex min-h-[100px] flex-col justify-between rounded-md bg-white p-4 pr-16">
+        <article className="relative flex min-h-[100px] flex-col justify-between rounded-md bg-surface p-4 pr-16">
           <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
             <MaskIcon src="/sidebar/settings.svg" className="size-5" />
           </div>
@@ -328,8 +328,8 @@ export function FraudView() {
         </article>
       </div>
 
-      <section className="rounded-md bg-white">
-        <div className="border-b border-slate-100 px-4 py-3.5 sm:px-5">
+      <section className="rounded-md bg-surface">
+        <div className="border-b border-border dark:border-transparent px-4 py-3.5 sm:px-5">
           <h2 className="text-base font-semibold text-foreground">
             Checkout rules
           </h2>
@@ -337,7 +337,7 @@ export function FraudView() {
             Changes stay local until you hit Save.
           </p>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-border dark:divide-transparent">
           {FRAUD_RULES.map((rule) => {
             const state = draftRules[rule.id];
             const thr = rule.threshold;
@@ -358,8 +358,8 @@ export function FraudView() {
                       className={[
                         "rounded-full px-2 py-0.5 text-[11px] font-medium",
                         state.enabled
-                          ? "bg-emerald-50 text-emerald-600"
-                          : "bg-slate-100 text-slate-500",
+                          ? "bg-primary/10 text-primary"
+                          : "bg-search-bg text-muted",
                       ].join(" ")}
                     >
                       {state.enabled ? "On" : "Off"}
@@ -397,7 +397,7 @@ export function FraudView() {
                             );
                           }
                         }}
-                        className="h-8 w-20 rounded-md border border-slate-200 bg-search-bg px-2 text-sm font-medium text-foreground outline-none focus:border-primary focus:bg-white"
+                        className="h-8 w-20 rounded-md border border-border bg-search-bg px-2 text-sm font-medium text-foreground outline-none focus:border-primary focus:bg-surface"
                       />
                       {thr.suffix !== "৳" ? (
                         <span className="text-xs font-medium text-foreground">
@@ -416,12 +416,12 @@ export function FraudView() {
                   onClick={() => toggleRule(rule.id)}
                   className={[
                     "relative h-7 w-12 shrink-0 rounded-full transition-colors",
-                    state.enabled ? "bg-primary" : "bg-slate-200",
+                    state.enabled ? "bg-primary" : "bg-border",
                   ].join(" ")}
                 >
                   <span
                     className={[
-                      "absolute top-0.5 size-6 rounded-full bg-white shadow-sm transition-transform",
+                      "absolute top-0.5 size-6 rounded-full bg-[#ffffff] shadow-sm transition-transform",
                       state.enabled ? "left-5" : "left-0.5",
                     ].join(" ")}
                   />
@@ -432,8 +432,8 @@ export function FraudView() {
         </div>
       </section>
 
-      <section className="rounded-md bg-white">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3.5 sm:px-5">
+      <section className="rounded-md bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border dark:border-transparent px-4 py-3.5 sm:px-5">
           <div>
             <h2 className="text-base font-semibold text-foreground">
               Blocklist
@@ -463,7 +463,7 @@ export function FraudView() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-border dark:divide-transparent">
             {draftBlocklist.map((entry) => (
               <div
                 key={entry.id}
@@ -473,7 +473,7 @@ export function FraudView() {
                   <p className="font-mono text-sm font-semibold text-foreground">
                     {entry.phone}
                     {isLocalId(entry.id) ? (
-                      <span className="ml-2 rounded-full bg-amber-50 px-2 py-0.5 font-sans text-[10px] font-medium text-amber-700">
+                      <span className="ml-2 rounded-full bg-amber-500/10 px-2 py-0.5 font-sans text-[10px] font-medium text-amber-700">
                         Unsaved
                       </span>
                     ) : null}

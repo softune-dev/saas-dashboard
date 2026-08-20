@@ -46,7 +46,7 @@ export function SettingsTextareaSkeleton({ tall = false }: { tall?: boolean }) {
  * all of them. */
 export function SettingsListRowSkeleton() {
   return (
-    <div className="flex items-center gap-2 rounded-md border border-slate-100 p-3">
+    <div className="flex items-center gap-2 rounded-md border border-border dark:border-transparent p-3">
       <Bar className="h-8 flex-1" />
       <Bar className="h-8 flex-1" />
       <Bar className="size-8 shrink-0 rounded-full" />

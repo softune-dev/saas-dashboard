@@ -14,7 +14,7 @@ import {
 } from "react";
 
 type FieldShellProps = {
-  label: string;
+  label?: string;
   htmlFor: string;
   hint?: string;
   children: ReactNode;
@@ -23,12 +23,14 @@ type FieldShellProps = {
 export function FieldShell({ label, htmlFor, hint, children }: FieldShellProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={htmlFor}
-        className="text-sm font-medium text-slate-500"
-      >
-        {label}
-      </label>
+      {label ? (
+        <label
+          htmlFor={htmlFor}
+          className="text-sm font-medium text-muted"
+        >
+          {label}
+        </label>
+      ) : null}
       {children}
       {hint ? <p className="text-xs text-muted">{hint}</p> : null}
     </div>
@@ -36,13 +38,13 @@ export function FieldShell({ label, htmlFor, hint, children }: FieldShellProps) 
 }
 
 const controlClass =
-  "h-10 w-full rounded-md border border-slate-200 bg-search-bg px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-white";
+  "h-10 w-full rounded-md border border-border bg-search-bg px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-surface";
 
 const textareaClass =
-  "min-h-[140px] w-full resize-y rounded-md border border-slate-200 bg-search-bg px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-white";
+  "min-h-[140px] w-full resize-y rounded-md border border-border bg-search-bg px-3 py-2.5 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-surface";
 
 type SettingsInputProps = InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
+  label?: string;
   hint?: string;
 };
 
@@ -53,7 +55,7 @@ export function SettingsInput({
   className = "",
   ...props
 }: SettingsInputProps) {
-  const fieldId = id ?? props.name ?? label.toLowerCase().replace(/\s+/g, "-");
+  const fieldId = id ?? props.name ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : "");
 
   return (
     <FieldShell label={label} htmlFor={fieldId} hint={hint}>
@@ -164,10 +166,10 @@ export function SettingsSelect({
           aria-expanded={open}
           onClick={() => !disabled && setOpen((v) => !v)}
           className={[
-            "flex h-10 w-full items-center justify-between gap-2 rounded-md border border-slate-200 bg-search-bg px-3 text-left text-sm text-foreground outline-none transition-colors",
-            "hover:border-slate-300 focus:border-primary focus:bg-white",
+            "flex h-10 w-full items-center justify-between gap-2 rounded-md border border-border bg-search-bg px-3 text-left text-sm text-foreground outline-none transition-colors",
+            "hover:border-slate-300 focus:border-primary focus:bg-surface",
             disabled ? "cursor-not-allowed opacity-60" : "",
-            open ? "border-primary bg-white" : "",
+            open ? "border-primary bg-surface" : "",
             className,
           ].join(" ")}
         >
@@ -186,7 +188,7 @@ export function SettingsSelect({
             ref={listRef}
             role="listbox"
             aria-labelledby={fieldId}
-            className="absolute top-[calc(100%+0.35rem)] right-0 left-0 z-40 max-h-56 overflow-y-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+            className="absolute top-[calc(100%+0.35rem)] right-0 left-0 z-40 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg"
           >
             {options.map((opt) => {
               const active = opt.value === selected;

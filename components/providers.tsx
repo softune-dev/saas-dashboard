@@ -4,14 +4,17 @@ import type { ReactNode } from "react";
 import { SWRConfig } from "swr";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { localStorageProvider } from "@/lib/swr-persist";
 
 /** Client-side app providers (toast, auth gate, session, etc.)
  *
- * SessionProvider sits INSIDE AuthGate on purpose: it calls /auth/me and
- * /sites on mount, both of which require a valid token, so it must only ever
- * mount once AuthGate has already confirmed one exists.
+ * ThemeProvider wraps everything so next-themes can set `.dark` on <html>
+ * before AuthGate/Session paint. SessionProvider sits INSIDE AuthGate on
+ * purpose: it calls /auth/me and /sites on mount, both of which require a
+ * valid token, so it must only ever mount once AuthGate has already
+ * confirmed one exists.
  *
  * SWRConfig wraps everything: navigating between Categories/Products/Orders/
  * etc. previously re-fetched from Postgres on every visit, which is what
@@ -24,20 +27,22 @@ import { localStorageProvider } from "@/lib/swr-persist";
  * manual reload) should trigger a refetch. */
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <SWRConfig
-      value={{
-        provider: localStorageProvider,
-        revalidateOnFocus: false,
-        revalidateOnReconnect: true,
-        dedupingInterval: 4000,
-        keepPreviousData: true,
-      }}
-    >
-      <ToastProvider>
-        <AuthGate>
-          <SessionProvider>{children}</SessionProvider>
-        </AuthGate>
-      </ToastProvider>
-    </SWRConfig>
+    <ThemeProvider>
+      <SWRConfig
+        value={{
+          provider: localStorageProvider,
+          revalidateOnFocus: false,
+          revalidateOnReconnect: true,
+          dedupingInterval: 4000,
+          keepPreviousData: true,
+        }}
+      >
+        <ToastProvider>
+          <AuthGate>
+            <SessionProvider>{children}</SessionProvider>
+          </AuthGate>
+        </ToastProvider>
+      </SWRConfig>
+    </ThemeProvider>
   );
 }

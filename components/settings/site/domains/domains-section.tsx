@@ -32,13 +32,13 @@ function CopyRow({ value }: { value: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 rounded-md bg-slate-50 px-3 py-2">
-      <code className="min-w-0 truncate text-sm font-medium text-foreground">{value}</code>
+    <div className="flex items-center gap-1.5">
+      <code className="min-w-0 truncate text-xs font-semibold text-primary">{value}</code>
       <button
         type="button"
         onClick={handleCopy}
         aria-label={`Copy ${value}`}
-        className="inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-white hover:text-primary"
+        className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface hover:text-primary"
       >
         {copied ? (
           <Check className="size-3.5 text-emerald-600" strokeWidth={2.5} />
@@ -60,20 +60,20 @@ type LiveDomainRowProps = {
 };
 
 const STATUS_STYLES: Record<LiveDomainRowProps["statusTone"], string> = {
-  live: "bg-emerald-50 text-emerald-600",
-  pending: "bg-amber-50 text-amber-600",
-  unknown: "bg-slate-100 text-slate-500",
+  live: "bg-primary/10 text-primary",
+  pending: "bg-amber-500/10 text-amber-600",
+  unknown: "bg-search-bg text-muted",
 };
 
 function LiveDomainRow({ label, host, statusLabel, statusTone, onRefresh, refreshing }: LiveDomainRowProps) {
   return (
-    <div className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-3">
+    <div className="flex items-center gap-3 rounded-md border border-border px-3 py-3">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Globe className="size-4" strokeWidth={1.75} />
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold text-foreground">{host}</p>
-        <p className="mt-0.5 text-xs text-slate-500">{label}</p>
+        <p className="mt-0.5 text-xs text-muted">{label}</p>
       </div>
       <span className={["inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium", STATUS_STYLES[statusTone]].join(" ")}>
         {statusLabel}
@@ -116,6 +116,7 @@ export function DomainsSection() {
   const [host, setHost] = useState("");
   const [saving, setSaving] = useState(false);
   const [setupOpen, setSetupOpen] = useState(false);
+  const [dnsTab, setDnsTab] = useState<"root" | "subdomain">("root");
 
   const [domainStatus, setDomainStatus] = useState<DomainStatus | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(false);
@@ -213,18 +214,6 @@ export function DomainsSection() {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium text-slate-500">Your domains</p>
-        <button
-          type="button"
-          onClick={() => setSetupOpen(true)}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-opacity hover:opacity-80"
-        >
-          <Info className="size-4" strokeWidth={1.75} />
-          How to connect a domain
-        </button>
-      </div>
-
       <div className="flex flex-col gap-2.5">
         {subdomainHost ? (
           <LiveDomainRow
@@ -247,7 +236,7 @@ export function DomainsSection() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="custom-domain" className="text-sm font-medium text-slate-500">
+        <label htmlFor="custom-domain" className="text-sm font-medium text-muted">
           Custom domain
         </label>
         <div className="flex items-center gap-2">
@@ -260,7 +249,7 @@ export function DomainsSection() {
               if (e.key === "Enter") handleSave();
             }}
             placeholder="shop.yourstore.com"
-            className="h-10 w-full min-w-0 flex-1 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
+            className="h-10 w-full min-w-0 flex-1 rounded-md border border-border bg-surface px-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
           />
           <PrimaryButton
             type="button"
@@ -280,15 +269,20 @@ export function DomainsSection() {
                 handleSave("");
               }}
               disabled={saving}
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-red-500 disabled:opacity-50"
             >
               <Trash2 className="size-4" strokeWidth={1.75} />
             </button>
           ) : null}
         </div>
-        <p className="text-xs text-slate-500">
-          Leave blank to use your free {`{shop}.${SITE_BASE_DOMAIN}`} address instead.
-        </p>
+        <button
+          type="button"
+          onClick={() => setSetupOpen(true)}
+          className="mr-auto mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-opacity hover:opacity-80"
+        >
+          <Info className="size-3.5" strokeWidth={2} />
+          How to connect a domain
+        </button>
       </div>
 
       <SettingsModal
@@ -296,7 +290,7 @@ export function DomainsSection() {
         title="How to connect your domain"
         onClose={() => setSetupOpen(false)}
       >
-        <div className="flex flex-col gap-5 text-sm text-slate-600">
+        <div className="flex flex-col gap-5 text-sm text-muted">
           <p>
             <span className="font-semibold text-foreground">1.</span> Enter your domain above
             (example: <span className="font-medium text-foreground">shop.yourstore.com</span>)
@@ -305,34 +299,55 @@ export function DomainsSection() {
 
           <div>
             <p className="font-semibold text-foreground">2. Add one DNS record</p>
-            <p className="mt-1 mb-3 text-xs text-slate-500">
+            <p className="mt-1 mb-3 text-xs text-muted">
               In whichever site you bought the domain from (Namecheap, GoDaddy, etc.), find its
               DNS settings and add ONE of these — whichever matches your domain.
             </p>
 
             <div className="flex flex-col gap-3">
-              <div className="rounded-lg border border-slate-200 p-3">
-                <p className="text-xs font-medium text-slate-500">
-                  Subdomain — e.g. <span className="font-semibold text-foreground">shop.yourstore.com</span>
-                </p>
-                <div className="mt-2 grid grid-cols-[3.5rem_1fr] items-center gap-x-3 gap-y-1.5 text-xs">
-                  <span className="font-medium text-slate-500">Type</span>
-                  <span className="font-semibold text-foreground">CNAME</span>
-                  <span className="font-medium text-slate-500">Value</span>
-                  <CopyRow value="cname.vercel-dns.com" />
-                </div>
+              <div className="flex rounded-md bg-search-bg p-1">
+                <button
+                  type="button"
+                  onClick={() => setDnsTab("root")}
+                  className={["flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors", dnsTab === "root" ? "bg-primary text-white shadow-sm" : "text-muted hover:text-foreground"].join(" ")}
+                >
+                  Root domain
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDnsTab("subdomain")}
+                  className={["flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors", dnsTab === "subdomain" ? "bg-primary text-white shadow-sm" : "text-muted hover:text-foreground"].join(" ")}
+                >
+                  Subdomain
+                </button>
               </div>
 
-              <div className="rounded-lg border border-slate-200 p-3">
-                <p className="text-xs font-medium text-slate-500">
-                  Root domain — e.g. <span className="font-semibold text-foreground">yourstore.com</span>
+              {dnsTab === "root" ? (
+                <p className="text-xs font-medium text-muted">
+                  Example: <span className="font-semibold text-foreground">yourstore.com</span>
                 </p>
-                <div className="mt-2 grid grid-cols-[3.5rem_1fr] items-center gap-x-3 gap-y-1.5 text-xs">
-                  <span className="font-medium text-slate-500">Type</span>
-                  <span className="font-semibold text-foreground">A</span>
-                  <span className="font-medium text-slate-500">Value</span>
-                  <CopyRow value="216.198.79.1" />
-                </div>
+              ) : (
+                <p className="text-xs font-medium text-muted">
+                  Example: <span className="font-semibold text-foreground">shop.yourstore.com</span>
+                </p>
+              )}
+
+              <div className="rounded-lg border border-border p-3">
+                {dnsTab === "root" ? (
+                  <div className="grid grid-cols-[3.5rem_1fr] items-center gap-x-3 gap-y-1.5 text-xs">
+                    <span className="font-medium text-muted">Type</span>
+                    <span className="font-semibold text-foreground">A</span>
+                    <span className="font-medium text-muted">Value</span>
+                    <CopyRow value="216.198.79.1" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-[3.5rem_1fr] items-center gap-x-3 gap-y-1.5 text-xs">
+                    <span className="font-medium text-muted">Type</span>
+                    <span className="font-semibold text-foreground">CNAME</span>
+                    <span className="font-medium text-muted">Value</span>
+                    <CopyRow value="cname.vercel-dns.com" />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -344,15 +359,12 @@ export function DomainsSection() {
             whether it&apos;s connected yet.
           </p>
 
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <div className="rounded-lg border border-amber-200 bg-amber-500/10 p-3">
             <p className="text-xs font-medium text-amber-800">
               Used this domain before?
             </p>
             <p className="mt-1 text-xs leading-relaxed text-amber-700">
-              If this domain was ever connected somewhere else (an old site, an agency&apos;s
-              build), it may need one extra ownership-verification step before it starts working
-              — if your domain still shows as not connected after DNS looks correct and 24 hours
-              have passed, contact support and we&apos;ll sort out that one-time step for you.
+              If this domain was used elsewhere previously, it might need verification. Contact support if it isn&apos;t connected after 24 hours.
             </p>
           </div>
         </div>

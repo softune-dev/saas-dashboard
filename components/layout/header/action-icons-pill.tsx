@@ -23,15 +23,22 @@ type ActionIconButtonProps = {
   label: string;
   onClick?: () => void;
   children: React.ReactNode;
+  tourId?: string;
 };
 
-function ActionIconButton({ label, onClick, children }: ActionIconButtonProps) {
+function ActionIconButton({
+  label,
+  onClick,
+  children,
+  tourId,
+}: ActionIconButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative flex size-9 items-center justify-center rounded-full bg-white text-foreground transition-colors hover:bg-search-bg cursor-pointer"
+      data-tour={tourId}
+      className="relative flex size-9 items-center justify-center rounded-full bg-surface text-foreground transition-colors hover:bg-search-bg cursor-pointer"
     >
       {children}
     </button>
@@ -198,6 +205,7 @@ export function ActionIconsPill() {
           <ActionIconButton
             label="AI Assistant"
             onClick={() => setAiSidebarOpen(true)}
+            tourId="ai-chat"
           >
             <img
               src="/sidebar/gemini.svg"
@@ -223,7 +231,7 @@ export function ActionIconsPill() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.96 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-border/60 bg-white shadow-xl origin-top-right"
+              className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-border/60 bg-surface shadow-xl origin-top-right"
             >
               <div className="flex items-center justify-between border-b border-border/60 bg-search-bg/30 px-4 py-3">
                 <h3 className="font-semibold text-sm text-foreground">Notifications</h3>

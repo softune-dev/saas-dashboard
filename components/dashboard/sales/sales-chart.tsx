@@ -72,7 +72,7 @@ export function SalesChart({ bars }: SalesChartProps) {
             {yAxisLabels.map((label, i) => (
               <div
                 key={label + i}
-                className="w-full border-t border-dashed border-slate-200"
+                className="w-full border-t border-dashed border-border"
               />
             ))}
           </div>

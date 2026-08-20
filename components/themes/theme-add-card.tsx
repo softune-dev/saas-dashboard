@@ -8,7 +8,7 @@ export function ThemeAddCard() {
   return (
     <button
       type="button"
-      className="relative flex flex-col rounded-2xl bg-white px-1.5 pt-1.5 pb-3 text-left transition-opacity hover:opacity-95"
+      className="relative flex flex-col rounded-2xl bg-surface px-1.5 pt-1.5 pb-3 text-left transition-opacity hover:opacity-95"
     >
       <div
         className="flex aspect-[16/11] w-full items-center justify-center bg-background"

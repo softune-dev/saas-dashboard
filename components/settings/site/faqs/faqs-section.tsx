@@ -68,7 +68,7 @@ export function FaqsSection() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500">Questions</p>
+        <p className="text-sm font-medium text-muted">Questions</p>
         <PrimaryButton
           type="button"
           onClick={addFaq}
@@ -83,7 +83,7 @@ export function FaqsSection() {
         {faqs.map((faq, index) => (
           <li
             key={faq.id}
-            className="flex flex-col gap-3 rounded-md border border-slate-200 p-3"
+            className="flex flex-col gap-3 rounded-md border border-border p-3"
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold tracking-wide text-muted-soft uppercase">
@@ -93,7 +93,7 @@ export function FaqsSection() {
                 type="button"
                 aria-label={`Remove FAQ ${index + 1}`}
                 onClick={() => removeFaq(faq.id)}
-                className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-red-500"
+                className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-red-500"
               >
                 <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
               </button>

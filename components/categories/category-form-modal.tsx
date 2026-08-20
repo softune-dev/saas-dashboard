@@ -1,13 +1,14 @@
 "use client";
 
 import { ImagePlus } from "lucide-react";
+import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FormModal } from "@/components/ui/form-modal";
 import { useToast } from "@/components/ui/toast";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import type { CategoryCreate, CategoryOut, CategoryUpdate } from "@/lib/api/commerce";
 import { SettingsInput, SettingsTextarea } from "@/components/settings/site/ui/settings-field";
-import { EditorLabel, IconPicker } from "@/components/themes/editor/editor-field";
+import { IconPicker } from "@/components/themes/editor/editor-field";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { randomIconValue } from "@/lib/icon-options";
 
@@ -75,7 +76,7 @@ export function CategoryFormModal({
             icon: category.icon ?? randomIconValue(),
           }
         // A fresh category still gets a real icon value picked up-front —
-        // the admin can change it below, but it's never left unset.
+        // the admin can change it via the banner circle, but it's never unset.
         : { ...empty, icon: randomIconValue() },
     );
   }, [open, category]);
@@ -199,7 +200,7 @@ export function CategoryFormModal({
               <button
                 type="button"
                 onClick={open}
-                className="group relative block h-32 w-full cursor-pointer overflow-hidden rounded-xl bg-search-bg ring-1 ring-slate-200/80 transition-shadow hover:ring-slate-300"
+                className="group relative block h-32 w-full cursor-pointer overflow-hidden rounded-xl bg-search-bg ring-1 ring-border dark:ring-transparent transition-shadow hover:ring-muted-soft dark:hover:ring-transparent"
               >
                 {bannerSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -217,6 +218,26 @@ export function CategoryFormModal({
             )}
           </MediaSourceMenu>
 
+          {/* Category icon sits on the banner — click opens the icon modal.
+           * Kept outside the banner button so it doesn't open the media picker. */}
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <IconPicker
+              value={form.icon}
+              onChange={(icon) => setForm((f) => ({ ...f, icon }))}
+              trigger={({ open: openIcons, name }) => (
+                <button
+                  type="button"
+                  onClick={openIcons}
+                  title="Choose category icon"
+                  aria-label="Choose category icon"
+                  className="flex size-10 items-center justify-center rounded-full bg-primary text-white shadow-sm ring-2 ring-surface transition-opacity hover:opacity-90"
+                >
+                  <DynamicIcon name={name} className="size-5" strokeWidth={1.75} />
+                </button>
+              )}
+            />
+          </div>
+
           <MediaSourceMenu
             siteId={siteId}
             category="categories"
@@ -231,7 +252,7 @@ export function CategoryFormModal({
               <button
                 type="button"
                 onClick={open}
-                className="group absolute -bottom-10 left-1/2 flex size-20 -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-search-bg ring-4 ring-white transition-shadow hover:ring-white"
+                className="group absolute -bottom-10 left-1/2 flex size-20 -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-search-bg ring-4 ring-surface transition-shadow hover:ring-surface"
               >
                 {imageSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -269,20 +290,6 @@ export function CategoryFormModal({
           rows={3}
           placeholder="Optional"
         />
-
-        {/* Not every template renders this — e.g. Bazaar's department rail
-         * does, Aurora doesn't — but it costs nothing to store, so every
-         * category gets one and templates opt in by reading it. */}
-        <div>
-          <EditorLabel>Icon</EditorLabel>
-          <p className="mb-2 text-[11px] text-muted-soft">
-            Used by templates with an icon-based category list.
-          </p>
-          <IconPicker
-            value={form.icon}
-            onChange={(icon) => setForm((f) => ({ ...f, icon }))}
-          />
-        </div>
       </div>
     </FormModal>
   );

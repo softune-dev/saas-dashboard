@@ -11,7 +11,7 @@ import { themes } from "./themes-data";
 function ThemeCardSkeleton() {
   return (
     <div
-      className="flex flex-col rounded-2xl bg-white px-1.5 pt-1.5 pb-3"
+      className="flex flex-col rounded-2xl bg-surface px-1.5 pt-1.5 pb-3"
       aria-hidden
     >
       {/* Status pill stand-in */}

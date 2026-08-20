@@ -2,6 +2,7 @@
 
 import { Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -67,8 +68,10 @@ function deriveCustomers(orders: OrderOut[]): DerivedCustomer[] {
 
 export function CustomersView() {
   const { currentSite, loading: sessionLoading } = useSession();
+  const searchParams = useSearchParams();
   const siteId = currentSite?.id ?? null;
   const [filters, setFilters] = useState<CustomerFilters>(emptyCustomerFilters);
+  const deepQuery = searchParams.get("q")?.trim() ?? "";
 
   // No Customer table — customers are derived from order history. Same
   // {limit:100} cache key as Orders/Dashboard, so whichever of the three
@@ -101,7 +104,7 @@ export function CustomersView() {
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-[132px] animate-pulse rounded-md bg-white" />
+              <div key={i} className="h-[132px] animate-pulse rounded-md bg-surface" />
             ))}
           </div>
           <TableSkeleton columns={5} />
@@ -121,6 +124,7 @@ export function CustomersView() {
             customers={customers}
             filters={filters}
             onFiltersChange={setFilters}
+            initialQuery={deepQuery}
           />
         </>
       )}

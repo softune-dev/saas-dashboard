@@ -69,9 +69,9 @@ export function CreditsTopupModal({ open, balance, onClose }: CreditsTopupModalP
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white"
+            className="relative z-10 flex w-full max-w-md flex-col overflow-hidden rounded-2xl bg-surface"
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-border dark:border-transparent px-5 py-4">
               <div className="min-w-0">
                 <h3
                   id="credits-topup-title"
@@ -108,7 +108,7 @@ export function CreditsTopupModal({ open, balance, onClose }: CreditsTopupModalP
                       "relative flex w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition-colors",
                       active
                         ? "border-primary bg-primary/5"
-                        : "border-border/80 bg-white hover:bg-search-bg/60",
+                        : "border-border/80 bg-surface hover:bg-search-bg/60",
                     ].join(" ")}
                   >
                     <span
@@ -143,7 +143,7 @@ export function CreditsTopupModal({ open, balance, onClose }: CreditsTopupModalP
                         "flex size-5 shrink-0 items-center justify-center rounded-full border",
                         active
                           ? "border-primary bg-primary text-white"
-                          : "border-border bg-white text-transparent",
+                          : "border-border bg-surface text-transparent",
                       ].join(" ")}
                     >
                       <Check className="size-3" strokeWidth={3} />
@@ -153,7 +153,7 @@ export function CreditsTopupModal({ open, balance, onClose }: CreditsTopupModalP
               })}
             </div>
 
-            <div className="flex shrink-0 gap-2 border-t border-slate-100 px-5 py-4">
+            <div className="flex shrink-0 gap-2 border-t border-border dark:border-transparent px-5 py-4">
               <button
                 type="button"
                 onClick={onClose}

@@ -27,7 +27,7 @@ export function AiChatHeader({
   const activeConv = conversations.find((c) => c.id === activeConversationId);
 
   return (
-    <div className="relative flex h-14 shrink-0 items-center justify-between border-b border-border/80 px-4 bg-white">
+    <div className="relative flex h-14 shrink-0 items-center justify-between border-b border-border/80 px-4 bg-surface">
       {/* Title / Saved Conversations Selector */}
       <div className="flex items-center gap-2 min-w-0 flex-1">
         <div className="flex shrink-0 items-center justify-center mr-1">
@@ -53,7 +53,7 @@ export function AiChatHeader({
                 className="fixed inset-0 z-40"
                 onClick={() => setDropdownOpen(false)}
               />
-              <div className="absolute top-full left-0 z-50 mt-1.5 w-64 rounded-2xl border border-border bg-white p-1.5 shadow-xl">
+              <div className="absolute top-full left-0 z-50 mt-1.5 w-64 rounded-2xl border border-border bg-surface p-1.5 shadow-xl">
                 <div className="px-2 py-1 text-[11px] font-semibold text-muted uppercase tracking-wider">
                   Saved Conversations
                 </div>
@@ -127,7 +127,7 @@ export function AiChatHeader({
           onClick={onNewChat}
           aria-label="New Chat"
           title="New Chat"
-          className="inline-flex size-7 items-center justify-center rounded-full border border-slate-200 bg-transparent text-muted transition-colors hover:text-foreground hover:border-slate-300"
+          className="inline-flex size-7 items-center justify-center rounded-full border border-border bg-transparent text-muted transition-colors hover:text-foreground hover:border-slate-300"
         >
           <Plus className="size-3.5" />
         </button>
@@ -138,7 +138,7 @@ export function AiChatHeader({
             onClick={() => onDeleteChat(activeConv.id)}
             aria-label="Delete Chat"
             title="Delete Chat"
-            className="inline-flex size-7 items-center justify-center rounded-full border border-slate-200 bg-transparent text-muted transition-colors hover:text-rose-500 hover:border-rose-200"
+            className="inline-flex size-7 items-center justify-center rounded-full border border-border bg-transparent text-muted transition-colors hover:text-rose-500 hover:border-rose-200"
           >
             <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
           </button>
@@ -149,7 +149,7 @@ export function AiChatHeader({
           onClick={onClose}
           aria-label="Close Assistant"
           title="Close"
-          className="inline-flex size-7 items-center justify-center rounded-full border border-slate-200 bg-transparent text-muted transition-colors hover:text-foreground hover:border-slate-300 ml-1"
+          className="inline-flex size-7 items-center justify-center rounded-full border border-border bg-transparent text-muted transition-colors hover:text-foreground hover:border-slate-300 ml-1"
         >
           <X className="size-3.5" />
         </button>

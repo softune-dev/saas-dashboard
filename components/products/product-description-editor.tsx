@@ -99,7 +99,7 @@ function ToolbarButton({
         "inline-flex size-8 items-center justify-center rounded-md transition-colors disabled:cursor-not-allowed disabled:opacity-40",
         active
           ? "bg-primary text-white"
-          : "text-muted hover:bg-white hover:text-foreground",
+          : "text-muted hover:bg-surface hover:text-foreground",
       ].join(" ")}
     >
       {children}
@@ -130,7 +130,7 @@ function LinkButton({
         <LinkIcon className="size-3.5" strokeWidth={2} />
       </ToolbarButton>
       {open ? (
-        <div className="absolute top-full left-0 z-20 mt-1.5 flex items-center gap-1.5 rounded-lg bg-white p-1.5 shadow-lg ring-1 ring-slate-200">
+        <div className="absolute top-full left-0 z-20 mt-1.5 flex items-center gap-1.5 rounded-lg bg-surface p-1.5 shadow-lg ring-1 ring-slate-200">
           <input
             autoFocus
             value={url}
@@ -189,7 +189,7 @@ function ColorButton({
         />
       </ToolbarButton>
       {open ? (
-        <div className="absolute top-full left-0 z-20 mt-1.5 flex items-center gap-1 rounded-lg bg-white p-1.5 shadow-lg ring-1 ring-slate-200">
+        <div className="absolute top-full left-0 z-20 mt-1.5 flex items-center gap-1 rounded-lg bg-surface p-1.5 shadow-lg ring-1 ring-slate-200">
           {SWATCHES.map((c) => (
             <button
               key={c}
@@ -251,7 +251,7 @@ function Toolbar({
   });
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-slate-200/80 p-1.5">
+    <div className="flex flex-wrap items-center gap-0.5 border-b border-border/80 p-1.5">
       <ToolbarButton
         label="Bold"
         active={marks.bold}
@@ -282,7 +282,7 @@ function Toolbar({
       </ToolbarButton>
       <ColorButton editor={editor} color={marks.color} />
 
-      <span className="mx-1 h-5 w-px bg-slate-200" />
+      <span className="mx-1 h-5 w-px bg-border" />
 
       <ToolbarButton
         label="Bullet list"
@@ -299,7 +299,7 @@ function Toolbar({
         <ListOrdered className="size-3.5" strokeWidth={2.25} />
       </ToolbarButton>
 
-      <span className="mx-1 h-5 w-px bg-slate-200" />
+      <span className="mx-1 h-5 w-px bg-border" />
 
       <ToolbarButton
         label="Align left"
@@ -323,7 +323,7 @@ function Toolbar({
         <AlignRight className="size-3.5" strokeWidth={2.25} />
       </ToolbarButton>
 
-      <span className="mx-1 h-5 w-px bg-slate-200" />
+      <span className="mx-1 h-5 w-px bg-border" />
 
       <LinkButton editor={editor} isLink={marks.link} />
       <ToolbarButton
@@ -448,7 +448,7 @@ export function ProductDescriptionEditor({
         }
       `}</style>
       {/* Outer shell matches other inputs (search-bg); the writing surface is white. */}
-      <div className="overflow-hidden rounded-md border border-slate-200 bg-search-bg focus-within:border-primary">
+      <div className="overflow-hidden rounded-md border border-border bg-search-bg focus-within:border-primary">
         {editor ? (
           <Toolbar
             editor={editor}
@@ -456,7 +456,7 @@ export function ProductDescriptionEditor({
             imageUploading={imageUploading}
           />
         ) : null}
-        <div className="bg-white">
+        <div className="bg-surface">
           <EditorContent editor={editor} />
         </div>
       </div>

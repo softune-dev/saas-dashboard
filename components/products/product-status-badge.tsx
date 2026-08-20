@@ -1,9 +1,9 @@
 import type { ProductStatus } from "./products-data";
 
 const styles: Record<ProductStatus, string> = {
-  Published: "bg-emerald-50 text-emerald-600",
-  Draft: "bg-amber-50 text-amber-600",
-  Archived: "bg-slate-100 text-slate-500",
+  Published: "bg-primary/10 text-primary",
+  Draft: "bg-amber-500/10 text-amber-600",
+  Archived: "bg-search-bg text-muted",
 };
 
 type ProductStatusBadgeProps = {

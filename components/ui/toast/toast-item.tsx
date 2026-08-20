@@ -58,7 +58,7 @@ export function ToastItemView({ item, onDismiss }: ToastItemProps) {
       exit={{ opacity: 0, y: 10, scale: 0.96, filter: "blur(4px)" }}
       transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       role="status"
-      className="pointer-events-auto relative w-[min(100vw-2rem,22rem)] overflow-hidden rounded-2xl border border-white/60 bg-white/95 backdrop-blur-md"
+      className="pointer-events-auto relative w-[min(100vw-2rem,22rem)] overflow-hidden rounded-2xl border border-white/60 bg-surface/95 backdrop-blur-md"
       style={{
         boxShadow:
           "0 12px 40px -12px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.04)",
@@ -120,7 +120,7 @@ export function ToastItemView({ item, onDismiss }: ToastItemProps) {
       </div>
 
       {/* Auto-dismiss progress */}
-      <div className="h-0.5 w-full bg-slate-100">
+      <div className="h-0.5 w-full bg-search-bg">
         <motion.div
           className={["h-full origin-left", progress].join(" ")}
           initial={{ scaleX: 1 }}

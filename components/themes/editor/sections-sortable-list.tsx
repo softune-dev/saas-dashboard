@@ -108,7 +108,7 @@ function SortableSectionRow({
       ref={setNodeRef}
       style={style}
       className={[
-        "flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-2",
+        "flex items-center gap-1.5 rounded-xl border border-border bg-surface px-2 py-2",
         isDragging ? "z-10 border-primary bg-primary/5 opacity-95" : "",
       ].join(" ")}
     >
@@ -122,7 +122,7 @@ function SortableSectionRow({
         <GripVertical className="size-4" strokeWidth={1.75} />
       </button>
 
-      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-search-bg text-[10px] font-bold text-slate-500">
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-search-bg text-[10px] font-bold text-muted">
         {index + 1}
       </span>
 
@@ -134,7 +134,7 @@ function SortableSectionRow({
         type="button"
         aria-label={`Remove ${sectionLabel(section.type)}`}
         onClick={() => onRemove(section.id)}
-        className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+        className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
       >
         <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
       </button>

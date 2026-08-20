@@ -19,7 +19,7 @@ export function SiteSettingsShell({
 
       <div className="flex min-h-0 flex-col gap-3 sm:flex-row sm:items-start">
         <SiteSettingsNav />
-        <section className="min-w-0 flex-1 rounded-md bg-white p-4 sm:p-5">
+        <section className="min-w-0 flex-1 rounded-md bg-surface p-4 sm:p-5">
           <h2 className="mb-5 text-base font-semibold text-foreground">
             {title}
           </h2>

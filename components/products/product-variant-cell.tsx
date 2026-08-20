@@ -5,8 +5,8 @@ type ProductVariantCellProps = {
 };
 
 function optionTone(option: ProductOption): string {
-  if (option.stock === 0) return "bg-slate-100 text-slate-400 line-through";
-  if (option.stock <= 10) return "bg-amber-50 text-amber-700";
+  if (option.stock === 0) return "bg-search-bg text-slate-400 line-through";
+  if (option.stock <= 10) return "bg-amber-500/10 text-amber-700";
   return "bg-search-bg text-foreground";
 }
 

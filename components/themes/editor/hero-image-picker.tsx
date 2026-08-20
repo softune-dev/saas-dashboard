@@ -95,7 +95,7 @@ export function HeroImagePicker({
             <div
               key={src}
               className={[
-                "group relative overflow-hidden rounded-lg border border-slate-200",
+                "group relative overflow-hidden rounded-lg border border-border",
                 aspect === "square" ? "aspect-square" : "aspect-video",
               ].join(" ")}
             >
@@ -149,7 +149,7 @@ export function HeroImagePicker({
               "mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed py-5 text-center transition-colors",
               dragOver
                 ? "border-primary bg-primary/5"
-                : "border-slate-300 hover:border-slate-400 hover:bg-search-bg/60",
+                : "border-border hover:border-muted hover:bg-search-bg/60",
             ].join(" ")}
           >
             {uploading ? (
@@ -157,7 +157,7 @@ export function HeroImagePicker({
             ) : (
               <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
             )}
-            <span className="text-xs font-medium text-slate-500">
+            <span className="text-xs font-medium text-muted">
               {uploading ? "Uploading…" : "Click to add, or drag images to upload"}
             </span>
             {!uploading ? (
@@ -239,7 +239,7 @@ export function SingleImagePicker({
     return (
       <div className="flex flex-col gap-1.5">
         <EditorLabel>{label}</EditorLabel>
-        <div className="group relative mt-1 h-16 w-full overflow-hidden rounded-lg border border-slate-200 bg-search-bg">
+        <div className="group relative mt-1 h-16 w-full overflow-hidden rounded-lg border border-border bg-search-bg">
           {value ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -301,7 +301,7 @@ export function SingleImagePicker({
                     ) : (
                       <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
                     )}
-                    <span className="text-xs font-medium text-slate-500">
+                    <span className="text-xs font-medium text-muted">
                       {uploading ? "Uploading…" : "Add logo"}
                     </span>
                   </>
@@ -319,7 +319,7 @@ export function SingleImagePicker({
       <EditorLabel>{label}</EditorLabel>
 
       {value ? (
-        <div className="group relative mt-1 aspect-[4/5] w-full max-w-40 overflow-hidden rounded-lg border border-slate-200 bg-search-bg">
+        <div className="group relative mt-1 aspect-[4/5] w-full max-w-40 overflow-hidden rounded-lg border border-border bg-search-bg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={resolveMediaUrl(value, baseUrl)}
@@ -367,7 +367,7 @@ export function SingleImagePicker({
               "mt-1 flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed py-5 text-center transition-colors",
               dragOver
                 ? "border-primary bg-primary/5"
-                : "border-slate-300 hover:border-slate-400 hover:bg-search-bg/60",
+                : "border-border hover:border-muted hover:bg-search-bg/60",
             ].join(" ")}
           >
             {uploading ? (
@@ -375,7 +375,7 @@ export function SingleImagePicker({
             ) : (
               <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
             )}
-            <span className="text-xs font-medium text-slate-500">
+            <span className="text-xs font-medium text-muted">
               {uploading
                 ? "Uploading…"
                 : value

@@ -163,11 +163,11 @@ export function ContactSection() {
     return (
       <div className="flex flex-col gap-6">
         <SettingsRowSkeleton />
-        <div className="border-t border-slate-100 pt-5">
+        <div className="border-t border-border dark:border-transparent pt-5">
           <SettingsRowSkeleton />
         </div>
         <SettingsTextareaSkeleton />
-        <div className="flex flex-col gap-2 border-t border-slate-100 pt-5">
+        <div className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-5">
           <SettingsListRowSkeleton />
           <SettingsListRowSkeleton />
         </div>
@@ -177,7 +177,7 @@ export function ContactSection() {
 
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-muted">
         Public storefront contact details shown on your site. Legal business
         details live under{" "}
         <span className="font-medium text-foreground">Account</span>.
@@ -185,7 +185,7 @@ export function ContactSection() {
 
       {/* Storefront contact */}
       <div className="flex flex-col gap-4">
-        <p className="text-sm font-medium text-slate-500">Store contact</p>
+        <h2 className="text-base font-semibold text-foreground">Store contact</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SettingsInput
             label="Store display name"
@@ -212,10 +212,10 @@ export function ContactSection() {
       </div>
 
       {/* Public address */}
-      <div className="flex flex-col gap-4 border-t border-slate-100 pt-5">
-        <p className="text-sm font-medium text-slate-500">
+      <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
+        <h2 className="text-base font-semibold text-foreground">
           Public store address
-        </p>
+        </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SettingsSelect
             label="Country"
@@ -254,10 +254,10 @@ export function ContactSection() {
       </div>
 
       {/* Business hours — add / edit / remove */}
-      <div className="flex flex-col gap-4 border-t border-slate-100 pt-5">
+      <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-slate-500">Business hours</p>
+            <h2 className="text-base font-semibold text-foreground">Business hours</h2>
             <p className="mt-0.5 text-xs text-muted-soft">
               Add days and set open / close times
             </p>
@@ -273,7 +273,7 @@ export function ContactSection() {
         </div>
 
         {hours.length === 0 ? (
-          <p className="rounded-xl bg-search-bg px-3 py-6 text-center text-sm text-slate-500">
+          <p className="rounded-xl bg-search-bg px-3 py-6 text-center text-sm text-muted">
             No hours yet — add a day to show when you are open
           </p>
         ) : (
@@ -308,7 +308,7 @@ export function ContactSection() {
                   onChange={(e) => updateHour(index, { close: e.target.value })}
                   className={row.closed ? "opacity-40" : ""}
                 />
-                <label className="mb-1 flex h-10 cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm text-foreground">
+                <label className="mb-1 flex h-10 cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-3 text-sm text-foreground">
                   <input
                     type="checkbox"
                     checked={row.closed}
@@ -332,10 +332,10 @@ export function ContactSection() {
       </div>
 
       {/* Social — real platform icons */}
-      <div className="flex flex-col gap-4 border-t border-slate-100 pt-5">
+      <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-slate-500">Social media</p>
+            <h2 className="text-base font-semibold text-foreground">Social media</h2>
             <p className="mt-0.5 text-xs text-muted-soft">
               Links shown on your storefront footer and contact page
             </p>
@@ -359,7 +359,7 @@ export function ContactSection() {
                 key={social.id}
                 className="flex flex-wrap items-end gap-3 rounded-xl bg-search-bg p-3"
               >
-                <span className="mb-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-foreground">
+                <span className="mb-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-surface text-foreground">
                   <Icon className="size-4" aria-hidden />
                 </span>
                 <div className="w-full sm:w-40">
@@ -402,7 +402,7 @@ export function ContactSection() {
       </div>
 
       {/* Support note for site */}
-      <div className="flex flex-col gap-4 border-t border-slate-100 pt-5">
+      <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
         <SettingsTextarea
           label="Support note (shown on contact page)"
           value={form.supportNote}

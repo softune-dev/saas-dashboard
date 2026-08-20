@@ -73,7 +73,7 @@ export function CurrentPlanCard() {
             <button
               type="button"
               onClick={() => setUpgradeTarget(nextPlan)}
-              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-white text-sm font-semibold text-primary shadow-sm transition-opacity hover:opacity-90"
+              className="inline-flex h-9 w-full items-center justify-center rounded-full bg-surface text-sm font-semibold text-primary shadow-sm transition-opacity hover:opacity-90"
             >
               {isDemo ? "Upgrade from trial" : `Upgrade to ${nextPlan.name}`}
             </button>

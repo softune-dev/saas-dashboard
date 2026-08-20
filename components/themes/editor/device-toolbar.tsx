@@ -20,6 +20,10 @@ type DeviceToolbarProps = {
   /** Match browser chrome theme */
   tone?: "light" | "dark";
   size?: "sm" | "md";
+  /** Small viewport editing the storefront in mobile view — only the Mobile
+   * option makes sense there, so Desktop/Tablet are hidden entirely rather
+   * than shown-but-pointless. */
+  mobileOnly?: boolean;
 };
 
 export function DeviceToolbar({
@@ -27,19 +31,24 @@ export function DeviceToolbar({
   onChange,
   tone = "light",
   size = "md",
+  mobileOnly = false,
 }: DeviceToolbarProps) {
   const dark = tone === "dark";
   const btn = size === "sm" ? "size-7" : "size-8";
   const icon = size === "sm" ? "size-3.5" : "size-4";
+  const visibleDevices = mobileOnly
+    ? devices.filter((d) => d.id === "mobile")
+    : devices;
 
   return (
     <div
+      data-tour="editor-device-toolbar"
       className={[
         "relative inline-flex items-center gap-0.5 rounded-full p-0.5",
-        dark ? "bg-white/10" : "bg-search-bg",
+        dark ? "bg-surface/10" : "bg-search-bg",
       ].join(" ")}
     >
-      {devices.map(({ id, label, Icon }) => {
+      {visibleDevices.map(({ id, label, Icon }) => {
         const active = value === id;
         return (
           <button
@@ -55,7 +64,7 @@ export function DeviceToolbar({
                 ? "text-white"
                 : dark
                   ? "text-white/55 hover:text-white"
-                  : "text-slate-500 hover:text-foreground",
+                  : "text-muted hover:text-foreground",
             ].join(" ")}
           >
             {active ? (

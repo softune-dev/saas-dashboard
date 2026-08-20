@@ -78,7 +78,7 @@ export function ThemeCard({ theme }: ThemeCardProps) {
       </div>
 
       <div
-        className="aspect-[16/11] w-full bg-white"
+        className="aspect-[16/11] w-full bg-surface"
         style={{
           borderRadius: "0.5rem 0.5rem 1.25rem 1.25rem",
         }}
@@ -105,7 +105,7 @@ export function ThemeCard({ theme }: ThemeCardProps) {
                 disabled={publishing}
                 aria-label={`Publish ${theme.shopName}`}
                 title="Publish to live site"
-                className="inline-flex size-9 items-center justify-center rounded-full bg-white text-primary transition-opacity hover:opacity-90 disabled:opacity-60"
+                className="inline-flex size-9 items-center justify-center rounded-full bg-surface text-primary transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 <Upload className="size-4" strokeWidth={2} />
               </button>

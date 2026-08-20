@@ -1,7 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import {
   TableFilterPanel,
@@ -48,12 +48,20 @@ export function CustomersTable({
   customers,
   filters,
   onFiltersChange,
+  initialQuery = "",
 }: {
   customers: DerivedCustomer[];
   filters: CustomerFilters;
   onFiltersChange: (next: CustomerFilters) => void;
+  /** Prefill from header search deep-link (?q=). */
+  initialQuery?: string;
 }) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
+
+  // Keep in sync if the URL q changes while this table is mounted.
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -131,7 +139,7 @@ export function CustomersTable({
   ];
 
   return (
-    <section className="rounded-md bg-white p-4 sm:p-5">
+    <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
           All Customers
@@ -148,7 +156,7 @@ export function CustomersTable({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search customers..."
-              className="h-9 w-44 rounded-full border border-slate-200 bg-white pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
+              className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <TableFilterPanel

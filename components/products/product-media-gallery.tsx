@@ -45,7 +45,7 @@ export function ProductMediaGallery({
   }
 
   return (
-    <section className="rounded-2xl bg-white p-5">
+    <section className="rounded-2xl bg-surface p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <h2 className="text-[15px] font-semibold text-foreground">Media</h2>
@@ -111,7 +111,7 @@ export function ProductMediaGallery({
             <button
               type="button"
               onClick={open}
-              className={`${tileClass} flex cursor-pointer flex-col items-center justify-center gap-1.5 text-muted ring-1 ring-dashed ring-slate-300 transition-colors hover:bg-slate-100 hover:text-foreground`}
+              className={`${tileClass} flex cursor-pointer flex-col items-center justify-center gap-1.5 text-muted ring-1 ring-dashed ring-slate-300 transition-colors hover:bg-search-bg hover:text-foreground`}
             >
               <ImagePlus className="size-5" strokeWidth={1.5} />
               <span className="text-xs font-medium">Add image</span>

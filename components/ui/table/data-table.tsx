@@ -39,11 +39,11 @@ export function DataTable<T>({
   }, [data, enabled, page, pageSize]);
 
   return (
-    <div className="w-full overflow-hidden rounded-md border border-slate-200 bg-white">
+    <div className="w-full overflow-hidden rounded-md border border-border bg-surface">
       <div className="w-full overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 bg-search-bg/60">
+            <tr className="border-b border-border dark:border-transparent bg-search-bg/60">
               {columns.map((col) => (
                 <th
                   key={col.id}
@@ -72,7 +72,7 @@ export function DataTable<T>({
               pageData.map((row) => (
                 <tr
                   key={rowKey(row)}
-                  className="border-b border-slate-100 last:border-b-0 transition-colors hover:bg-search-bg/40"
+                  className="border-b border-border dark:border-transparent last:border-b-0 transition-colors hover:bg-search-bg/40"
                 >
                   {columns.map((col) => (
                     <td

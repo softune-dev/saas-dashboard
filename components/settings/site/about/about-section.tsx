@@ -112,61 +112,61 @@ export function AboutSection() {
         placeholder="e.g. Where heritage meets contemporary form"
       />
 
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-slate-500">About image</span>
-        <p className="text-xs text-muted">
-          Shown on the About page only — separate from your homepage hero
-          images.
-        </p>
-        <div className="flex items-center gap-3">
-          {form.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={form.image}
-              alt=""
-              className="size-16 shrink-0 rounded-md border border-slate-200 bg-white object-cover"
-            />
-          ) : (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-[10px] font-medium text-muted-soft">
-              Empty
-            </div>
-          )}
-          <MediaSourceMenu
-            siteId={siteId}
-            category="other"
-            onUploadFiles={(files) => {
-              if (files[0]) handleUpload(files[0]);
-            }}
-            onPickImages={(images: MediaImage[]) => {
-              if (images[0]) setField("image", images[0].url);
-            }}
-          >
-            {(open) => (
+      <div className="flex items-start gap-4">
+        {form.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={form.image}
+            alt=""
+            className="size-28 shrink-0 rounded-md border border-border bg-surface object-cover shadow-sm"
+          />
+        ) : (
+          <div className="flex size-28 shrink-0 items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-muted-soft">
+            Empty
+          </div>
+        )}
+
+        <div className="flex flex-col gap-3 py-1">
+          <span className="text-base font-semibold text-foreground">About image</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <MediaSourceMenu
+              siteId={siteId}
+              category="other"
+              onUploadFiles={(files) => {
+                if (files[0]) handleUpload(files[0]);
+              }}
+              onPickImages={(images: MediaImage[]) => {
+                if (images[0]) setField("image", images[0].url);
+              }}
+            >
+              {(open) => (
+                <button
+                  type="button"
+                  onClick={open}
+                  disabled={uploading}
+                  className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg px-4 text-xs font-medium text-muted transition-colors hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {uploading ? "Uploading…" : form.image ? "Replace image" : "Add image"}
+                </button>
+              )}
+            </MediaSourceMenu>
+            {form.image ? (
               <button
                 type="button"
-                onClick={open}
-                disabled={uploading}
-                className="flex h-10 flex-1 cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-slate-500 transition-colors hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => setField("image", "")}
+                aria-label="Remove image"
+                className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary transition-colors hover:bg-primary/20"
               >
-                {uploading ? "Uploading…" : form.image ? "Replace image" : "Add image"}
+                <MaskIcon src="/sidebar/delete.svg" className="size-4" />
               </button>
-            )}
-          </MediaSourceMenu>
-          {form.image ? (
-            <button
-              type="button"
-              onClick={() => setField("image", "")}
-              className="text-xs font-medium text-muted-soft hover:text-red-500"
-            >
-              Remove
-            </button>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-slate-100 pt-5">
+      <div className="flex flex-col gap-3 border-t border-border dark:border-transparent pt-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-medium text-slate-500">Story paragraphs</p>
+          <p className="text-sm font-medium text-muted">Story paragraphs</p>
           <PrimaryButton
             type="button"
             onClick={addParagraph}
@@ -179,7 +179,7 @@ export function AboutSection() {
 
         <ul className="flex flex-col gap-3">
           {paragraphs.map((paragraph, index) => (
-            <li key={index} className="flex flex-col gap-2 rounded-md border border-slate-200 p-3">
+            <li key={index} className="flex flex-col gap-2 rounded-md border border-border p-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold tracking-wide text-muted-soft uppercase">
                   Paragraph {index + 1}
@@ -188,7 +188,7 @@ export function AboutSection() {
                   type="button"
                   aria-label={`Remove paragraph ${index + 1}`}
                   onClick={() => removeParagraph(index)}
-                  className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-50 hover:text-red-500"
+                  className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-red-500"
                 >
                   <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
                 </button>

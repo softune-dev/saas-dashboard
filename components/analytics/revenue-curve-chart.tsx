@@ -77,7 +77,7 @@ export function RevenueCurveChart({ curve }: { curve: RevenueCurvePoint[] }) {
               x2={W}
               y1={tick.y}
               y2={tick.y}
-              stroke="#E5E7EB"
+              className="stroke-border dark:stroke-border/50"
               strokeDasharray="4 4"
               vectorEffect="non-scaling-stroke"
             />

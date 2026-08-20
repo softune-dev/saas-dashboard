@@ -1,11 +1,11 @@
 import type { OrderStatus } from "@/lib/api/commerce";
 
 const styles: Record<OrderStatus, string> = {
-  pending: "bg-amber-50 text-amber-600",
-  paid: "bg-blue-50 text-blue-600",
-  fulfilled: "bg-emerald-50 text-emerald-600",
-  cancelled: "bg-red-50 text-red-500",
-  refunded: "bg-slate-100 text-slate-500",
+  pending: "bg-amber-500/10 text-amber-600",
+  paid: "bg-blue-500/10 text-blue-600",
+  fulfilled: "bg-primary/10 text-primary",
+  cancelled: "bg-rose-500/10 text-red-500",
+  refunded: "bg-search-bg text-muted",
 };
 
 const labels: Record<OrderStatus, string> = {
@@ -25,7 +25,7 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     <span
       className={[
         "inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize",
-        styles[status] ?? "bg-slate-100 text-slate-500",
+        styles[status] ?? "bg-search-bg text-muted",
       ].join(" ")}
     >
       {labels[status] ?? status}

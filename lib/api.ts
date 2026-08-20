@@ -114,6 +114,9 @@ export type UserOut = {
   tenant_id: string;
   email: string;
   full_name: string | null;
+  phone: string | null;
+  timezone: string | null;
+  avatar_url: string | null;
   role: string;
   created_at: string;
 };
@@ -135,9 +138,15 @@ export async function getMe(): Promise<MeOut> {
   return request<MeOut>("/auth/me");
 }
 
-/** PATCH /auth/me — only full_name is editable here. Email/role/tenant
- * changes need flows this doesn't have yet (re-verification, permissions). */
-export async function updateMe(data: { full_name?: string }): Promise<MeOut> {
+/** PATCH /auth/me — full_name, phone, timezone are editable here. Email/
+ * role/tenant changes need flows this doesn't have yet (re-verification,
+ * permissions). */
+export async function updateMe(data: {
+  full_name?: string;
+  phone?: string;
+  timezone?: string;
+  avatar_url?: string;
+}): Promise<MeOut> {
   return request<MeOut>("/auth/me", {
     method: "PATCH",
     body: JSON.stringify(data),
@@ -350,6 +359,11 @@ export type MediaGallery = {
   total_count: number;
   total_bytes: number;
   by_category: Record<MediaCategory, { count: number; bytes: number }>;
+  /** Real per-plan storage ceiling for this site — see app/media.py's
+   * PLAN_STORAGE_LIMIT_BYTES. Not a display-only placeholder; uploads
+   * that would exceed it are rejected server-side (app/api/media.py). */
+  limit_bytes: number;
+  plan: string;
 };
 
 /** Every uploaded image across all four categories, with size/dimensions and

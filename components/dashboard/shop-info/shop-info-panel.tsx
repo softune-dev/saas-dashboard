@@ -17,11 +17,83 @@ import { formatBytes } from "@/lib/format";
 type ShopInfoPanelProps = {
   productsCount: number;
   categoriesCount: number;
+  /** Up to 3 product thumbnail URLs for the Products tile stack. */
+  productImages?: string[];
+  /** Up to 3 category image URLs for the Categories tile stack. */
+  categoryImages?: string[];
 };
 
-/** Soft display cap for the storage ring until plan quotas ship on the API.
- * Ring fills against this; label still shows the real used bytes. */
-const MEDIA_SOFT_LIMIT_BYTES = 1 * 1024 * 1024 * 1024; // 1 GB
+const STACK_ROTATIONS = [-8, 5, 14] as const;
+
+/** Fanned stack of real thumbnails — only as many frames as real URLs. */
+function ImageStack({ urls, label }: { urls: string[]; label: string }) {
+  const shown = urls.slice(0, 3);
+  if (shown.length === 0) return null;
+
+  return (
+    <span
+      className="relative isolate h-10 w-[3.35rem] shrink-0"
+      aria-hidden
+    >
+      {shown.map((url, i) => (
+        <span
+          key={`${url}-${i}`}
+          className="absolute top-0 left-0 size-10 overflow-hidden rounded-md bg-surface shadow-sm ring-1 ring-black/10"
+          style={{
+            zIndex: shown.length - i,
+            transform: `translateX(${i * 5}px) rotate(${STACK_ROTATIONS[i] ?? 0}deg)`,
+          }}
+        >
+          <Image
+            src={url}
+            alt=""
+            width={40}
+            height={40}
+            className="size-full object-cover"
+            sizes="40px"
+            unoptimized
+          />
+        </span>
+      ))}
+      <span className="sr-only">{label}</span>
+    </span>
+  );
+}
+
+/** Products / Categories summary tile — photo stack when images exist,
+ * otherwise the plain count + label so empty media doesn't leave a blank card. */
+function CountTile({
+  href,
+  count,
+  label,
+  images,
+}: {
+  href: string;
+  count: number;
+  label: string;
+  images: string[];
+}) {
+  const hasStack = images.length > 0;
+
+  return (
+    <Link
+      href={href}
+      aria-label={`${label} (${count})`}
+      className="flex items-center justify-between gap-2 rounded-md bg-search-bg p-3.5 transition-colors hover:opacity-90"
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        {hasStack ? <ImageStack urls={images} label={label} /> : null}
+        <span className="flex min-w-0 flex-col justify-center gap-0.5">
+          <span className="text-xl font-semibold text-foreground">{count}</span>
+          <span className="text-xs text-muted">{label}</span>
+        </span>
+      </span>
+      <span className="hidden size-8 shrink-0 items-center justify-center rounded-full bg-primary text-white sm:inline-flex">
+        <ArrowUpRight className="size-4" strokeWidth={2} aria-hidden />
+      </span>
+    </Link>
+  );
+}
 
 /** Circular used/limit progress — thick primary ring, rounded ends, no label. */
 function StorageProgressRing({
@@ -115,7 +187,12 @@ function ShopAvatar({
  * brand-new empty site or a compact product/category summary once there's
  * real content. Every row shows real data or a real action — nothing here is
  * decorative filler. */
-export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelProps) {
+export function ShopInfoPanel({
+  productsCount,
+  categoriesCount,
+  productImages = [],
+  categoryImages = [],
+}: ShopInfoPanelProps) {
   const { currentSite } = useSession();
   const siteId = currentSite?.id ?? null;
 
@@ -142,6 +219,10 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
     realShopUrl ?? (theme?.previewUrl && host ? `${theme.previewUrl}?__site=${host}` : null);
   const logoUrl = resolveSiteLogoUrl(currentSite);
   const usedBytes = media?.total_bytes ?? 0;
+  // Real per-plan ceiling from the backend (app/media.py's
+  // PLAN_STORAGE_LIMIT_BYTES) — falls back to Starter's limit only for the
+  // brief window before the first fetch resolves, never shown as final.
+  const limitBytes = media?.limit_bytes ?? 500 * 1024 * 1024;
 
   const isEmpty = productsCount === 0 && categoriesCount === 0;
 
@@ -154,8 +235,8 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
             className={[
               "rounded-full px-2.5 py-1 text-[11px] font-medium",
               currentSite.status === "published"
-                ? "bg-emerald-50 text-emerald-600"
-                : "bg-amber-50 text-amber-600",
+                ? "bg-primary/10 text-primary"
+                : "bg-amber-500/10 text-amber-600",
             ].join(" ")}
           >
             {currentSite.status === "published" ? "Live" : "Draft"}
@@ -181,7 +262,7 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Open shop in a new tab"
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-white hover:text-primary"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-primary"
           >
             <ArrowUpRight className="size-4" strokeWidth={2} />
           </a>
@@ -189,16 +270,23 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
       </div>
 
       <div className="flex items-center gap-3 rounded-md bg-search-bg p-3.5">
+        <Image 
+          src="/others/open-folder.webp" 
+          alt="Folder" 
+          width={36} 
+          height={36} 
+          className="shrink-0 object-contain drop-shadow-sm"
+        />
         <StorageProgressRing
           usedBytes={usedBytes}
-          limitBytes={MEDIA_SOFT_LIMIT_BYTES}
+          limitBytes={limitBytes}
         />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-foreground">
             {media ? formatBytes(usedBytes) : "—"}
           </p>
           <p className="text-xs text-muted">
-            of {formatBytes(MEDIA_SOFT_LIMIT_BYTES)} media storage
+            of {formatBytes(limitBytes)} media storage
           </p>
         </div>
         <Link
@@ -224,7 +312,7 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
                   Add product
                 </span>
                 <ArrowUpRight
-                  className="size-4 shrink-0 text-muted"
+                  className="hidden size-4 shrink-0 text-muted sm:block"
                   strokeWidth={2}
                   aria-hidden
                 />
@@ -242,7 +330,7 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
                   Add category
                 </span>
                 <ArrowUpRight
-                  className="size-4 shrink-0 text-muted"
+                  className="hidden size-4 shrink-0 text-muted sm:block"
                   strokeWidth={2}
                   aria-hidden
                 />
@@ -251,20 +339,18 @@ export function ShopInfoPanel({ productsCount, categoriesCount }: ShopInfoPanelP
           </>
         ) : (
           <>
-            <Link
+            <CountTile
               href="/products"
-              className="flex flex-col justify-center gap-0.5 rounded-md bg-search-bg p-3.5 transition-colors hover:opacity-90"
-            >
-              <span className="text-xl font-semibold text-foreground">{productsCount}</span>
-              <span className="text-xs text-muted">Products</span>
-            </Link>
-            <Link
+              count={productsCount}
+              label="Products"
+              images={productImages}
+            />
+            <CountTile
               href="/categories"
-              className="flex flex-col justify-center gap-0.5 rounded-md bg-search-bg p-3.5 transition-colors hover:opacity-90"
-            >
-              <span className="text-xl font-semibold text-foreground">{categoriesCount}</span>
-              <span className="text-xs text-muted">Categories</span>
-            </Link>
+              count={categoriesCount}
+              label="Categories"
+              images={categoryImages}
+            />
           </>
         )}
       </div>

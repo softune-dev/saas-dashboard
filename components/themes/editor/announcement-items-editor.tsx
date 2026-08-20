@@ -26,7 +26,7 @@ export function AnnouncementItemsEditor({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[11px] font-medium text-slate-500">Banner segments</p>
+          <p className="text-[11px] font-medium text-muted">Banner segments</p>
           <button
             type="button"
             onClick={() => onItemsChange([...list, "New segment"])}
@@ -54,7 +54,7 @@ export function AnnouncementItemsEditor({
                 aria-label="Remove segment"
                 disabled={list.length <= 1}
                 onClick={() => onItemsChange(list.filter((_, i) => i !== index))}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-30"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500 disabled:opacity-30"
               >
                 <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
               </button>

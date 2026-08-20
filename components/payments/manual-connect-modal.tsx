@@ -87,7 +87,7 @@ export function ManualConnectModal({
           autoComplete="off"
         />
         <fieldset className="flex flex-col gap-1.5">
-          <legend className="text-sm font-medium text-slate-500">Wallets</legend>
+          <legend className="text-sm font-medium text-muted">Wallets</legend>
           <div className="flex flex-wrap gap-2">
             {WALLET_OPTIONS.map((opt) => {
               const on = wallets.includes(opt.id);
@@ -103,7 +103,7 @@ export function ManualConnectModal({
                     "flex h-12 w-[7.5rem] items-center justify-center rounded-xl border transition-colors",
                     on
                       ? "border-primary bg-primary/5 ring-1 ring-primary"
-                      : "border-slate-200 bg-search-bg hover:border-slate-300",
+                      : "border-border bg-search-bg hover:border-slate-300",
                   ].join(" ")}
                 >
                   <img

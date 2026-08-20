@@ -26,7 +26,7 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     name: "Cash on Delivery",
     description:
       "Customer pays cash when the order arrives. Already works on Aurora and Bazaar checkouts.",
-    logoSrc: "/payments/cod.svg",
+    logoSrc: "/payments/cod.webp",
     available: true,
   },
   {
@@ -34,7 +34,7 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     name: "Manual Payment",
     description:
       "Customer pays your bKash/Nagad number, then submits a transaction ID and/or screenshot for you to verify — no gateway account needed.",
-    logoSrc: "/payments/manual.svg",
+    logoSrc: "/payments/manual.webp",
     available: true,
   },
   {
@@ -42,7 +42,7 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     name: "bKash",
     description:
       "Official bKash merchant checkout — mobile payments at scale once merchant credentials are ready.",
-    logoSrc: "/payments/bkash.svg",
+    logoSrc: "/payments/bkash.webp",
     available: false,
   },
   {
@@ -50,7 +50,7 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     name: "Nagad",
     description:
       "Nagad merchant API for online payments once your merchant account is approved.",
-    logoSrc: "/payments/nagad.svg",
+    logoSrc: "/payments/nagad.webp",
     available: false,
   },
   {
@@ -58,7 +58,7 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     name: "SSLCommerz",
     description:
       "Aggregator gateway covering cards, mobile banking, and netbanking in one integration.",
-    logoSrc: "/payments/sslcommerz.svg",
+    logoSrc: "/payments/sslcommerz.webp",
     available: false,
   },
 ];

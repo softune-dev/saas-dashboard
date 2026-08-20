@@ -197,7 +197,7 @@ export function AiInputBar({
     >
       {/* Dribbble Style Rounded Floating AI Input Container */}
       <div
-        className="relative flex flex-col rounded-3xl border border-slate-200/90 bg-white p-3.5 transition-all focus-within:border-primary/50"
+        className="relative flex flex-col rounded-3xl border border-border/90 bg-surface p-3.5 transition-all focus-within:border-primary/50"
         style={{ boxShadow: "0 -8px 24px rgba(0, 0, 0, 0.08), 0 12px 24px rgba(0, 0, 0, 0.20)" }}
       >
         {/* Drag & Drop Full Zone Overlay (Inside Input Bar) */}
@@ -219,7 +219,7 @@ export function AiInputBar({
         
         {/* Tag Picker Popover */}
         {showTagPicker && (
-          <div className="absolute bottom-full left-4 z-50 mb-2 w-56 rounded-2xl border border-border bg-white p-1.5 shadow-xl">
+          <div className="absolute bottom-full left-4 z-50 mb-2 w-56 rounded-2xl border border-border bg-surface p-1.5 shadow-xl">
             <div className="px-2 py-1 text-[10px] font-semibold tracking-wider text-muted uppercase">
               Suggested Context
             </div>
@@ -317,7 +317,7 @@ export function AiInputBar({
                 <button
                   type="button"
                   onClick={() => handleRemoveAttachment(att.id)}
-                  className="ml-1 inline-flex size-4 items-center justify-center rounded-full bg-slate-200 text-slate-600 hover:bg-rose-500 hover:text-white"
+                  className="ml-1 inline-flex size-4 items-center justify-center rounded-full bg-border text-muted hover:bg-rose-500 hover:text-white"
                 >
                   <X className="size-3" />
                 </button>
@@ -327,7 +327,7 @@ export function AiInputBar({
         ) : null}
 
         {/* Bottom Toolbar Controls */}
-        <div className="mt-2 flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+        <div className="mt-2 flex items-center justify-between gap-2 pt-1 border-t border-border dark:border-transparent">
           
           {/* Left Controls: File Picker, Model Selector Pill, Action Pills */}
           <div className="flex items-center gap-1.5 flex-wrap min-w-0">
@@ -346,7 +346,7 @@ export function AiInputBar({
               onClick={() => fileInputRef.current?.click()}
               aria-label="Add attachment"
               title="Add attachment / Drag and drop files"
-              className="inline-flex size-7 items-center justify-center rounded-full text-slate-500 hover:bg-search-bg hover:text-foreground transition-colors"
+              className="inline-flex size-7 items-center justify-center rounded-full text-muted hover:bg-search-bg hover:text-foreground transition-colors"
             >
               <Plus className="size-4" />
             </button>
@@ -356,7 +356,7 @@ export function AiInputBar({
               <button
                 type="button"
                 onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-search-bg/50 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-white transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-search-bg/50 px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-surface transition-colors"
               >
                 <img src={selectedModel.icon} alt={selectedModel.name} className="size-3.5" />
                 <span>{selectedModel.name}</span>
@@ -370,7 +370,7 @@ export function AiInputBar({
                     className="fixed inset-0 z-40"
                     onClick={() => setModelDropdownOpen(false)}
                   />
-                  <div className="absolute bottom-full left-0 z-50 mb-1.5 w-52 rounded-2xl border border-border bg-white p-1 shadow-xl">
+                  <div className="absolute bottom-full left-0 z-50 mb-1.5 w-52 rounded-2xl border border-border bg-surface p-1 shadow-xl">
                     {AI_MODELS.map((model) => {
                       const isSelected = selectedModel.id === model.id;
                       return (
@@ -423,7 +423,7 @@ export function AiInputBar({
             <button
               type="button"
               onClick={() => onInputChange("Generate document report for store sales")}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-search-bg/30 px-2.5 py-1 text-[10px] font-medium text-muted hover:text-foreground hover:bg-white transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-search-bg/30 px-2.5 py-1 text-[10px] font-medium text-muted hover:text-foreground hover:bg-surface transition-colors"
             >
               <MaskIcon src="/sidebar/note.svg" className="size-3 text-primary" />
               <span>Generate doc</span>
@@ -435,7 +435,7 @@ export function AiInputBar({
             <button
               type="button"
               title="Voice Input"
-              className="inline-flex size-8 items-center justify-center rounded-full bg-search-bg text-slate-600 hover:bg-slate-200 transition-colors"
+              className="inline-flex size-8 items-center justify-center rounded-full bg-search-bg text-muted hover:bg-border transition-colors"
             >
               <Mic className="size-4" />
             </button>

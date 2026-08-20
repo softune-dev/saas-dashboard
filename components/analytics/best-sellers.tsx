@@ -15,10 +15,16 @@ export function BestSellers({ items }: { items: BestSeller[] }) {
           key={item.id ?? item.name}
           className="flex items-center gap-3 rounded-md bg-search-bg/50 px-3 py-2.5"
         >
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-muted">
+          <span 
+            className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+              index < 3 
+                ? "bg-primary text-white" 
+                : "bg-primary/20 text-primary"
+            }`}
+          >
             {index + 1}
           </span>
-          <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white">
+          <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-surface">
             {item.image ? (
               <Image
                 src={item.image}

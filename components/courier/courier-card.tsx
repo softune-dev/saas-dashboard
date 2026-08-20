@@ -25,7 +25,7 @@ export function CourierCard({
   const hasError = connection?.status === "error";
 
   return (
-    <article className="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+    <article className="flex flex-col rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-border dark:ring-transparent">
       <div className="flex items-start justify-between gap-3">
         <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden">
           <img
@@ -36,22 +36,22 @@ export function CourierCard({
         </span>
         {entry.available ? (
           connected && hasError ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-600">
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-600">
               <AlertTriangle className="size-3.5" strokeWidth={2} />
               Needs attention
             </span>
           ) : connected ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600">
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
               <CheckCircle2 className="size-3.5" strokeWidth={2} />
               Connected
             </span>
           ) : (
-            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+            <span className="rounded-full bg-search-bg px-2.5 py-1 text-xs font-medium text-muted">
               Not connected
             </span>
           )
         ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+          <span className="inline-flex items-center gap-1 rounded-full bg-search-bg px-2.5 py-1 text-xs font-medium text-muted">
             <MaskIcon src="/sidebar/lock.svg" className="size-3" />
             Locked
           </span>

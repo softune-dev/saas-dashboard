@@ -86,7 +86,7 @@ export function ShippingSection() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-slate-500">Delivery locations</p>
+          <h2 className="text-base font-semibold text-foreground">Delivery locations</h2>
           <p className="mt-0.5 text-xs text-muted-soft">
             Used in the Add Product page to pick a delivery charge instead of
             typing one each time.
@@ -112,26 +112,25 @@ export function ShippingSection() {
           {locations.map((zone) => (
             <li
               key={zone.id}
-              className="flex flex-wrap items-end gap-3 rounded-md border border-slate-200 p-3"
+              className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3"
             >
-              <span className="mb-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <MapPin className="size-4" strokeWidth={1.75} />
               </span>
 
               <div className="min-w-0 flex-1 basis-[10rem]">
                 <SettingsInput
-                  label="Location name"
                   name={`location-${zone.id}`}
                   value={zone.name}
-                  placeholder="e.g. Inside Dhaka"
+                  placeholder="Location name (e.g. Inside Dhaka)"
                   onChange={(e) => updateLocation(zone.id, { name: e.target.value })}
                 />
               </div>
 
               <div className="w-full sm:w-36">
                 <SettingsInput
-                  label="Charge (৳)"
                   name={`charge-${zone.id}`}
+                  placeholder="Charge (৳)"
                   type="number"
                   min="0"
                   step="0.01"
@@ -146,7 +145,7 @@ export function ShippingSection() {
                 type="button"
                 aria-label={`Remove ${zone.name || "location"}`}
                 onClick={() => removeLocation(zone.id)}
-                className="mb-0.5 inline-flex size-10 items-center justify-center text-muted transition-colors hover:text-red-500"
+                className="inline-flex size-10 items-center justify-center text-muted transition-colors hover:text-red-500"
               >
                 <MaskIcon src="/sidebar/delete.svg" className="size-4" />
               </button>

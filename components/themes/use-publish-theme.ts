@@ -60,7 +60,7 @@ export function usePublishTheme(siteId: string) {
       setProgress(STAGE.done);
       toast({
         title: "Published live",
-        description: "The storefront now reflects these changes.",
+        description: "Changes can take 1-2 minutes to appear on your live site.",
         variant: "success",
       });
       return true;

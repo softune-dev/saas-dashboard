@@ -18,6 +18,8 @@ import { SalesSection } from "./sales/sales-section";
 import type { StatCardData } from "./stats/stats-data";
 import { StatsGrid } from "./stats/stats-grid";
 
+import { ShopInfoPanel } from "./shop-info/shop-info-panel";
+
 export function DashboardView() {
   const { currentSite, loading: sessionLoading } = useSession();
   const siteId = currentSite?.id ?? null;
@@ -75,6 +77,7 @@ export function DashboardView() {
           title: "Total Products",
           value: String(productPage?.total ?? 0),
           icon: "/sidebar/products.svg",
+          className: "hidden xl:flex",
           ...productsTrend,
         },
         {
@@ -82,6 +85,7 @@ export function DashboardView() {
           title: "Categories",
           value: String(cats.length),
           icon: "/sidebar/categories.svg",
+          className: "hidden xl:flex",
           ...categoriesTrend,
         },
         {
@@ -103,6 +107,16 @@ export function DashboardView() {
   const recentOrders = orders.slice(0, 10);
   const revenueBars = bucketRevenueByMonth(orders);
 
+  // First real thumbnails only — ShopInfoPanel stacks up to 3; no placeholders.
+  const productImages = products
+    .map((p) => p.images[0]?.url)
+    .filter((url): url is string => !!url)
+    .slice(0, 3);
+  const categoryImages = cats
+    .map((c) => c.image_url)
+    .filter((url): url is string => !!url)
+    .slice(0, 3);
+
   const showSkeleton = sessionLoading || (loading && currentSite && stats.length === 0);
 
   return (
@@ -119,7 +133,7 @@ export function DashboardView() {
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-[132px] animate-pulse rounded-md bg-white" />
+              <div key={i} className="h-[132px] animate-pulse rounded-md bg-surface" />
             ))}
           </div>
           <TableSkeleton columns={6} />
@@ -132,12 +146,22 @@ export function DashboardView() {
         />
       ) : (
         <>
+          <div className="block rounded-md bg-surface p-4 sm:p-5 xl:hidden">
+            <ShopInfoPanel
+              productsCount={productPage?.total ?? 0}
+              categoriesCount={cats.length}
+              productImages={productImages}
+              categoryImages={categoryImages}
+            />
+          </div>
           <StatsGrid stats={stats} />
           <SalesSection
             bars={revenueBars}
             hasOrders={orders.length > 0}
             productsCount={productPage?.total ?? 0}
             categoriesCount={cats.length}
+            productImages={productImages}
+            categoryImages={categoryImages}
           />
           {recentOrders.length === 0 ? (
             <EmptyState

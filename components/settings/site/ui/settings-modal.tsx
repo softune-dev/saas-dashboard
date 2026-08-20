@@ -39,7 +39,7 @@ export function SettingsModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-modal-title"
-        className="relative z-10 w-full max-w-md rounded-md bg-white p-5"
+        className="relative z-10 w-full max-w-md rounded-md bg-surface p-5"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <h3

@@ -33,7 +33,7 @@ export function PagesManager({
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-[11px] font-medium text-slate-500">Storefront pages</p>
+      <p className="text-[11px] font-medium text-muted">Storefront pages</p>
 
       <ul className="flex flex-col gap-2">
         {pages.map((page, index) => {
@@ -44,11 +44,11 @@ export function PagesManager({
             <li
               key={page.id}
               className={[
-                "flex items-center gap-2 rounded-xl border bg-white px-2 py-2",
-                active ? "border-primary bg-primary/5" : "border-slate-200",
+                "flex items-center gap-2 rounded-xl border bg-surface px-2 py-2",
+                active ? "border-primary bg-primary/5" : "border-border",
               ].join(" ")}
             >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-[11px] font-bold tabular-nums text-slate-600">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[11px] font-bold tabular-nums text-muted">
                 {index + 1}
               </span>
 
@@ -72,10 +72,10 @@ export function PagesManager({
                 disabled={lockedHome}
                 className={[
                   "inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors disabled:opacity-40",
-                  page.enabled ? "justify-end bg-primary" : "justify-start bg-slate-200",
+                  page.enabled ? "justify-end bg-primary" : "justify-start bg-border",
                 ].join(" ")}
               >
-                <span className="size-4 rounded-full bg-white shadow-sm" />
+                <span className="size-4 rounded-full bg-[#ffffff] shadow-sm" />
               </button>
 
               <PageRowMenu
@@ -91,15 +91,15 @@ export function PagesManager({
       </ul>
 
       {available.length > 0 ? (
-        <div className="flex flex-col gap-2 border-t border-slate-100 pt-4">
-          <p className="text-[11px] font-medium text-slate-500">Add page</p>
+        <div className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-4">
+          <p className="text-[11px] font-medium text-muted">Add page</p>
           <div className="flex flex-col gap-1.5">
             {available.map((item) => (
               <button
                 key={item.type}
                 type="button"
                 onClick={() => onAddPage(item.type)}
-                className="flex items-center gap-2 rounded-xl border border-dashed border-slate-200 px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/5"
+                className="flex items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/5"
               >
                 <Plus className="size-4 text-primary" strokeWidth={1.75} />
                 <span className="min-w-0 flex-1 truncate">{item.title}</span>
@@ -108,7 +108,7 @@ export function PagesManager({
           </div>
         </div>
       ) : (
-        <p className="text-xs text-slate-500">All pages added</p>
+        <p className="text-xs text-muted">All pages added</p>
       )}
     </div>
   );
@@ -170,7 +170,7 @@ function PageRowMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute top-full right-0 z-40 mt-1 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-lg"
+          className="absolute top-full right-0 z-40 mt-1 w-40 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-lg"
         >
           <button
             type="button"
@@ -213,7 +213,7 @@ function PageRowMenu({
             className={[
               itemClass,
               canDelete
-                ? "text-red-500 hover:bg-red-50"
+                ? "text-red-500 hover:bg-rose-500/10"
                 : "cursor-not-allowed text-muted-soft opacity-40",
             ].join(" ")}
           >

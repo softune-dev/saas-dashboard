@@ -45,7 +45,7 @@ export function ProductFeaturesEditor({
                   value={feature.title}
                   onChange={(e) => updateFeature(index, { title: e.target.value })}
                   placeholder="Title (e.g. Free delivery)"
-                  className="h-8 min-w-0 rounded-md border-0 bg-white px-2.5 text-sm font-medium text-foreground outline-none ring-1 ring-slate-200/80 placeholder:text-muted-soft focus:ring-primary"
+                  className="h-8 min-w-0 rounded-md border-0 bg-surface px-2.5 text-sm font-medium text-foreground outline-none ring-1 ring-border dark:ring-transparent placeholder:text-muted-soft focus:ring-primary"
                 />
                 <input
                   value={feature.description}
@@ -53,14 +53,14 @@ export function ProductFeaturesEditor({
                     updateFeature(index, { description: e.target.value })
                   }
                   placeholder="Short description"
-                  className="h-8 min-w-0 rounded-md border-0 bg-white px-2.5 text-xs text-foreground outline-none ring-1 ring-slate-200/80 placeholder:text-muted-soft focus:ring-primary"
+                  className="h-8 min-w-0 rounded-md border-0 bg-surface px-2.5 text-xs text-foreground outline-none ring-1 ring-border dark:ring-transparent placeholder:text-muted-soft focus:ring-primary"
                 />
               </div>
               <button
                 type="button"
                 aria-label="Remove feature"
                 onClick={() => removeFeature(index)}
-                className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-white hover:text-red-500"
+                className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-surface hover:text-red-500"
               >
                 <X className="size-3.5" strokeWidth={2} />
               </button>
@@ -78,7 +78,7 @@ export function ProductFeaturesEditor({
         <button
           type="button"
           onClick={addFeature}
-          className="inline-flex h-9 w-fit items-center gap-1.5 rounded-full bg-search-bg px-3.5 text-xs font-semibold text-foreground transition-colors hover:bg-border"
+          className="inline-flex h-9 w-fit items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
         >
           <Plus className="size-3.5" strokeWidth={2} />
           Add feature
