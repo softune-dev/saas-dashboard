@@ -1,45 +1,43 @@
 import { StatCard } from "@/components/dashboard/stats/stat-card";
 import type { StatCardData } from "@/components/dashboard/stats/stats-data";
-import { formatTaka } from "@/lib/format";
-import type { DerivedCustomer } from "./customers-data";
+import type { CustomerOut } from "@/lib/api/customers";
 
-/** Real aggregates from derived customers — no fabricated trends. */
-export function CustomersStats({ customers }: { customers: DerivedCustomer[] }) {
-  const totalOrders = customers.reduce((n, c) => n + c.orderCount, 0);
-  const totalSpent = customers.reduce((n, c) => n + c.spentCents, 0);
-  const avgLtv =
-    customers.length > 0 ? Math.round(totalSpent / customers.length) : 0;
-  const repeat = customers.filter((c) => c.orderCount > 1).length;
+/** Real counts from the customers list page — no order totals here (those
+ * require per-customer order aggregation, which only the detail view does),
+ * just what's cheap to compute from the list response itself. */
+export function CustomersStats({
+  customers,
+  total,
+}: {
+  customers: CustomerOut[];
+  total: number;
+}) {
+  const withEmail = customers.filter((c) => c.email).length;
+  const withoutEmail = customers.length - withEmail;
 
   const stats: StatCardData[] = [
     {
       id: "total",
       title: "Total Customers",
-      value: String(customers.length),
+      value: String(total),
       icon: "/sidebar/customers.svg",
     },
     {
-      id: "orders",
-      title: "Orders Placed",
-      value: String(totalOrders),
-      icon: "/sidebar/orders.svg",
-    },
-    {
-      id: "repeat",
-      title: "Repeat Buyers",
-      value: String(repeat),
+      id: "with-email",
+      title: "With Email",
+      value: String(withEmail),
       icon: "/sidebar/account.svg",
     },
     {
-      id: "ltv",
-      title: "Avg. LTV",
-      value: formatTaka(avgLtv / 100),
+      id: "phone-only",
+      title: "Phone Only",
+      value: String(withoutEmail),
       icon: "/sidebar/wallet.svg",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {stats.map((stat) => (
         <StatCard key={stat.id} stat={stat} />
       ))}

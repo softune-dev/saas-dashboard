@@ -1,45 +1,32 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Eye, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import {
   TableFilterPanel,
   type TableFilterField,
 } from "@/components/ui/table-filter-panel";
-import { formatDisplayDate, formatTaka } from "@/lib/format";
-import type { DerivedCustomer } from "./customers-data";
+import { formatDisplayDate } from "@/lib/format";
+import type { CustomerOut } from "@/lib/api/customers";
 
 export type CustomerFilters = {
-  /** "" = all, "repeat" = 2+ orders, "single" = exactly 1. */
-  activity: "" | "repeat" | "single";
-  /** "" = all, "email" | "phone" | "both". */
-  contact: "" | "email" | "phone" | "both";
+  /** "" = all, "email" = has email, "no-email" = phone only. */
+  contact: "" | "email" | "no-email";
 };
 
 export const emptyCustomerFilters: CustomerFilters = {
-  activity: "",
   contact: "",
 };
 
 const CUSTOMER_FILTER_FIELDS: TableFilterField[] = [
-  {
-    key: "activity",
-    label: "Orders",
-    options: [
-      { value: "", label: "All customers" },
-      { value: "repeat", label: "Repeat buyers (2+)" },
-      { value: "single", label: "One-time (1 order)" },
-    ],
-  },
   {
     key: "contact",
     label: "Contact",
     options: [
       { value: "", label: "Any contact info" },
       { value: "email", label: "Has email" },
-      { value: "phone", label: "Has phone" },
-      { value: "both", label: "Email and phone" },
+      { value: "no-email", label: "Phone only" },
     ],
   },
 ];
@@ -48,17 +35,18 @@ export function CustomersTable({
   customers,
   filters,
   onFiltersChange,
+  onView,
   initialQuery = "",
 }: {
-  customers: DerivedCustomer[];
+  customers: CustomerOut[];
   filters: CustomerFilters;
   onFiltersChange: (next: CustomerFilters) => void;
+  onView: (customer: CustomerOut) => void;
   /** Prefill from header search deep-link (?q=). */
   initialQuery?: string;
 }) {
   const [query, setQuery] = useState(initialQuery);
 
-  // Keep in sync if the URL q changes while this table is mounted.
   useEffect(() => {
     setQuery(initialQuery);
   }, [initialQuery]);
@@ -66,27 +54,26 @@ export function CustomersTable({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return customers.filter((item) => {
-      if (filters.activity === "repeat" && item.orderCount < 2) return false;
-      if (filters.activity === "single" && item.orderCount !== 1) return false;
       if (filters.contact === "email" && !item.email) return false;
-      if (filters.contact === "phone" && !item.phone) return false;
-      if (filters.contact === "both" && !(item.email && item.phone)) return false;
+      if (filters.contact === "no-email" && item.email) return false;
       if (!q) return true;
       return (
-        item.name.toLowerCase().includes(q) ||
-        item.email.toLowerCase().includes(q) ||
+        (item.name ?? "").toLowerCase().includes(q) ||
+        (item.email ?? "").toLowerCase().includes(q) ||
         item.phone.toLowerCase().includes(q)
       );
     });
   }, [customers, query, filters]);
 
-  const columns: TableColumn<DerivedCustomer>[] = [
+  const columns: TableColumn<CustomerOut>[] = [
     {
       id: "details",
       header: "Customer",
       cell: (row) => (
         <div className="min-w-0">
-          <p className="truncate font-semibold text-foreground">{row.name}</p>
+          <p className="truncate font-semibold text-foreground">
+            {row.name || "Unnamed"}
+          </p>
           {row.email ? (
             <p className="truncate text-xs text-muted">{row.email}</p>
           ) : null}
@@ -96,44 +83,31 @@ export function CustomersTable({
     {
       id: "phone",
       header: "Phone",
-      cell: (row) => (
-        <span className="text-muted">{row.phone || "—"}</span>
-      ),
+      cell: (row) => <span className="text-muted">{row.phone}</span>,
     },
     {
-      id: "orders",
-      header: "Orders",
-      cell: (row) => (
-        <span className="font-semibold tabular-nums text-foreground">
-          {row.orderCount}
-        </span>
-      ),
-    },
-    {
-      id: "spent",
-      header: "Total Spent",
-      cell: (row) => (
-        <span className="font-semibold tabular-nums text-foreground">
-          {formatTaka(row.spentCents / 100)}
-        </span>
-      ),
-    },
-    {
-      id: "first",
-      header: "First Order",
+      id: "since",
+      header: "Customer Since",
       cell: (row) => (
         <span className="text-muted">
-          {formatDisplayDate(new Date(row.firstOrderAt))}
+          {formatDisplayDate(new Date(row.created_at))}
         </span>
       ),
     },
     {
-      id: "last",
-      header: "Last Order",
+      id: "actions",
+      header: "Actions",
+      headerClassName: "text-right",
+      className: "text-right",
       cell: (row) => (
-        <span className="text-muted">
-          {formatDisplayDate(new Date(row.lastOrderAt))}
-        </span>
+        <button
+          type="button"
+          aria-label={`View ${row.name || row.phone}`}
+          onClick={() => onView(row)}
+          className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
+        >
+          <Eye className="size-3.5" strokeWidth={1.75} />
+        </button>
       ),
     },
   ];
@@ -166,7 +140,6 @@ export function CustomersTable({
             empty={emptyCustomerFilters as unknown as Record<string, string>}
             onChange={(next) =>
               onFiltersChange({
-                activity: (next.activity ?? "") as CustomerFilters["activity"],
                 contact: (next.contact ?? "") as CustomerFilters["contact"],
               })
             }

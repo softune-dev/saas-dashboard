@@ -315,6 +315,9 @@ export type OrderOut = {
   site_id: string;
   order_number: string;
   customer: Record<string, unknown>;
+  /** Linked Customer record — null for orders placed before customers
+   * shipped, or with no usable phone number. See lib/api/customers.ts. */
+  customer_id: string | null;
   status: OrderStatus;
   subtotal_cents: number;
   shipping_cents: number;
