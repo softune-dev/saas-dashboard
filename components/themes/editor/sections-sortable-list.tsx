@@ -115,7 +115,12 @@ function SortableSectionRow({
       <button
         type="button"
         aria-label={`Drag ${sectionLabel(section.type)}`}
-        className="inline-flex size-8 shrink-0 cursor-grab items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-search-bg hover:text-foreground active:cursor-grabbing"
+        // touch-none is the actual fix for mobile drag — without it, a
+        // finger-down on this handle gets claimed by the browser's native
+        // scroll gesture before dnd-kit's PointerSensor ever sees the move,
+        // so touch drags silently do nothing (mouse drag works fine because
+        // there's no competing scroll gesture to lose to).
+        className="inline-flex size-8 shrink-0 touch-none cursor-grab items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-search-bg hover:text-foreground active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >

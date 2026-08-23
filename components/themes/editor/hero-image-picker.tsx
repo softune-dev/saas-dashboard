@@ -181,6 +181,13 @@ type SingleImagePickerProps = {
   category?: "hero" | "products" | "categories" | "other";
   /** portrait = tall section image; banner = short full-width logo strip. */
   frame?: "portrait" | "banner";
+  /** Brand logos are frequently transparent PNGs with dark linework — on a
+   * dark editor background that linework disappears. Forces a white preview
+   * background in dark mode only (light mode already has one via
+   * bg-search-bg). Opt-in, not baked into the "banner" frame generally,
+   * since other banner-frame pickers (e.g. feature images) are real photos
+   * that don't have this problem. */
+  whiteInDark?: boolean;
 };
 
 /** Upload-driven picker for a single section image (e.g. Why Choose Us).
@@ -195,6 +202,7 @@ export function SingleImagePicker({
   onChange,
   category = "other",
   frame = "portrait",
+  whiteInDark = false,
 }: SingleImagePickerProps) {
   const { toast } = useToast();
   const baseUrl = previewUrl || FALLBACK_PREVIEW_URL;
@@ -239,7 +247,12 @@ export function SingleImagePicker({
     return (
       <div className="flex flex-col gap-1.5">
         <EditorLabel>{label}</EditorLabel>
-        <div className="group relative mt-1 h-16 w-full overflow-hidden rounded-lg border border-border bg-search-bg">
+        <div
+          className={[
+            "group relative mt-1 h-16 w-full overflow-hidden rounded-lg border border-border",
+            whiteInDark ? "bg-search-bg dark:bg-white" : "bg-search-bg",
+          ].join(" ")}
+        >
           {value ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}

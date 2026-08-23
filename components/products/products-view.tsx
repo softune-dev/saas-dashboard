@@ -151,6 +151,7 @@ export function ProductsView() {
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
         title="Products"
+        actionsInline
         actions={
           <PrimaryButton
             onClick={() => router.push("/products/new")}

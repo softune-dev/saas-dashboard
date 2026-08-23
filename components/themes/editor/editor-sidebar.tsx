@@ -20,13 +20,9 @@ import { MaskIcon } from "@/components/ui/mask-icon";
 import type { Category as PickerCategory } from "@/components/categories/categories-data";
 import type { Product as PickerProduct } from "@/components/products/products-data";
 import {
-  ColorRoleCard,
   EditorField,
   EditorInput,
-  FontPairGrid,
-  FontPicker,
   IconPicker,
-  PaletteGrid,
   SegmentedControl,
 } from "./editor-field";
 import {
@@ -35,16 +31,10 @@ import {
   ProductSinglePicker,
 } from "./entity-picker";
 import {
-  bodyFontOptions,
-  displayFontOptions,
-  fontPairs,
   pageSupportsContentEdit,
   pageSupportsSections,
-  primarySwatches,
   sectionCatalog,
   sectionLabel,
-  surfaceSwatches,
-  textSwatches,
   SIDEBAR_MAX,
   SIDEBAR_MIN,
   SIDEBAR_RAIL,
@@ -56,21 +46,21 @@ import {
   type SitePageType,
 } from "./editor-types";
 import { getColorPalettes } from "./editor-defaults";
-import { AISuggestBox } from "./ai-suggest-box";
 import { AnnouncementItemsEditor } from "./announcement-items-editor";
+import { BrandColorsHeaderPanel } from "./brand-colors-header-panel";
 import { HeroImagePicker, SingleImagePicker } from "./hero-image-picker";
 import { NavLinkListEditor } from "./nav-link-list-editor";
 import { PagesManager } from "./pages-manager";
-import { SectionsSortableList } from "./sections-sortable-list";
 import { TestimonialsEditor } from "./testimonials-editor";
 
-/** Toolbar tools — icons from /public/sidebar */
+/** Toolbar tools — icons from /public/sidebar.
+ * Brand/Colors/Header/Sections used to be four separate rail icons, each
+ * jumping to its own full panel. They're one merged accordion panel now
+ * (see brand-colors-header-panel.tsx) — one rail icon opens it, and which
+ * group is expanded lives inside that panel's own state, not the rail. */
 const globalTools: { id: EditorPanelId; label: string; icon: string }[] = [
-  { id: "brand", label: "Brand", icon: "/sidebar/brand.svg" },
-  { id: "colors", label: "Colors", icon: "/sidebar/color.svg" },
-  { id: "header", label: "Header", icon: "/sidebar/header.svg" },
+  { id: "brand", label: "Design", icon: "/sidebar/brand.svg" },
   { id: "pages", label: "Pages", icon: "/sidebar/page.svg" },
-  { id: "sections", label: "Sections", icon: "/sidebar/sections.svg" },
 ];
 
 type EditorSidebarProps = {
@@ -575,11 +565,14 @@ function PanelFieldsSkeleton() {
 }
 
 function panelTitle(panel: EditorPanelId, pageTitle?: string): string {
-  if (panel === "brand") return "Brand";
-  if (panel === "colors") return "Colors";
-  if (panel === "header") return "Header";
+  // Brand/Colors/Header/Sections all render the same merged accordion
+  // panel now — the title bar can't say which group is expanded (that
+  // state lives inside the panel itself), so it names the panel, not a
+  // specific group.
+  if (panel === "brand" || panel === "colors" || panel === "header" || panel === "sections") {
+    return "Design";
+  }
   if (panel === "pages") return "Pages";
-  if (panel === "sections") return "Landing Sections";
   if (panel === "pageContent") return pageTitle ? `${pageTitle} content` : "Page content";
   return sectionLabel(panel as SectionType);
 }
@@ -626,207 +619,22 @@ function PanelFields({
 }) {
   const activePage =
     settings.pages.find((p) => p.id === activePageId) ?? settings.pages[0];
-  if (panel === "brand") {
-    const logoType = settings.logoType ?? "text";
+  if (panel === "brand" || panel === "colors" || panel === "header" || panel === "sections") {
     return (
-      <>
-        <AISuggestBox siteId={siteId} onApply={onChange} />
-        <EditorField label="Logo">
-          <SegmentedControl
-            value={logoType}
-            options={[
-              { value: "image", label: "Image" },
-              { value: "text", label: "Text" },
-            ]}
-            onChange={(v) => onChange({ logoType: v })}
-          />
-        </EditorField>
-        {/* Reserved height so Text ↔ Image swap doesn't shove font tabs. */}
-        <div className="min-h-[5.25rem]">
-          {logoType === "text" ? (
-            <EditorField label="Site name">
-              <EditorInput
-                value={settings.siteName}
-                onChange={(v) => onChange({ siteName: v })}
-              />
-            </EditorField>
-          ) : (
-            <SingleImagePicker
-              label="Logo image"
-              siteId={siteId}
-              previewUrl={previewUrl}
-              value={settings.logoImage ?? ""}
-              onChange={(v) => onChange({ logoImage: v })}
-              category="other"
-              frame="banner"
-            />
-          )}
-        </div>
-        <EditorField label="Tagline">
-          <EditorInput
-            value={settings.tagline}
-            onChange={(v) => onChange({ tagline: v })}
-          />
-        </EditorField>
-        <EditorField label="Font pairs">
-          <FontPairGrid
-            pairs={fontPairs}
-            current={{ displayFont: settings.displayFont, bodyFont: settings.bodyFont }}
-            onApply={(patch) => onChange(patch)}
-          />
-        </EditorField>
-        <EditorField label="Headings">
-          <FontPicker
-            value={settings.displayFont}
-            options={displayFontOptions}
-            onChange={(v) => onChange({ displayFont: v })}
-          />
-        </EditorField>
-        <EditorField label="Body text">
-          <FontPicker
-            value={settings.bodyFont}
-            options={bodyFontOptions}
-            onChange={(v) => onChange({ bodyFont: v })}
-          />
-        </EditorField>
-        <EditorField label="Buttons">
-          <SegmentedControl
-            value={settings.buttonStyle}
-            options={[
-              { value: "Pill", label: "Pill" },
-              { value: "Rounded", label: "Round" },
-              { value: "Square", label: "Square" },
-            ]}
-            onChange={(v) => onChange({ buttonStyle: v })}
-          />
-        </EditorField>
-      </>
-    );
-  }
-
-  if (panel === "colors") {
-    return (
-      <div className="flex flex-col gap-3">
-        <AISuggestBox siteId={siteId} onApply={onChange} />
-        <div className="flex flex-col gap-2">
-          <p className="text-[11px] font-medium text-muted">Palettes</p>
-          <PaletteGrid
-            palettes={themePalettes}
-            current={{
-              primaryColor: settings.primaryColor,
-              accentColor: settings.accentColor,
-              surfaceColor: settings.surfaceColor,
-            }}
-            onApply={(patch) => onChange(patch)}
-          />
-        </div>
-        <ColorRoleCard
-          label="Primary"
-          value={settings.primaryColor}
-          swatches={primarySwatches}
-          onChange={(v) => onChange({ primaryColor: v })}
-        />
-        <ColorRoleCard
-          label="Text"
-          value={settings.accentColor}
-          swatches={textSwatches}
-          onChange={(v) => onChange({ accentColor: v })}
-        />
-        <ColorRoleCard
-          label="Surface"
-          value={settings.surfaceColor}
-          swatches={surfaceSwatches}
-          onChange={(v) => onChange({ surfaceColor: v })}
-          tone="dark"
-        />
-      </div>
-    );
-  }
-
-  if (panel === "header") {
-    return (
-      <>
-        <NavLinkListEditor
-          title="Nav links"
-          links={settings.navLinks}
-          onChange={(navLinks) => onChange({ navLinks })}
-          minCount={1}
-        />
-
-        <div className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-4">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-medium text-muted">Buttons</p>
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  headerButtons: [
-                    ...settings.headerButtons,
-                    {
-                      id: `b-${Date.now()}`,
-                      label: "Button",
-                      style: "outline",
-                    },
-                  ],
-                })
-              }
-              className="inline-flex items-center gap-1 text-xs font-semibold text-primary"
-            >
-              <Plus className="size-3.5" strokeWidth={2} />
-              Add
-            </button>
-          </div>
-          <ul className="flex flex-col gap-3">
-            {settings.headerButtons.map((btn) => (
-              <li
-                key={btn.id}
-                className="flex flex-col gap-2 rounded-xl border border-border p-2.5"
-              >
-                <div className="flex items-center gap-1.5">
-                  <EditorInput
-                    value={btn.label}
-                    onChange={(v) =>
-                      onChange({
-                        headerButtons: settings.headerButtons.map((b) =>
-                          b.id === btn.id ? { ...b, label: v } : b,
-                        ),
-                      })
-                    }
-                  />
-                  <button
-                    type="button"
-                    aria-label="Remove button"
-                    onClick={() =>
-                      onChange({
-                        headerButtons: settings.headerButtons.filter(
-                          (b) => b.id !== btn.id,
-                        ),
-                      })
-                    }
-                    className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
-                  >
-                    <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
-                  </button>
-                </div>
-                <SegmentedControl
-                  value={btn.style}
-                  options={[
-                    { value: "primary", label: "Primary" },
-                    { value: "outline", label: "Outline" },
-                  ]}
-                  onChange={(v) =>
-                    onChange({
-                      headerButtons: settings.headerButtons.map((b) =>
-                        b.id === btn.id ? { ...b, style: v } : b,
-                      ),
-                    })
-                  }
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </>
+      <BrandColorsHeaderPanel
+        initialGroup={null}
+        settings={settings}
+        siteId={siteId}
+        themePalettes={themePalettes}
+        previewUrl={previewUrl}
+        activePageId={activePageId}
+        onChange={onChange}
+        availableToAdd={availableToAdd}
+        onAddSection={onAddSection}
+        onRemoveSection={onRemoveSection}
+        onReorderSections={onReorderSections}
+        onActivePageChange={onActivePageChange}
+      />
     );
   }
 
@@ -880,73 +688,6 @@ function PanelFields({
         categories={categories}
         products={products}
       />
-    );
-  }
-
-  if (panel === "sections") {
-    const activePage =
-      settings.pages.find((p) => p.id === activePageId) ?? settings.pages[0];
-    const canEditSections = activePage
-      ? pageSupportsSections(activePage.type)
-      : false;
-
-    if (!canEditSections) {
-      const homeId = settings.pages.find((p) => p.type === "home")?.id;
-      return (
-        <div className="flex flex-col gap-3">
-          <p className="text-sm text-muted">
-            Sections only apply to the Home page.
-          </p>
-          {homeId ? (
-            <button
-              type="button"
-              className="inline-flex h-9 items-center justify-center rounded-full bg-primary px-3 text-sm font-semibold text-white"
-              onClick={() => onActivePageChange(homeId)}
-            >
-              Preview Home
-            </button>
-          ) : null}
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <p className="text-[11px] font-medium text-muted">
-          Home sections · drag to reorder
-        </p>
-        <div data-tour="editor-sections-list">
-          <SectionsSortableList
-            sections={settings.sections}
-            onReorder={onReorderSections}
-            onRemove={onRemoveSection}
-          />
-        </div>
-
-        {availableToAdd.length > 0 ? (
-          <div
-            data-tour="editor-add-section"
-            className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-4"
-          >
-            <p className="text-[11px] font-medium text-muted">Add section</p>
-            <div className="flex flex-col gap-1.5">
-              {availableToAdd.map((item) => (
-                <button
-                  key={item.type}
-                  type="button"
-                  onClick={() => onAddSection(item.type)}
-                  className="flex items-center gap-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-left text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/5"
-                >
-                  <Plus className="size-4 text-primary" strokeWidth={1.75} />
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="text-xs text-muted">All sections added</p>
-        )}
-      </>
     );
   }
 

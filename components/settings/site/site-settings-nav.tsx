@@ -12,9 +12,9 @@ export function SiteSettingsNav() {
     <aside className="w-full shrink-0 sm:sticky sm:top-3 sm:w-56 sm:self-start">
       <nav
         aria-label="Site settings sections"
-        className="flex flex-col gap-0.5 rounded-md bg-surface p-2"
+        className="flex flex-row overflow-x-auto scrollbar-none gap-1 bg-surface p-1 rounded-lg sm:flex-col sm:gap-0.5 sm:p-2 sm:rounded-md"
       >
-        <p className="px-3 py-2 text-[11px] font-semibold tracking-wider text-muted-soft uppercase">
+        <p className="hidden sm:block px-3 py-2 text-[11px] font-semibold tracking-wider text-muted-soft uppercase">
           Sections
         </p>
         {siteSettingsNav.map((item) => {
@@ -27,7 +27,7 @@ export function SiteSettingsNav() {
               key={item.id}
               href={item.href}
               className={[
-                "flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap shrink-0 sm:py-2.5",
                 active
                   ? "bg-primary text-white"
                   : "text-foreground hover:bg-search-bg",
@@ -38,7 +38,7 @@ export function SiteSettingsNav() {
               ) : item.iconSrc ? (
                 <MaskIcon src={item.iconSrc} className="size-4" />
               ) : null}
-              <span className="truncate">{item.label}</span>
+              <span>{item.label}</span>
             </Link>
           );
         })}

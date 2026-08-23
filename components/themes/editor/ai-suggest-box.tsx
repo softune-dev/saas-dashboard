@@ -24,9 +24,14 @@ const FIELD_LABELS: Record<string, string> = {
 export function AISuggestBox({
   siteId,
   onApply,
+  hideHeader = false,
 }: {
   siteId: string | null;
   onApply: (patch: AISuggestPatch) => void;
+  /** When this box is already wrapped in a collapsible "Ask AI" header
+   * (see AskAiCollapsible in brand-colors-header-panel.tsx), rendering this
+   * component's own "Ask AI" title too would show it twice. */
+  hideHeader?: boolean;
 }) {
   const { mutate } = useSWRConfig();
   const [prompt, setPrompt] = useState("");
@@ -68,14 +73,16 @@ export function AISuggestBox({
       data-tour="editor-ai-suggest"
       className="flex flex-col gap-2 rounded-xl border border-border dark:border-transparent bg-search-bg p-3"
     >
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
-        <img
-          src="/sidebar/gemini.svg"
-          alt=""
-          className="size-3.5 shrink-0"
-        />
-        Ask AI
-      </div>
+      {!hideHeader ? (
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-muted">
+          <img
+            src="/sidebar/gemini.svg"
+            alt=""
+            className="size-3.5 shrink-0"
+          />
+          Ask AI
+        </div>
+      ) : null}
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}

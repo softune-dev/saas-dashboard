@@ -361,7 +361,7 @@ function StorageStatTile({
           {formatBytes(usedBytes)}
         </p>
         <p className="truncate text-xs text-muted">
-          of {formatBytes(limitBytes)}{plan ? ` · ${plan}` : ""}
+          of {formatBytes(limitBytes)}
         </p>
       </div>
     </div>

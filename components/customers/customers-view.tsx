@@ -103,6 +103,7 @@ export function CustomersView() {
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
         title="Customers"
+        actionsInline
         actions={
           customers.length > 0 ? (
             <PrimaryButton onClick={handleExport} className="px-4">

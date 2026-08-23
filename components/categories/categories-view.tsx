@@ -119,6 +119,7 @@ export function CategoriesView() {
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
         title="Categories"
+        actionsInline
         actions={
           <PrimaryButton
             onClick={() => {

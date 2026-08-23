@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import type { Category } from "@/components/categories/categories-data";
@@ -157,6 +157,7 @@ export function ProductPicker({
   label?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const selected = useMemo(
     () =>
       (selectedIds ?? [])
@@ -165,6 +166,13 @@ export function ProductPicker({
     [selectedIds, options],
   );
   const available = options.filter((o) => !(selectedIds ?? []).includes(o.id));
+  const filteredAvailable = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return available;
+    return available.filter(
+      (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q),
+    );
+  }, [available, query]);
 
   function remove(id: string) {
     onChange((selectedIds ?? []).filter((x) => x !== id));
@@ -173,7 +181,7 @@ export function ProductPicker({
   function add(id: string) {
     if ((selectedIds ?? []).includes(id)) return;
     onChange([...(selectedIds ?? []), id]);
-    setOpen(false);
+    setQuery("");
   }
 
   return (
@@ -226,7 +234,10 @@ export function ProductPicker({
         <button
           type="button"
           disabled={available.length === 0}
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            setOpen((v) => !v);
+            setQuery("");
+          }}
           className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-border text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
         >
           <Plus className="size-3.5" strokeWidth={2} />
@@ -234,31 +245,53 @@ export function ProductPicker({
         </button>
 
         {open && available.length > 0 ? (
-          <ul className="scrollbar-thin absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-56 overflow-y-auto rounded-xl border border-border dark:border-transparent bg-surface p-1.5">
-            {available.map((product) => (
-              <li key={product.id}>
-                <button
-                  type="button"
-                  onClick={() => add(product.id)}
-                  className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-search-bg"
-                >
-                  <Thumb
-                    src={product.image}
-                    alt={product.name}
-                    fallback={PLACEHOLDER}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {product.name}
-                    </p>
-                    <p className="truncate text-[11px] text-muted">
-                      {product.category} · {productDisplayPrice(product)}
-                    </p>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="absolute inset-x-0 top-[calc(100%+6px)] z-20 overflow-hidden rounded-xl border border-border dark:border-transparent bg-surface">
+            <div className="relative border-b border-border dark:border-transparent p-1.5">
+              <Search
+                className="pointer-events-none absolute top-1/2 left-4 size-3.5 -translate-y-1/2 text-muted-soft"
+                strokeWidth={1.75}
+              />
+              <input
+                type="search"
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search products..."
+                className="h-8 w-full rounded-lg bg-search-bg pr-2.5 pl-8 text-xs text-foreground outline-none placeholder:text-muted-soft"
+              />
+            </div>
+            <ul className="scrollbar-thin max-h-48 overflow-y-auto p-1.5">
+              {filteredAvailable.length === 0 ? (
+                <li className="px-2 py-3 text-center text-xs text-muted-soft">
+                  No products match &ldquo;{query}&rdquo;
+                </li>
+              ) : (
+                filteredAvailable.map((product) => (
+                  <li key={product.id}>
+                    <button
+                      type="button"
+                      onClick={() => add(product.id)}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-search-bg"
+                    >
+                      <Thumb
+                        src={product.image}
+                        alt={product.name}
+                        fallback={PLACEHOLDER}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {product.name}
+                        </p>
+                        <p className="truncate text-[11px] text-muted">
+                          {product.category} · {productDisplayPrice(product)}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
         ) : null}
       </div>
     </div>
@@ -276,6 +309,15 @@ export function ProductSinglePicker({
   options: Product[];
   onChange: (id: string) => void;
 }) {
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter(
+      (p) => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q),
+    );
+  }, [options, query]);
+
   if (options.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-muted">
@@ -285,41 +327,62 @@ export function ProductSinglePicker({
   }
 
   return (
-    <ul className="flex flex-col">
-      {options.map((product) => {
-        const active = product.id === value;
-        return (
-          <li key={product.id} className="border-b border-border dark:border-transparent last:border-b-0">
-            <button
-              type="button"
-              onClick={() => onChange(product.id)}
-              className={[
-                "flex w-full items-center gap-3 px-1 py-3 text-left transition-colors",
-                active ? "bg-primary/5" : "hover:bg-search-bg/80",
-              ].join(" ")}
-            >
-              <Thumb
-                src={product.image}
-                alt={product.name}
-                fallback={PLACEHOLDER}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  {product.name}
-                </p>
-                <p className="truncate text-[11px] text-muted">
-                  {product.category} · {productDisplayPrice(product)}
-                </p>
-              </div>
-              {active ? (
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-                  <Check className="size-3.5" strokeWidth={2.5} />
-                </span>
-              ) : null}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex flex-col gap-2">
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-soft"
+          strokeWidth={1.75}
+        />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search products..."
+          className="h-9 w-full rounded-full border border-border bg-surface pr-3 pl-8 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
+        />
+      </div>
+      {filtered.length === 0 ? (
+        <p className="py-8 text-center text-sm text-muted-soft">
+          No products match &ldquo;{query}&rdquo;
+        </p>
+      ) : (
+        <ul className="flex flex-col">
+          {filtered.map((product) => {
+            const active = product.id === value;
+            return (
+              <li key={product.id} className="border-b border-border dark:border-transparent last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => onChange(product.id)}
+                  className={[
+                    "flex w-full items-center gap-3 px-1 py-3 text-left transition-colors",
+                    active ? "bg-primary/5" : "hover:bg-search-bg/80",
+                  ].join(" ")}
+                >
+                  <Thumb
+                    src={product.image}
+                    alt={product.name}
+                    fallback={PLACEHOLDER}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {product.name}
+                    </p>
+                    <p className="truncate text-[11px] text-muted">
+                      {product.category} · {productDisplayPrice(product)}
+                    </p>
+                  </div>
+                  {active ? (
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+                      <Check className="size-3.5" strokeWidth={2.5} />
+                    </span>
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
   );
 }
