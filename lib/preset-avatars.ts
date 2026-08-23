@@ -29,3 +29,11 @@ export const PRESET_AVATARS = PRESET_AVATAR_COLORS.map((color) => ({
   color,
   url: presetAvatarUrl(color),
 }));
+
+/** Used once, right after a fresh `me` fetch with no avatar_url yet — see
+ * session-provider.tsx. Every new signup lands with one of these already
+ * picked, same as Slack/Google, instead of a blank/generic placeholder. */
+export function randomPresetAvatarUrl(): string {
+  const color = PRESET_AVATAR_COLORS[Math.floor(Math.random() * PRESET_AVATAR_COLORS.length)];
+  return presetAvatarUrl(color);
+}

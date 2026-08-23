@@ -8,7 +8,8 @@ import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import { useSession } from "@/components/providers/session-provider";
 import { getThemeById } from "@/components/themes/themes-data";
-import { clearToken, listTemplates, resolveSiteLogoUrl } from "@/lib/api";
+import { clearToken, listTemplates } from "@/lib/api";
+import { useSiteSettingsSWR } from "@/lib/api/site-settings";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import {
   logoutItem,
@@ -16,6 +17,7 @@ import {
   settingsItems,
   type NavItem,
 } from "@/components/layout/sidebar/nav-config";
+import { SetupProgressRing } from "./setup-progress-ring";
 
 /** Quick jumps in the user menu — same icons/hrefs as the sidebar. */
 const QUICK_LINKS: NavItem[] = [
@@ -66,7 +68,11 @@ export function StorePill() {
   const subtitle = loading
     ? ""
     : (me?.user.full_name ?? me?.user.email ?? "");
-  const logoUrl = resolveSiteLogoUrl(currentSite);
+  // The account menu shows the SIGNED-IN USER's avatar, not the shop's logo
+  // — this is "who am I", the shop logo already lives in the sidebar/theme
+  // editor. avatar_url is never empty in practice (session-provider assigns
+  // a random preset the first time `me` loads with none set).
+  const avatarUrl = me?.user.avatar_url ?? null;
 
   // Same shop URL rules as the My Shop panel — published domain when live,
   // otherwise the template preview with ?__site= for drafts.
@@ -89,6 +95,21 @@ export function StorePill() {
   const displayName = me?.user.full_name?.trim() || "";
   const email = me?.user.email?.trim() || "";
 
+  // Setup completeness — three groups, matching where each is actually
+  // edited (Account -> Profile, Account -> Business, Site Settings ->
+  // Contact). Each counts as done only once its core fields are filled;
+  // partial credit within a group would make the ring meaningless.
+  const { data: siteSettings } = useSiteSettingsSWR(currentSite?.id ?? null);
+  const profileDone = !!(me?.user.full_name && me?.user.phone);
+  const businessDone = !!(
+    me?.tenant.business.legal_name && me?.tenant.business.billing_email
+  );
+  const storeDone = !!(
+    siteSettings?.business.phone && siteSettings?.business.address?.city
+  );
+  const setupSteps = [profileDone, businessDone, storeDone];
+  const setupCompleted = setupSteps.filter(Boolean).length;
+
   function handleLogout() {
     clearToken();
     setOpen(false);
@@ -105,22 +126,22 @@ export function StorePill() {
         aria-expanded={open}
         aria-label={`Account menu: ${title}${subtitle ? ` — ${subtitle}` : ""}`}
       >
-        {logoUrl ? (
-          // Logos are rarely 1:1 — contain + inset keeps the full mark inside
-          // the circle instead of cropping with object-cover.
-          <span className="relative size-9 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-black/5">
+        {avatarUrl ? (
+          // A real photo/preset avatar is meant to fill the circle, unlike a
+          // shop logo — object-cover, no inset padding.
+          <span className="relative size-9 shrink-0 overflow-hidden rounded-full bg-border">
             <Image
-              src={logoUrl}
+              src={avatarUrl}
               alt=""
               fill
-              className="object-contain p-1.5"
+              className="object-cover"
               sizes="36px"
               unoptimized
             />
           </span>
         ) : (
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-store text-white">
-            <MaskIcon src="/sidebar/shop-bag.svg" className="size-4" />
+            <MaskIcon src="/sidebar/account.svg" className="size-4" />
           </span>
         )}
 
@@ -155,27 +176,44 @@ export function StorePill() {
         >
           {/* Account header — email once; site host + open-shop arrow under it */}
           <div className="border-b border-border dark:border-transparent px-3.5 py-3">
-            {displayName ? (
-              <p className="truncate text-sm font-semibold text-foreground">
-                {displayName}
-              </p>
-            ) : null}
-            {email ? (
-              <p
-                className={[
-                  "truncate",
-                  displayName
-                    ? "mt-0.5 text-xs text-muted"
-                    : "text-sm font-semibold text-foreground",
-                ].join(" ")}
-              >
-                {email}
-              </p>
-            ) : !displayName ? (
-              <p className="truncate text-sm font-semibold text-foreground">
-                Account
-              </p>
-            ) : null}
+            <div className="flex items-center gap-2.5">
+              {setupCompleted < setupSteps.length ? (
+                <Link
+                  href="/settings/account"
+                  onClick={() => setOpen(false)}
+                  aria-label={`Account setup ${setupCompleted} of ${setupSteps.length} complete`}
+                  className="relative shrink-0 text-muted transition-colors hover:text-primary"
+                >
+                  <SetupProgressRing completedSteps={setupCompleted} totalSteps={setupSteps.length} />
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+                    {Math.round((setupCompleted / setupSteps.length) * 100)}
+                  </span>
+                </Link>
+              ) : null}
+              <div className="min-w-0 flex-1">
+                {displayName ? (
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {displayName}
+                  </p>
+                ) : null}
+                {email ? (
+                  <p
+                    className={[
+                      "truncate",
+                      displayName
+                        ? "mt-0.5 text-xs text-muted"
+                        : "text-sm font-semibold text-foreground",
+                    ].join(" ")}
+                  >
+                    {email}
+                  </p>
+                ) : !displayName ? (
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    Account
+                  </p>
+                ) : null}
+              </div>
+            </div>
             {currentSite ? (
               <div className="mt-2 flex min-w-0 items-center gap-2">
                 <MaskIcon

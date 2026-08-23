@@ -8,7 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getMe, listSites, type MeOut, type SiteOut } from "@/lib/api";
+import { getMe, listSites, updateMe, type MeOut, type SiteOut } from "@/lib/api";
+import { randomPresetAvatarUrl } from "@/lib/preset-avatars";
 
 const CURRENT_SITE_KEY = "softune.currentSiteId";
 // SessionProvider fetches getMe()+listSites() on every mount — unlike the
@@ -86,8 +87,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
     (async () => {
       try {
-        const [meData, sitesData] = await Promise.all([getMe(), listSites()]);
+        let [meData, sitesData] = await Promise.all([getMe(), listSites()]);
         if (cancelled) return;
+
+        // First-ever load with no avatar set (new signup, or an existing
+        // account from before avatars existed) — assign one of the preset
+        // silhouettes automatically, same as Slack/Google do, so the header
+        // never shows a blank circle. Best-effort: a failed PATCH just means
+        // they see the fallback icon until they set one themselves.
+        if (!meData.user.avatar_url) {
+          try {
+            meData = await updateMe({ avatar_url: randomPresetAvatarUrl() });
+          } catch {
+            // Not fatal — see comment above.
+          }
+        }
+
         setMe(meData);
         setSites(sitesData);
         writeSessionCache(meData, sitesData);
