@@ -4,6 +4,7 @@ import { Check, Loader2, X } from "lucide-react";
 import { useState } from "react";
 import {
   confirmCreateProduct,
+  confirmCreateTicket,
   confirmSetCategories,
   confirmUpdateProduct,
   type PendingAction,
@@ -79,9 +80,17 @@ export function ActionConfirmCard({
       } else if (action.type === "create_product") {
         const product = await confirmCreateProduct(action.product);
         onResolve("confirmed", `Created "${product.name}". Add photos on its edit page.`);
-      } else {
+      } else if (action.type === "update_product") {
         const product = await confirmUpdateProduct(action.product);
         onResolve("confirmed", `Updated "${product.name}".`);
+      } else {
+        const ticket = await confirmCreateTicket({
+          subject: action.subject,
+          category: action.category,
+          priority: action.priority,
+          message: action.message,
+        });
+        onResolve("confirmed", `Ticket filed — we'll follow up by email (${ticket.subject}).`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -127,7 +136,7 @@ export function ActionConfirmCard({
             ) : null}
           </div>
         </>
-      ) : (
+      ) : action.type === "update_product" ? (
         <>
           <p className="text-[11px] font-medium text-muted">
             Edit {action.product.product_name ?? "product"}
@@ -144,6 +153,31 @@ export function ActionConfirmCard({
                 </li>
               ))}
           </ul>
+        </>
+      ) : (
+        <>
+          <p className="text-[11px] font-medium text-muted">File a support ticket</p>
+          <div className="flex flex-col gap-1.5 text-[13px] text-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-semibold">{action.subject}</span>
+              <span
+                className={[
+                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                  action.priority === "High"
+                    ? "bg-rose-500/10 text-red-500"
+                    : action.priority === "Low"
+                      ? "bg-search-bg text-muted"
+                      : "bg-primary/10 text-primary",
+                ].join(" ")}
+              >
+                {action.priority} priority
+              </span>
+            </div>
+            <span className="text-[11px] text-muted">{action.category}</span>
+            <p className="rounded-lg bg-search-bg/60 px-2.5 py-2 text-[12px] leading-relaxed text-muted">
+              {action.message}
+            </p>
+          </div>
         </>
       )}
 

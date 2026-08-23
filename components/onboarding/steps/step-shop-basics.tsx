@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { SettingsInput, SettingsSelect } from "@/components/settings/site/ui/settings-field";
 import { MaskIcon } from "@/components/ui/mask-icon";
@@ -19,6 +20,7 @@ export function StepShopBasics() {
   const { currentSite } = useSession();
   const { state, dispatch, registerSaveHandler } = useOnboarding();
   const s = state.draftSettings;
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   // These fields are batched into two real writes (tenant identity via
   // updateTenantBusiness, storefront category via saveSiteBusiness) rather
@@ -66,7 +68,9 @@ export function StepShopBasics() {
         siteId={currentSite?.id ?? null}
         category="other"
         onUploadFiles={async (files) => {
-          if (files[0]) {
+          if (!files[0]) return;
+          setUploadingLogo(true);
+          try {
             if (currentSite?.id) {
               const uploaded = await uploadSiteMedia(currentSite.id, files[0], "other");
               dispatch({
@@ -80,6 +84,8 @@ export function StepShopBasics() {
                 patch: { logoImage: url, logoType: "image" },
               });
             }
+          } finally {
+            setUploadingLogo(false);
           }
         }}
         onPickImages={(images) => {
@@ -95,9 +101,11 @@ export function StepShopBasics() {
           <div className="flex flex-col gap-2">
             <button
               type="button"
-              onClick={open}
+              onClick={uploadingLogo ? undefined : open}
+              disabled={uploadingLogo}
               aria-label="Upload shop logo"
-              className="group relative flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-search-bg text-xl font-semibold text-muted shadow-sm transition-all hover:border-primary/50 hover:bg-surface"
+              aria-busy={uploadingLogo}
+              className="group relative flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-search-bg text-xl font-semibold text-muted shadow-sm transition-all hover:border-primary/50 hover:bg-surface disabled:cursor-wait"
             >
               {s.logoImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -107,14 +115,22 @@ export function StepShopBasics() {
               ) : (
                 <MaskIcon src="/sidebar/shop-bag.svg" className="size-10 text-muted-soft" />
               )}
-              <span className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
-                <span className="flex items-center gap-2 rounded-md bg-white/20 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm">
-                  <MaskIcon src="/sidebar/edit.svg" className="size-4" />
-                  Change logo
+              {uploadingLogo ? (
+                <span className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <Loader2 className="size-6 animate-spin text-white" strokeWidth={2} />
                 </span>
-              </span>
+              ) : (
+                <span className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="flex items-center gap-2 rounded-md bg-white/20 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-sm">
+                    <MaskIcon src="/sidebar/edit.svg" className="size-4" />
+                    Change logo
+                  </span>
+                </span>
+              )}
             </button>
-            <span className="text-[11px] font-medium text-muted">(click to upload)</span>
+            <span className="text-[11px] font-medium text-muted">
+              {uploadingLogo ? "Uploading…" : "(click to upload)"}
+            </span>
           </div>
         )}
       </MediaSourceMenu>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { OutlineButton } from "@/components/ui/outline-button";
@@ -7,12 +8,14 @@ import { PrimaryButton } from "@/components/ui/primary-button";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { saveThemeDraft } from "@/components/themes/theme-store";
 import { usePublishTheme } from "@/components/themes/use-publish-theme";
+import { useSession } from "@/components/providers/session-provider";
 import { ONBOARDING_STEPS } from "../onboarding-steps";
 import { useOnboarding } from "../onboarding-context";
 
 export function StepFinish() {
   const router = useRouter();
   const { state, dispatch, reset } = useOnboarding();
+  const { refetch } = useSession();
   // usePublishTheme keys everything off the template key (see theme-store.ts's
   // "siteId here is the template key" comment) — same mechanism the real
   // theme editor's Publish button uses, so onboarding doesn't invent a
@@ -33,6 +36,16 @@ export function StepFinish() {
     if (!ok) {
       setPublishError("Publish failed — check your connection and try again.");
       return;
+    }
+    // useOnboardingGuard reads site.status from useSession's cached sites —
+    // still "draft" from before this publish. Refresh it now and await the
+    // result, otherwise "Open dashboard" (or the guard's own effect) races
+    // the fetch and bounces straight back to /onboarding.
+    try {
+      await refetch();
+    } catch {
+      // Best-effort — the guard will pick up the real status on its own
+      // next natural refetch even if this one failed.
     }
     dispatch({ type: "completeStep", id: "finish", skipped: false });
     dispatch({ type: "finish", at: new Date().toISOString() });
@@ -105,8 +118,21 @@ export function StepFinish() {
 
       {publishError ? <p className="text-xs text-rose-500">{publishError}</p> : null}
 
-      <PrimaryButton type="button" onClick={handleGoLive} disabled={publishing} className="w-full min-h-11">
-        {publishing ? "Publishing…" : "Publish and go live"}
+      <PrimaryButton
+        type="button"
+        onClick={handleGoLive}
+        disabled={publishing}
+        aria-busy={publishing}
+        className="w-full min-h-11"
+      >
+        {publishing ? (
+          <span className="inline-flex items-center justify-center gap-1.5">
+            <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+            Publishing…
+          </span>
+        ) : (
+          "Publish and go live"
+        )}
       </PrimaryButton>
     </div>
   );

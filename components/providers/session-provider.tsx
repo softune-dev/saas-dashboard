@@ -51,7 +51,11 @@ type SessionState = {
   setCurrentSiteId: (id: string) => void;
   loading: boolean;
   error: string | null;
-  refetch: () => void;
+  /** Returns a promise so callers that need the refresh to actually land
+   * before doing something else (e.g. onboarding's finish step navigating
+   * away right after publish) can await it, instead of racing the guard's
+   * own effect against a fetch that hasn't resolved yet. */
+  refetch: () => Promise<void>;
 };
 
 const SessionContext = createContext<SessionState | undefined>(undefined);
@@ -77,7 +81,30 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // needed. Cache miss (first-ever load on this browser) behaves as before.
   const [loading, setLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
-  const [reloadNonce, setReloadNonce] = useState(0);
+
+  const loadSession = useCallback(async () => {
+    let [meData, sitesData] = await Promise.all([getMe(), listSites()]);
+
+    // First-ever load with no avatar set (new signup, or an existing
+    // account from before avatars existed) — assign one of the preset
+    // silhouettes automatically, same as Slack/Google do, so the header
+    // never shows a blank circle. Best-effort: a failed PATCH just means
+    // they see the fallback icon until they set one themselves.
+    if (!meData.user.avatar_url) {
+      try {
+        meData = await updateMe({ avatar_url: randomPresetAvatarUrl() });
+      } catch {
+        // Not fatal — see comment above.
+      }
+    }
+
+    setMe(meData);
+    setSites(sitesData);
+    writeSessionCache(meData, sitesData);
+    const stored = localStorage.getItem(CURRENT_SITE_KEY);
+    const initial = sitesData.find((s) => s.id === stored) ?? sitesData[0] ?? null;
+    setCurrentSiteIdState(initial?.id ?? null);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,48 +112,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
     }
-    (async () => {
-      try {
-        let [meData, sitesData] = await Promise.all([getMe(), listSites()]);
-        if (cancelled) return;
-
-        // First-ever load with no avatar set (new signup, or an existing
-        // account from before avatars existed) — assign one of the preset
-        // silhouettes automatically, same as Slack/Google do, so the header
-        // never shows a blank circle. Best-effort: a failed PATCH just means
-        // they see the fallback icon until they set one themselves.
-        if (!meData.user.avatar_url) {
-          try {
-            meData = await updateMe({ avatar_url: randomPresetAvatarUrl() });
-          } catch {
-            // Not fatal — see comment above.
-          }
-        }
-
-        setMe(meData);
-        setSites(sitesData);
-        writeSessionCache(meData, sitesData);
-        const stored = localStorage.getItem(CURRENT_SITE_KEY);
-        const initial =
-          sitesData.find((s) => s.id === stored) ?? sitesData[0] ?? null;
-        setCurrentSiteIdState(initial?.id ?? null);
-      } catch (err) {
+    loadSession()
+      .catch((err) => {
         // A cache hit already has something real on screen — a failed
         // background revalidation shouldn't blank it out with an error.
         if (!cancelled && !cached) {
-          setError(
-            err instanceof Error ? err.message : "Failed to load account",
-          );
+          setError(err instanceof Error ? err.message : "Failed to load account");
         }
-      } finally {
+      })
+      .finally(() => {
         if (!cancelled) setLoading(false);
-      }
-    })();
+      });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reloadNonce]);
+  }, []);
 
   const setCurrentSiteId = useCallback((id: string) => {
     setCurrentSiteIdState(id);
@@ -144,7 +145,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setCurrentSiteId,
         loading,
         error,
-        refetch: () => setReloadNonce((n) => n + 1),
+        refetch: loadSession,
       }}
     >
       {children}

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
-  ChevronRight,
   Copy,
   Check,
   RotateCcw,
@@ -16,11 +15,63 @@ import { ActionConfirmCard } from "./action-confirm-card";
 import type { ChatMessage } from "./ai-chat-store";
 import { useToast } from "@/components/ui/toast";
 
+/** Turns the model's markdown into real HTML instead of leaving raw `**`/`*`
+ * characters visible in the chat — bold and inline code were already
+ * handled, but a `* item` or `1. item` line rendered as literal asterisks
+ * and digits since nothing converted list lines into an actual <ul>/<ol>. */
 function formatAiMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
-    .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, "<em>$1</em>")
-    .replace(/`(.*?)`/g, '<code class="bg-primary/10 text-primary px-1 rounded">$1</code>');
+  const inline = (s: string) =>
+    s
+      // [text](url) -> a real link, opens in a new tab since this is
+      // usually a doc article or an external reference, not somewhere
+      // navigating away from the chat makes sense. Runs first so the link
+      // TEXT can still contain bold/italic without the url itself being
+      // touched by those patterns.
+      .replace(
+        /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-primary underline underline-offset-2 hover:opacity-80">$1</a>',
+      )
+      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-foreground">$1</strong>')
+      .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, "<em>$1</em>")
+      .replace(/`(.*?)`/g, '<code class="bg-primary/10 text-primary px-1 rounded">$1</code>');
+
+  const lines = text.split("\n");
+  const html: string[] = [];
+  let listType: "ul" | "ol" | null = null;
+
+  const closeList = () => {
+    if (listType) {
+      html.push(listType === "ul" ? "</ul>" : "</ol>");
+      listType = null;
+    }
+  };
+
+  for (const rawLine of lines) {
+    const bulletMatch = /^\s*[*-]\s+(.*)$/.exec(rawLine);
+    const numberedMatch = /^\s*\d+[.)]\s+(.*)$/.exec(rawLine);
+
+    if (bulletMatch) {
+      if (listType !== "ul") {
+        closeList();
+        html.push('<ul class="my-1.5 list-disc space-y-1 pl-5">');
+        listType = "ul";
+      }
+      html.push(`<li>${inline(bulletMatch[1])}</li>`);
+    } else if (numberedMatch) {
+      if (listType !== "ol") {
+        closeList();
+        html.push('<ol class="my-1.5 list-decimal space-y-1 pl-5">');
+        listType = "ol";
+      }
+      html.push(`<li>${inline(numberedMatch[1])}</li>`);
+    } else {
+      closeList();
+      html.push(rawLine.trim() ? `${inline(rawLine)}<br/>` : "<br/>");
+    }
+  }
+  closeList();
+
+  return html.join("");
 }
 
 type AiMessageItemProps = {
@@ -45,7 +96,6 @@ export function AiMessageItem({
 }: AiMessageItemProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const [showThought, setShowThought] = useState(false);
   const [liked, setLiked] = useState<boolean | null>(null);
   const [visibleLen, setVisibleLen] = useState(() =>
     animate ? 0 : message.content.length,
@@ -166,32 +216,32 @@ export function AiMessageItem({
     );
   }
 
+  // "Looked up: Orders, Analytics" -> ["Orders", "Analytics"] — real tool
+  // names the assistant actually called this turn (see ai-sidebar.tsx),
+  // never fabricated. Shown as small source chips instead of hidden behind
+  // a click, since this is exactly the kind of "what did it actually check"
+  // transparency worth surfacing by default.
+  const sources = message.thoughtProcess?.startsWith("Looked up: ")
+    ? message.thoughtProcess.slice("Looked up: ".length).split(", ")
+    : [];
+
   // AI Message: NO bg, NO padding on container
   return (
     <div className="my-4 flex flex-col gap-2">
-      {/* Thought Header (Top of reply text with Inbox Icon) */}
-      {message.thoughtProcess ? (
-        <div className="flex flex-col gap-1">
-          <button
-            type="button"
-            onClick={() => setShowThought(!showThought)}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-foreground"
-          >
+      {sources.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-soft">
             <Brain className="size-3.5 text-primary" />
-            <span>Thought for {message.thinkingTimeSec ?? 1.5}s</span>
-            <ChevronRight
-              className={`size-3.5 transition-transform duration-200 ${
-                showThought ? "rotate-90" : ""
-              }`}
-            />
-          </button>
-
-          {/* Expandable Thought Detail */}
-          {showThought ? (
-            <div className="mt-1 rounded-xl border-l-2 border-primary/50 bg-search-bg/60 px-3 py-2 text-xs leading-relaxed text-muted">
-              {message.thoughtProcess}
-            </div>
-          ) : null}
+            Checked
+          </span>
+          {sources.map((source) => (
+            <span
+              key={source}
+              className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+            >
+              {source}
+            </span>
+          ))}
         </div>
       ) : null}
 
@@ -221,6 +271,13 @@ export function AiMessageItem({
       {/* Actions stay hidden until the typewriter finishes */}
       {!isAnimating ? (
         <div className="flex items-center gap-2 pt-1 text-muted-soft">
+          <span className="pr-1 text-xs text-muted-soft">
+            {message.timestamp}
+            {message.thinkingTimeSec !== undefined
+              ? ` · Answered in ${message.thinkingTimeSec}s`
+              : ""}
+          </span>
+
           {onRetryAiMessage ? (
             <button
               type="button"

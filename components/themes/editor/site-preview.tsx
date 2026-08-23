@@ -233,11 +233,11 @@ export function SitePreview({
               ? { width: "100%", maxWidth: "100%" }
               : { width: widthSpring, maxWidth: "100%" }
           }
-          className="flex h-full w-full flex-col overflow-hidden rounded-2xl bg-white"
+          className="flex h-full w-full flex-col overflow-hidden rounded-2xl bg-white dark:bg-[#181a1b]"
         >
           {/* Browser chrome */}
           <div
-            className="flex shrink-0 items-center gap-1.5 border-b border-slate-100 bg-[#FAFAFA] px-2.5 py-2 sm:gap-2 sm:px-3"
+            className="flex shrink-0 items-center gap-1.5 border-b border-slate-100 bg-[#FAFAFA] px-2.5 py-2 sm:gap-2 sm:px-3 dark:border-neutral-800 dark:bg-[#202224]"
           >
             <DeviceToolbar
               value={device}
@@ -262,7 +262,7 @@ export function SitePreview({
                 sel?.removeAllRanges();
                 sel?.addRange(range);
               }}
-              className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-2.5 py-1.5 text-left text-slate-500 ring-1 ring-slate-200/80"
+              className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white px-2.5 py-1.5 text-left text-slate-500 ring-1 ring-slate-200/80 dark:bg-[#181a1b] dark:text-neutral-400 dark:ring-neutral-800"
             >
               <span className="truncate text-[11px] sm:text-xs">
                 {currentUrl}
@@ -276,7 +276,7 @@ export function SitePreview({
               type="button"
               aria-label="Refresh"
               onClick={() => setManualReloads((n) => n + 1)}
-              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white hover:text-foreground"
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white hover:text-foreground dark:hover:bg-white/10 dark:hover:text-white"
             >
               <RefreshCw
                 className={["size-3.5", loading ? "animate-spin" : ""].join(" ")}
@@ -305,13 +305,13 @@ export function SitePreview({
             ) : null}
           </div>
 
-          <div className="relative min-h-0 flex-1 bg-white">
+          <div className="relative min-h-0 flex-1 bg-white dark:bg-[#181a1b]">
             {loading || !src ? (
               <div
-                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white"
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white dark:bg-[#181a1b]"
               >
                 <span className="size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
-                <p className="text-xs font-medium text-slate-500">
+                <p className="text-xs font-medium text-slate-500 dark:text-neutral-400">
                   Loading {settings.siteName || "site"}…
                 </p>
               </div>

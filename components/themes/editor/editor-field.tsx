@@ -220,7 +220,17 @@ export function FontPicker<T extends string>({
                   className="w-full rounded-lg border border-border bg-search-bg/60 py-1.5 pr-3 pl-7 text-[13px] text-foreground outline-none focus:border-primary"
                 />
               </div>
-              <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-1.5">
+              <div 
+                className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-1.5"
+                onScroll={(e) => {
+                  const target = e.currentTarget;
+                  if (target.scrollHeight - target.scrollTop - target.clientHeight < 40) {
+                    if (hasMore) {
+                      setPage((p) => p + 1);
+                    }
+                  }
+                }}
+              >
                 {results.length === 0 ? (
                   <p className="py-8 text-center text-[13px] text-slate-400">
                     No fonts match &ldquo;{query}&rdquo;
@@ -253,17 +263,6 @@ export function FontPicker<T extends string>({
                   })
                 )}
               </div>
-              {hasMore ? (
-                <div className="shrink-0 border-t border-border dark:border-transparent p-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => p + 1)}
-                    className="w-full rounded-lg py-1.5 text-center text-[12px] font-medium text-primary transition-colors hover:bg-search-bg"
-                  >
-                    Load more ({matches.length - results.length} left) — or keep typing to narrow it down
-                  </button>
-                </div>
-              ) : null}
             </motion.div>
           </div>
         ) : null}
@@ -592,9 +591,10 @@ export function ColorSwatches({
               insetRing,
               active
                 ? "z-[1] scale-105 ring-2 ring-primary ring-offset-2"
-                : isLg
-                  ? "hover:scale-105"
-                  : "hover:opacity-90",
+                : [
+                    "dark:ring-1 dark:ring-white/20",
+                    isLg ? "hover:scale-105" : "hover:opacity-90",
+                  ].join(" "),
               active && dark ? "ring-offset-[#2A2A2A]" : "",
               active && !dark ? "ring-offset-search-bg" : "",
             ].join(" ")}
@@ -743,7 +743,7 @@ export function PaletteGrid({
       {[p.surfaceColor, p.primaryColor, p.accentColor].map((c, i) => (
         <span
           key={i}
-          className="size-5 rounded-full ring-2 ring-white"
+          className="size-5 rounded-full ring-1 ring-white"
           style={{ backgroundColor: c }}
         />
       ))}
@@ -894,7 +894,7 @@ export function ColorRoleCard({
         >
           <span
             className={[
-              "size-6 shrink-0 rounded-md shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]",
+              "size-6 shrink-0 rounded-md shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] dark:ring-1 dark:ring-white/20",
             ].join(" ")}
             style={{ backgroundColor: normalizeHex(value) ?? value }}
             aria-hidden

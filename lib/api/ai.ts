@@ -108,7 +108,19 @@ export type UpdateProductAction = {
   };
 };
 
-export type PendingAction = SetCategoriesAction | CreateProductAction | UpdateProductAction;
+export type CreateTicketAction = {
+  type: "create_ticket";
+  subject: string;
+  category: string;
+  priority: "Low" | "Medium" | "High";
+  message: string;
+};
+
+export type PendingAction =
+  | SetCategoriesAction
+  | CreateProductAction
+  | UpdateProductAction
+  | CreateTicketAction;
 
 export type ChatResult = {
   reply: string;
@@ -125,6 +137,8 @@ export const TOOL_LABELS: Record<string, string> = {
   get_order: "Order lookup",
   get_sales_summary: "Sales summary",
   get_site_info: "Site settings",
+  get_media_stats: "Media storage",
+  get_billing_status: "Billing & usage",
 };
 
 /**
@@ -185,4 +199,13 @@ export async function confirmUpdateProduct(
     { method: "POST", body: JSON.stringify({ product }) },
   );
   return res.product;
+}
+
+export async function confirmCreateTicket(
+  ticket: Omit<CreateTicketAction, "type">,
+): Promise<{ id: string; subject: string; category: string; priority: string; status: string }> {
+  const res = await request<{
+    ticket: { id: string; subject: string; category: string; priority: string; status: string };
+  }>("/ai/actions/create-ticket", { method: "POST", body: JSON.stringify(ticket) });
+  return res.ticket;
 }

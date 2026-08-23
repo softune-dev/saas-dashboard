@@ -93,7 +93,7 @@ body {
 }
 *:not(.scrollbar-none)::-webkit-scrollbar-track {
   background: transparent;
-  margin-block: 4px;
+  margin-block: 0px;
 }
 *:not(.scrollbar-none)::-webkit-scrollbar-thumb {
   background-color: transparent;

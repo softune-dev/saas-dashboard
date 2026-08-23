@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import {
@@ -30,6 +31,7 @@ export function StepProducts() {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const resolvedCategory = categoryId || state.categories[0]?.id || "";
 
@@ -161,13 +163,17 @@ export function StepProducts() {
               siteId={siteId}
               category="products"
               onUploadFiles={async (files) => {
-                if (files[0]) {
+                if (!files[0]) return;
+                setUploadingImage(true);
+                try {
                   if (siteId) {
                     const uploaded = await uploadSiteMedia(siteId, files[0], "products");
                     setImageUrl(uploaded.url);
                   } else {
                     setImageUrl(URL.createObjectURL(files[0]));
                   }
+                } finally {
+                  setUploadingImage(false);
                 }
               }}
               onPickImages={(images) => {
@@ -191,11 +197,17 @@ export function StepProducts() {
                   ) : null}
                   <button
                     type="button"
-                    onClick={open}
-                    className="flex h-12 flex-1 items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 bg-search-bg px-4 text-xs font-medium text-muted transition-colors hover:border-slate-400"
+                    onClick={uploadingImage ? undefined : open}
+                    disabled={uploadingImage}
+                    aria-busy={uploadingImage}
+                    className="flex h-12 flex-1 items-center justify-center gap-2 rounded-md border border-dashed border-slate-300 bg-search-bg px-4 text-xs font-medium text-muted transition-colors hover:border-slate-400 disabled:cursor-wait disabled:opacity-70"
                   >
-                    <MaskIcon src="/sidebar/media.svg" className="size-4" />
-                    {imageUrl ? "Change image" : "Add product image"}
+                    {uploadingImage ? (
+                      <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+                    ) : (
+                      <MaskIcon src="/sidebar/media.svg" className="size-4" />
+                    )}
+                    {uploadingImage ? "Uploading…" : imageUrl ? "Change image" : "Add product image"}
                   </button>
                 </div>
               )}
@@ -214,7 +226,14 @@ export function StepProducts() {
           </div>
 
           <PrimaryButton type="button" onClick={add} disabled={saving} className="w-full min-h-10">
-            {saving ? "Adding…" : "Add product"}
+            {saving ? (
+              <span className="inline-flex items-center justify-center gap-1.5">
+                <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+                Adding…
+              </span>
+            ) : (
+              "Add product"
+            )}
           </PrimaryButton>
         </div>
       )}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import {
   SettingsInput,
@@ -17,6 +18,7 @@ export function StepSeo() {
   const { state, dispatch, registerSaveHandler } = useOnboarding();
 
   const siteId = currentSite?.id ?? null;
+  const [uploadingField, setUploadingField] = useState<"seoOgImage" | "seoFavicon" | null>(null);
 
   // One PATCH /sites/{id} with the whole seo object, fired right before the
   // wizard moves on — not on every keystroke, to avoid a network call per
@@ -48,17 +50,22 @@ export function StepSeo() {
   ]);
 
   async function handleUpload(field: "seoOgImage" | "seoFavicon", file: File) {
-    if (siteId) {
-      try {
-        const uploaded = await uploadSiteMedia(siteId, file, "other");
-        dispatch({ type: "setField", field, value: uploaded.url });
-      } catch {
+    setUploadingField(field);
+    try {
+      if (siteId) {
+        try {
+          const uploaded = await uploadSiteMedia(siteId, file, "other");
+          dispatch({ type: "setField", field, value: uploaded.url });
+        } catch {
+          const url = URL.createObjectURL(file);
+          dispatch({ type: "setField", field, value: url });
+        }
+      } else {
         const url = URL.createObjectURL(file);
         dispatch({ type: "setField", field, value: url });
       }
-    } else {
-      const url = URL.createObjectURL(file);
-      dispatch({ type: "setField", field, value: url });
+    } finally {
+      setUploadingField(null);
     }
   }
 
@@ -150,10 +157,21 @@ export function StepSeo() {
               {(open) => (
                 <button
                   type="button"
-                  onClick={open}
-                  className="flex h-10 flex-1 items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-muted transition-colors hover:border-slate-400"
+                  onClick={uploadingField === "seoOgImage" ? undefined : open}
+                  disabled={uploadingField === "seoOgImage"}
+                  aria-busy={uploadingField === "seoOgImage"}
+                  className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-muted transition-colors hover:border-slate-400 disabled:cursor-wait disabled:opacity-70"
                 >
-                  {state.seoOgImage ? "Replace image" : "Add social image"}
+                  {uploadingField === "seoOgImage" ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" strokeWidth={2} />
+                      Uploading…
+                    </>
+                  ) : state.seoOgImage ? (
+                    "Replace image"
+                  ) : (
+                    "Add social image"
+                  )}
                 </button>
               )}
             </MediaSourceMenu>
@@ -206,10 +224,21 @@ export function StepSeo() {
             {(open) => (
               <button
                 type="button"
-                onClick={open}
-                className="flex h-10 flex-1 items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-muted transition-colors hover:border-slate-400"
+                onClick={uploadingField === "seoFavicon" ? undefined : open}
+                disabled={uploadingField === "seoFavicon"}
+                aria-busy={uploadingField === "seoFavicon"}
+                className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-md border border-dashed border-slate-300 bg-search-bg text-xs font-medium text-muted transition-colors hover:border-slate-400 disabled:cursor-wait disabled:opacity-70"
               >
-                {state.seoFavicon ? "Replace favicon" : "Upload favicon"}
+                {uploadingField === "seoFavicon" ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" strokeWidth={2} />
+                    Uploading…
+                  </>
+                ) : state.seoFavicon ? (
+                  "Replace favicon"
+                ) : (
+                  "Upload favicon"
+                )}
               </button>
             )}
           </MediaSourceMenu>

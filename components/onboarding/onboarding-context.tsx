@@ -8,6 +8,7 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
 import { useSession } from "@/components/providers/session-provider";
@@ -16,7 +17,7 @@ import type { SiteEditorSettings } from "@/components/themes/editor/editor-types
 import { listCategories, listProducts, type CategoryOut, type ProductOut } from "@/lib/api/commerce";
 import { listCourierConnections, type CourierConnectionOut } from "@/lib/api/courier";
 import { listPaymentConnections, type PaymentConnectionOut } from "@/lib/api/payments";
-import { getSiteTheme } from "@/lib/api";
+import { getSiteTheme, listTemplates } from "@/lib/api";
 import { getSiteSettings } from "@/lib/api/site-settings";
 import {
   ONBOARDING_STEPS,
@@ -43,6 +44,7 @@ function freshState(templateKey: TemplateKey = "aurora"): OnboardingState {
   draft.tagline = "";
   draft.logoImage = "";
   return {
+    siteId: null,
     currentStep: 0,
     completedSteps: [],
     skippedSteps: [],
@@ -97,9 +99,25 @@ function readStored(): OnboardingState | null {
   }
 }
 
+// blob: URLs are only ever a same-tab, same-session preview (the upload
+// handlers fall back to one when no real siteId exists yet to upload to) —
+// they die the moment the page reloads. Persisting one to localStorage would
+// leave a permanently-broken, non-empty value that keep() then refuses to
+// ever overwrite with the real backend URL once it becomes available.
+function stripDeadBlobUrls(state: OnboardingState): OnboardingState {
+  const draftSettings = { ...state.draftSettings };
+  if (draftSettings.logoImage?.startsWith("blob:")) draftSettings.logoImage = "";
+  return {
+    ...state,
+    draftSettings,
+    seoOgImage: state.seoOgImage?.startsWith("blob:") ? "" : state.seoOgImage,
+    seoFavicon: state.seoFavicon?.startsWith("blob:") ? "" : state.seoFavicon,
+  };
+}
+
 function writeStored(state: OnboardingState) {
   try {
-    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(stripDeadBlobUrls(state)));
     // Sidebar badge listens for this (storage events don't fire in the same tab).
     window.dispatchEvent(new Event(ONBOARDING_PROGRESS_EVENT));
   } catch {
@@ -109,6 +127,7 @@ function writeStored(state: OnboardingState) {
 
 type Action =
   | { type: "hydrate"; state: OnboardingState }
+  | { type: "discardStaleDraft"; siteId: string }
   | { type: "setStep"; index: number }
   | { type: "patchSettings"; patch: Partial<SiteEditorSettings> }
   | { type: "setTemplate"; key: TemplateKey }
@@ -128,6 +147,11 @@ function reducer(state: OnboardingState, action: Action): OnboardingState {
   switch (action.type) {
     case "hydrate":
       return action.state;
+    case "discardStaleDraft":
+      // A different site than the one this local draft was for — start
+      // clean so the backend-hydration effect's keep() logic fills every
+      // field from this site's real data instead of the previous site's.
+      return { ...freshState(state.templateKey), siteId: action.siteId };
     case "setStep":
       return {
         ...state,
@@ -236,6 +260,10 @@ type OnboardingContextValue = {
    * payments) don't need this — it exists for the steps that batch several
    * text fields into one PATCH (SEO, Store info, Shop basics identity). */
   registerSaveHandler: (fn: (() => Promise<void>) | null) => void;
+  /** True while continueOrSkip is waiting on a registered save handler —
+   * lets StepNav show a spinner on Continue instead of the button doing
+   * nothing (silently) for however long that PATCH takes. */
+  isSaving: boolean;
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
@@ -250,6 +278,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   );
   const { currentSite, me } = useSession();
   const saveHandlerRef = useRef<null | (() => Promise<void>)>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     writeStored(state);
@@ -262,18 +291,38 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!currentSite?.id || state.hydratedFromBackend) return;
     const siteId = currentSite.id;
+    // The local draft was captured for a different site (or a different
+    // account entirely, since the storage key is shared per-browser) —
+    // discard it up front rather than letting keep() treat its stale values
+    // (including any dead blob: image preview) as "already typed" and
+    // refuse to fill them in from this site's real data below.
+    const isStaleDraft = !!state.siteId && state.siteId !== siteId;
+    if (isStaleDraft) {
+      dispatch({ type: "discardStaleDraft", siteId });
+    }
+    const baseline = isStaleDraft ? freshState(state.templateKey) : state;
     let cancelled = false;
     (async () => {
       try {
-        const [categories, productsPage, couriers, payments, settings, theme] = await Promise.all([
+        const [categories, productsPage, couriers, payments, settings, theme, templates] = await Promise.all([
           listCategories(siteId),
           listProducts(siteId, { limit: 50 }),
           listCourierConnections(siteId),
           listPaymentConnections(siteId),
           getSiteSettings(siteId),
           getSiteTheme(siteId).catch(() => null),
+          listTemplates().catch(() => []),
         ]);
         if (cancelled) return;
+
+        // freshState() always defaults to "aurora" since a brand-new tenant
+        // has no site yet — but a tenant resuming onboarding (e.g. ?force=1)
+        // already has a real site on some template. Without this, publishNow()
+        // looks up a site for the wrong template key and fails with a
+        // confusing "no site was created from that template" error.
+        const realTemplateKey = templates.find((t) => t.id === currentSite.template_id)?.key as
+          | TemplateKey
+          | undefined;
 
         const keep = <T,>(local: T, remote: T | undefined): T =>
           local && String(local).trim().length > 0 ? local : ((remote as T) ?? local);
@@ -283,52 +332,58 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         // should see what's actually live, not a blank Shop Basics/Brand
         // step, since freshState() starts siteName/tagline/logoImage empty
         // on purpose (see its own comment) for genuinely brand-new tenants.
+        // Read off `baseline`, not `state` — when the local draft was for a
+        // different site (isStaleDraft above), state is still the pre-reset
+        // value at this point (dispatch is async), so keep() must compare
+        // against the already-blanked baseline instead.
         const remoteTheme = (theme ?? {}) as Partial<SiteEditorSettings>;
         const draftSettings: SiteEditorSettings = {
-          ...state.draftSettings,
-          siteName: keep(state.draftSettings.siteName, remoteTheme.siteName),
-          tagline: keep(state.draftSettings.tagline, remoteTheme.tagline),
-          logoType: state.draftSettings.logoImage
-            ? state.draftSettings.logoType
-            : (remoteTheme.logoType ?? state.draftSettings.logoType),
-          logoImage: keep(state.draftSettings.logoImage, remoteTheme.logoImage),
-          primaryColor: keep(state.draftSettings.primaryColor, remoteTheme.primaryColor),
-          accentColor: keep(state.draftSettings.accentColor, remoteTheme.accentColor),
-          surfaceColor: keep(state.draftSettings.surfaceColor, remoteTheme.surfaceColor),
-          displayFont: keep(state.draftSettings.displayFont, remoteTheme.displayFont),
-          bodyFont: keep(state.draftSettings.bodyFont, remoteTheme.bodyFont),
-          buttonStyle: keep(state.draftSettings.buttonStyle, remoteTheme.buttonStyle),
+          ...baseline.draftSettings,
+          siteName: keep(baseline.draftSettings.siteName, remoteTheme.siteName),
+          tagline: keep(baseline.draftSettings.tagline, remoteTheme.tagline),
+          logoType: baseline.draftSettings.logoImage
+            ? baseline.draftSettings.logoType
+            : (remoteTheme.logoType ?? baseline.draftSettings.logoType),
+          logoImage: keep(baseline.draftSettings.logoImage, remoteTheme.logoImage),
+          primaryColor: keep(baseline.draftSettings.primaryColor, remoteTheme.primaryColor),
+          accentColor: keep(baseline.draftSettings.accentColor, remoteTheme.accentColor),
+          surfaceColor: keep(baseline.draftSettings.surfaceColor, remoteTheme.surfaceColor),
+          displayFont: keep(baseline.draftSettings.displayFont, remoteTheme.displayFont),
+          bodyFont: keep(baseline.draftSettings.bodyFont, remoteTheme.bodyFont),
+          buttonStyle: keep(baseline.draftSettings.buttonStyle, remoteTheme.buttonStyle),
         };
 
         const faq = settings.faqs?.[0];
         const patch: Partial<OnboardingState> = {
+          siteId,
           categories,
           products: productsPage.items,
           courierConnections: couriers,
           paymentConnections: payments,
+          templateKey: realTemplateKey ?? baseline.templateKey,
           draftSettings,
-          shopCategory: keep(state.shopCategory, settings.business?.type),
-          contactPhone: keep(state.contactPhone, settings.business?.phone),
-          contactEmail: keep(state.contactEmail, settings.business?.email),
-          aboutHeading: keep(state.aboutHeading, settings.about?.heading),
-          aboutStory: keep(state.aboutStory, settings.about?.paragraphs?.join("\n\n")),
-          termsTitle: keep(state.termsTitle, settings.legal?.terms?.title),
-          termsContent: keep(state.termsContent, settings.legal?.terms?.content),
-          privacyTitle: keep(state.privacyTitle, settings.legal?.privacy?.title),
-          privacyContent: keep(state.privacyContent, settings.legal?.privacy?.content),
-          faqQuestion: keep(state.faqQuestion, faq?.question),
-          faqAnswer: keep(state.faqAnswer, faq?.answer),
-          seoTitleSuffix: keep(state.seoTitleSuffix, settings.seo?.title_suffix),
-          seoDescription: keep(state.seoDescription, settings.seo?.meta_description),
-          seoKeywords: keep(state.seoKeywords, settings.seo?.keywords),
-          seoOgTitle: keep(state.seoOgTitle, settings.seo?.og_title),
-          seoOgDescription: keep(state.seoOgDescription, settings.seo?.og_description),
-          seoOgImage: keep(state.seoOgImage, settings.seo?.og_image),
-          seoFavicon: keep(state.seoFavicon, settings.seo?.favicon),
-          legalBusinessName: keep(state.legalBusinessName, me?.tenant.business.legal_name ?? undefined),
-          tradeName: keep(state.tradeName, me?.tenant.business.trade_name ?? undefined),
-          taxId: keep(state.taxId, me?.tenant.business.tin ?? undefined),
-          tradeLicenseNo: keep(state.tradeLicenseNo, me?.tenant.business.trade_license ?? undefined),
+          shopCategory: keep(baseline.shopCategory, settings.business?.type),
+          contactPhone: keep(baseline.contactPhone, settings.business?.phone),
+          contactEmail: keep(baseline.contactEmail, settings.business?.email),
+          aboutHeading: keep(baseline.aboutHeading, settings.about?.heading),
+          aboutStory: keep(baseline.aboutStory, settings.about?.paragraphs?.join("\n\n")),
+          termsTitle: keep(baseline.termsTitle, settings.legal?.terms?.title),
+          termsContent: keep(baseline.termsContent, settings.legal?.terms?.content),
+          privacyTitle: keep(baseline.privacyTitle, settings.legal?.privacy?.title),
+          privacyContent: keep(baseline.privacyContent, settings.legal?.privacy?.content),
+          faqQuestion: keep(baseline.faqQuestion, faq?.question),
+          faqAnswer: keep(baseline.faqAnswer, faq?.answer),
+          seoTitleSuffix: keep(baseline.seoTitleSuffix, settings.seo?.title_suffix),
+          seoDescription: keep(baseline.seoDescription, settings.seo?.meta_description),
+          seoKeywords: keep(baseline.seoKeywords, settings.seo?.keywords),
+          seoOgTitle: keep(baseline.seoOgTitle, settings.seo?.og_title),
+          seoOgDescription: keep(baseline.seoOgDescription, settings.seo?.og_description),
+          seoOgImage: keep(baseline.seoOgImage, settings.seo?.og_image),
+          seoFavicon: keep(baseline.seoFavicon, settings.seo?.favicon),
+          legalBusinessName: keep(baseline.legalBusinessName, me?.tenant.business.legal_name ?? undefined),
+          tradeName: keep(baseline.tradeName, me?.tenant.business.trade_name ?? undefined),
+          taxId: keep(baseline.taxId, me?.tenant.business.tin ?? undefined),
+          tradeLicenseNo: keep(baseline.tradeLicenseNo, me?.tenant.business.trade_license ?? undefined),
         };
         dispatch({ type: "hydrateFromBackend", patch });
       } catch {
@@ -367,7 +422,11 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         // are swallowed here — the field-level UI already surfaces them via
         // toasts, and blocking navigation on a save failure would trap the
         // merchant on a step they can't get past.
-        saveHandlerRef.current().finally(advance);
+        setIsSaving(true);
+        saveHandlerRef.current().finally(() => {
+          setIsSaving(false);
+          advance();
+        });
         return;
       }
       advance();
@@ -391,8 +450,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       continueOrSkip,
       reset,
       registerSaveHandler,
+      isSaving,
     }),
-    [state, step, canContinueCurrent, continueOrSkip, reset, registerSaveHandler],
+    [state, step, canContinueCurrent, continueOrSkip, reset, registerSaveHandler, isSaving],
   );
 
   return (

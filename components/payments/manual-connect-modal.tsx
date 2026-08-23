@@ -25,8 +25,8 @@ const WALLET_OPTIONS: {
   label: string;
   logoSrc: string;
 }[] = [
-  { id: "bkash", label: "bKash", logoSrc: "/payments/bkash.svg" },
-  { id: "nagad", label: "Nagad", logoSrc: "/payments/nagad.svg" },
+  { id: "bkash", label: "bKash", logoSrc: "/payments/bkash.webp" },
+  { id: "nagad", label: "Nagad", logoSrc: "/payments/nagad.webp" },
 ];
 
 export function ManualConnectModal({

@@ -1,11 +1,12 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { OutlineButton } from "@/components/ui/outline-button";
 import { useOnboarding } from "./onboarding-context";
 
 export function StepNav() {
-  const { step, stepIndex, canContinueCurrent, continueOrSkip, dispatch } =
+  const { step, stepIndex, canContinueCurrent, continueOrSkip, dispatch, isSaving } =
     useOnboarding();
 
   const isFinish = step.id === "finish";
@@ -14,7 +15,7 @@ export function StepNav() {
     <div className="flex flex-wrap items-center justify-between gap-2">
       <OutlineButton
         type="button"
-        disabled={stepIndex === 0}
+        disabled={stepIndex === 0 || isSaving}
         onClick={() => dispatch({ type: "goBack" })}
         className="min-h-10 px-4"
       >
@@ -28,6 +29,7 @@ export function StepNav() {
         {step.skippable ? (
           <OutlineButton
             type="button"
+            disabled={isSaving}
             onClick={() => continueOrSkip({ skip: true })}
             className="min-h-10 px-4"
           >
@@ -36,14 +38,24 @@ export function StepNav() {
         ) : null}
         <PrimaryButton
           type="button"
-          disabled={!isFinish && !canContinueCurrent}
+          disabled={(!isFinish && !canContinueCurrent) || isSaving}
+          aria-busy={isSaving}
           onClick={() => continueOrSkip()}
           className="min-h-10 px-5"
         >
-          {isFinish ? "Go live" : "Continue"}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="size-4" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-          </svg>
+          {isSaving ? (
+            <>
+              <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+              Saving…
+            </>
+          ) : (
+            <>
+              {isFinish ? "Go live" : "Continue"}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="size-4" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </>
+          )}
         </PrimaryButton>
       </div>
     </div>

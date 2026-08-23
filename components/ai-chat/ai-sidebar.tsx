@@ -327,13 +327,7 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
                     />
                   ))}
 
-                  {/* AI Thinking Indicator */}
-                  {isThinking ? (
-                    <div className="my-3 flex items-center gap-2 text-sm text-muted">
-                      <Brain className="size-4 animate-pulse text-primary" />
-                      <span className="italic">AI is thinking...</span>
-                    </div>
-                  ) : null}
+                  {isThinking ? <ThinkingIndicator /> : null}
 
                   <div ref={messagesEndRef} />
                 </div>
@@ -354,5 +348,40 @@ export function AiSidebar({ open, onClose }: AiSidebarProps) {
         </div>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+// The chat API isn't streaming (one request, one full reply — see
+// ai-sidebar.tsx's handleSendMessage), so there's no real per-step status to
+// report. Rotating a few honest, generic phrases while waiting reads as
+// "alive" without implying it's narrating actual tool calls in real time.
+const THINKING_PHRASES = [
+  "Thinking",
+  "Looking into it",
+  "One moment",
+  "Putting this together",
+];
+
+function ThinkingIndicator() {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    setPhraseIndex(0);
+    const id = window.setInterval(() => {
+      setPhraseIndex((i) => (i + 1) % THINKING_PHRASES.length);
+    }, 1600);
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <div className="my-3 flex items-center gap-2 text-sm text-muted">
+      <Brain className="size-4 animate-pulse text-primary" />
+      <span className="italic">{THINKING_PHRASES[phraseIndex]}…</span>
+      <span className="inline-flex gap-0.5">
+        <span className="size-1 animate-bounce rounded-full bg-primary [animation-delay:-0.3s]" />
+        <span className="size-1 animate-bounce rounded-full bg-primary [animation-delay:-0.15s]" />
+        <span className="size-1 animate-bounce rounded-full bg-primary" />
+      </span>
+    </div>
   );
 }

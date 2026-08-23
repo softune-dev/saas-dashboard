@@ -7,6 +7,13 @@ import type { OnboardingStepId } from "./onboarding-steps";
 export type TemplateKey = "aurora" | "bazaar" | "sweets";
 
 export type OnboardingState = {
+  /** Which real site this draft belongs to (null until the first backend
+   * hydration resolves one). The wizard's local draft is a single
+   * localStorage blob shared across every account on this browser — without
+   * this tag, switching accounts would silently keep the previous account's
+   * stale field values (including dead blob: image URLs) forever, since
+   * hydrateFromBackend only fills a field when the local value is empty. */
+  siteId: string | null;
   currentStep: number;
   completedSteps: OnboardingStepId[];
   skippedSteps: OnboardingStepId[];

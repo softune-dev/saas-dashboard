@@ -33,7 +33,7 @@ import { HeroImagePicker, SingleImagePicker } from "./hero-image-picker";
 import { NavLinkListEditor } from "./nav-link-list-editor";
 import { SectionsSortableList } from "./sections-sortable-list";
 
-type AccordionGroupId = "brand" | "colors" | "header" | "sections";
+type AccordionGroupId = "brand" | "typography" | "colors" | "header" | "sections";
 
 /** Brand, Colors, and Header used to be three separate rail-selected panels
  * — clicking each icon fully replaced the panel content. Merged into one
@@ -69,7 +69,7 @@ export function BrandColorsHeaderPanel({
   onReorderSections: (sections: SiteEditorSettings["sections"]) => void;
   onActivePageChange: (id: string) => void;
 }) {
-  const [expanded, setExpanded] = useState<AccordionGroupId | null>(initialGroup);
+  const [expanded, setExpanded] = useState<AccordionGroupId | null>(initialGroup ?? "brand");
   const toggle = (id: AccordionGroupId) =>
     setExpanded((cur) => (cur === id ? null : id));
 
@@ -86,6 +86,15 @@ export function BrandColorsHeaderPanel({
         onToggle={() => toggle("brand")}
       >
         <BrandFields settings={settings} siteId={siteId} previewUrl={previewUrl} onChange={onChange} />
+      </AccordionGroup>
+
+      <AccordionGroup
+        label="Typography"
+        icon="/sidebar/note.svg"
+        expanded={expanded === "typography"}
+        onToggle={() => toggle("typography")}
+      >
+        <TypographyFields settings={settings} siteId={siteId} onChange={onChange} />
       </AccordionGroup>
 
       <AccordionGroup
@@ -285,6 +294,35 @@ function BrandFields({
       <EditorField label="Tagline">
         <EditorInput value={settings.tagline} onChange={(v) => onChange({ tagline: v })} />
       </EditorField>
+      <EditorField label="Buttons">
+        <SegmentedControl
+          value={settings.buttonStyle}
+          options={[
+            { value: "Pill", label: "Pill" },
+            { value: "Rounded", label: "Round" },
+            { value: "Square", label: "Square" },
+          ]}
+          onChange={(v) => onChange({ buttonStyle: v })}
+        />
+      </EditorField>
+    </>
+  );
+}
+
+function TypographyFields({
+  settings,
+  siteId,
+  onChange,
+}: {
+  settings: SiteEditorSettings;
+  siteId: string | null;
+  onChange: (patch: Partial<SiteEditorSettings>) => void;
+}) {
+  return (
+    <>
+      <AskAiCollapsible>
+        <AISuggestBox siteId={siteId} onApply={onChange} hideHeader />
+      </AskAiCollapsible>
       <EditorField label="Font pairs">
         <FontPairGrid
           pairs={fontPairs}
@@ -304,17 +342,6 @@ function BrandFields({
           value={settings.bodyFont}
           options={bodyFontOptions}
           onChange={(v) => onChange({ bodyFont: v })}
-        />
-      </EditorField>
-      <EditorField label="Buttons">
-        <SegmentedControl
-          value={settings.buttonStyle}
-          options={[
-            { value: "Pill", label: "Pill" },
-            { value: "Rounded", label: "Round" },
-            { value: "Square", label: "Square" },
-          ]}
-          onChange={(v) => onChange({ buttonStyle: v })}
         />
       </EditorField>
     </>
