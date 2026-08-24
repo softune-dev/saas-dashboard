@@ -1,13 +1,13 @@
 "use client";
 
-import { Loader2, Upload, X } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useToast } from "@/components/ui/toast";
-import { uploadSiteMedia, type MediaImage } from "@/lib/api";
+import type { MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { EditorLabel } from "./editor-field";
 import { FALLBACK_PREVIEW_URL, resolveMediaUrl } from "./editor-types";
 import { IMAGE_LIMITS_HINT } from "@/lib/constants/media-limits";
+import { registerPendingUpload } from "./pending-uploads";
 
 type HeroImagePickerProps = {
   label: string;
@@ -37,43 +37,21 @@ export function HeroImagePicker({
   onChange,
   aspect = "video",
 }: HeroImagePickerProps) {
-  const { toast } = useToast();
   const chosen = selected ?? [];
   const baseUrl = previewUrl || FALLBACK_PREVIEW_URL;
-  const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
+  // Local-only: registers each file and gets an instant blob: preview URL
+  // back — no network call, no siteId needed here. The real Cloudinary
+  // upload happens once, right before Publish (see pending-uploads.ts).
   const uploadFiles = useCallback(
-    async (files: FileList | File[]) => {
+    (files: FileList | File[]) => {
       const list = Array.from(files).filter((f) => f.type.startsWith("image/"));
       if (list.length === 0) return;
-
-      if (!siteId) {
-        toast({
-          title: "Still loading this site",
-          description: "Wait a moment and try again.",
-          variant: "info",
-        });
-        return;
-      }
-
-      setUploading(true);
-      try {
-        const uploaded = await Promise.all(
-          list.map((file) => uploadSiteMedia(siteId, file, "hero")),
-        );
-        onChange([...(selected ?? []), ...uploaded.map((u) => u.url)]);
-      } catch (err) {
-        toast({
-          title: "Upload failed",
-          description: err instanceof Error ? err.message : "Something went wrong.",
-          variant: "info",
-        });
-      } finally {
-        setUploading(false);
-      }
+      const urls = list.map((file) => registerPendingUpload(file, "hero"));
+      onChange([...(selected ?? []), ...urls]);
     },
-    [siteId, selected, onChange, toast],
+    [selected, onChange],
   );
 
   function remove(src: string) {
@@ -152,17 +130,11 @@ export function HeroImagePicker({
                 : "border-border hover:border-muted hover:bg-search-bg/60",
             ].join(" ")}
           >
-            {uploading ? (
-              <Loader2 className="size-4 animate-spin text-slate-400" />
-            ) : (
-              <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
-            )}
+            <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
             <span className="text-xs font-medium text-muted">
-              {uploading ? "Uploading…" : "Click to add, or drag images to upload"}
+              Click to add, or drag images to upload
             </span>
-            {!uploading ? (
-              <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
-            ) : null}
+            <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
           </div>
         )}
       </MediaSourceMenu>
@@ -204,41 +176,20 @@ export function SingleImagePicker({
   frame = "portrait",
   whiteInDark = false,
 }: SingleImagePickerProps) {
-  const { toast } = useToast();
   const baseUrl = previewUrl || FALLBACK_PREVIEW_URL;
-  const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const isBanner = frame === "banner";
 
+  // Local-only: registers the file and gets an instant blob: preview URL
+  // back — the real Cloudinary upload happens once, right before Publish
+  // (see pending-uploads.ts).
   const uploadFile = useCallback(
-    async (files: FileList | File[]) => {
+    (files: FileList | File[]) => {
       const file = Array.from(files).find((f) => f.type.startsWith("image/"));
       if (!file) return;
-
-      if (!siteId) {
-        toast({
-          title: "Still loading this site",
-          description: "Wait a moment and try again.",
-          variant: "info",
-        });
-        return;
-      }
-
-      setUploading(true);
-      try {
-        const uploaded = await uploadSiteMedia(siteId, file, category);
-        onChange(uploaded.url);
-      } catch (err) {
-        toast({
-          title: "Upload failed",
-          description: err instanceof Error ? err.message : "Something went wrong.",
-          variant: "info",
-        });
-      } finally {
-        setUploading(false);
-      }
+      onChange(registerPendingUpload(file, category));
     },
-    [siteId, category, onChange, toast],
+    [category, onChange],
   );
 
   // Banner (logo): one short full-width strip — preview + upload share the
@@ -307,16 +258,10 @@ export function SingleImagePicker({
                   !value && dragOver ? "ring-1 ring-inset ring-primary" : "",
                 ].join(" ")}
               >
-                {!value || uploading ? (
+                {!value ? (
                   <>
-                    {uploading ? (
-                      <Loader2 className="size-4 animate-spin text-slate-400" />
-                    ) : (
-                      <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
-                    )}
-                    <span className="text-xs font-medium text-muted">
-                      {uploading ? "Uploading…" : "Add logo"}
-                    </span>
+                    <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
+                    <span className="text-xs font-medium text-muted">Add logo</span>
                   </>
                 ) : null}
               </div>
@@ -383,21 +328,11 @@ export function SingleImagePicker({
                 : "border-border hover:border-muted hover:bg-search-bg/60",
             ].join(" ")}
           >
-            {uploading ? (
-              <Loader2 className="size-4 animate-spin text-slate-400" />
-            ) : (
-              <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
-            )}
+            <Upload className="size-4 text-slate-400" strokeWidth={1.75} />
             <span className="text-xs font-medium text-muted">
-              {uploading
-                ? "Uploading…"
-                : value
-                  ? "Click to replace"
-                  : "Click to add an image"}
+              {value ? "Click to replace" : "Click to add an image"}
             </span>
-            {!uploading ? (
-              <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
-            ) : null}
+            <span className="text-[11px] text-slate-400">{IMAGE_LIMITS_HINT}</span>
           </div>
         )}
       </MediaSourceMenu>

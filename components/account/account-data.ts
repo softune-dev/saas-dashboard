@@ -1,15 +1,3 @@
-export type AccountProfile = {
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  store: string;
-  joined: string;
-  avatar: string;
-  language: string;
-  timezone: string;
-};
-
 /** Legal / tax identity for the Softune account (not storefront contact) */
 export type BusinessProfile = {
   legalName: string;
@@ -18,19 +6,6 @@ export type BusinessProfile = {
   tradeLicense: string;
   tin: string;
   billingEmail: string;
-};
-
-export const defaultProfile: AccountProfile = {
-  name: "Admin User",
-  email: "admin@modhubon.com",
-  phone: "+880 1711-000000",
-  role: "Owner",
-  store: "Modhu Bon",
-  joined: "Jan 12, 2025",
-  avatar:
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=160&h=160&fit=crop",
-  language: "English",
-  timezone: "Asia/Dhaka (GMT+6)",
 };
 
 export const businessTypeOptions = [

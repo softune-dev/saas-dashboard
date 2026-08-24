@@ -25,6 +25,7 @@ import {
 } from "../theme-store";
 import { usePublishTheme } from "../use-publish-theme";
 import { PublishConfirmModal } from "./publish-confirm-modal";
+import { resolvePendingUploads } from "./pending-uploads";
 import {
   pageCatalog,
   pageSupportsContentEdit,
@@ -261,6 +262,11 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [refreshSignal, setRefreshSignal] = useState<number | undefined>(undefined);
+  // True only for the brief window between confirming Publish and the
+  // actual /publish call, while any pending local images upload for real —
+  // folded into `publishing` below so the button shows one continuous busy
+  // state instead of finishing early then restarting.
+  const [resolvingUploads, setResolvingUploads] = useState(false);
   const {
     loginOpen,
     setLoginOpen,
@@ -443,13 +449,36 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
   }, [dirty, settings, siteId, requestPublish]);
 
   const handleConfirmPublish = useCallback(async () => {
+    // Any images picked in this session are still local blob: URLs (see
+    // pending-uploads.ts) — upload them for real now, right before the
+    // actual publish call, and persist the resolved settings so the draft
+    // never carries a blob: URL past this tab's session.
+    if (realSiteId) {
+      setResolvingUploads(true);
+      try {
+        const resolved = await resolvePendingUploads(realSiteId, settings);
+        setSettings(resolved);
+        setSaved(resolved);
+        saveThemeDraft(siteId, resolved);
+      } catch (err) {
+        setResolvingUploads(false);
+        toast({
+          title: "Couldn't upload images",
+          description: err instanceof Error ? err.message : "Something went wrong.",
+          variant: "info",
+        });
+        return;
+      }
+      setResolvingUploads(false);
+    }
+
     const ok = await publishNow();
     setConfirmOpen(false);
     refreshUnpublished();
     // Force the preview iframe to reload past its cache so the just-published
     // change is visible immediately instead of requiring a manual refresh.
     if (ok) setRefreshSignal(Date.now());
-  }, [publishNow, setConfirmOpen, refreshUnpublished]);
+  }, [realSiteId, settings, siteId, toast, publishNow, setConfirmOpen, refreshUnpublished]);
 
   const handleBack = useCallback(() => {
     if (dirty) {
@@ -564,7 +593,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
             displayHost={displayHost}
             refreshSignal={refreshSignal}
             onPublishClick={handlePublishClick}
-            publishing={publishing}
+            publishing={publishing || resolvingUploads}
             publishDisabled={!dirty && !hasUnpublished}
           />
         </div>
@@ -590,7 +619,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
       />
       <PublishConfirmModal
         open={confirmOpen}
-        publishing={publishing}
+        publishing={publishing || resolvingUploads}
         progress={progress}
         changes={publishChanges}
         onConfirm={handleConfirmPublish}

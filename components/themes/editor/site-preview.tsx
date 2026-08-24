@@ -312,7 +312,7 @@ export function SitePreview({
               >
                 <span className="size-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
                 <p className="text-xs font-medium text-slate-500 dark:text-neutral-400">
-                  Loading {settings.siteName || "site"}…
+                  Loading preview…
                 </p>
               </div>
             ) : null}

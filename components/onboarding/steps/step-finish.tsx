@@ -8,6 +8,7 @@ import { PrimaryButton } from "@/components/ui/primary-button";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { saveThemeDraft } from "@/components/themes/theme-store";
 import { usePublishTheme } from "@/components/themes/use-publish-theme";
+import { resolvePendingUploads } from "@/components/themes/editor/pending-uploads";
 import { useSession } from "@/components/providers/session-provider";
 import { ONBOARDING_STEPS } from "../onboarding-steps";
 import { useOnboarding } from "../onboarding-context";
@@ -15,7 +16,7 @@ import { useOnboarding } from "../onboarding-context";
 export function StepFinish() {
   const router = useRouter();
   const { state, dispatch, reset } = useOnboarding();
-  const { refetch } = useSession();
+  const { refetch, currentSite } = useSession();
   // usePublishTheme keys everything off the template key (see theme-store.ts's
   // "siteId here is the template key" comment) — same mechanism the real
   // theme editor's Publish button uses, so onboarding doesn't invent a
@@ -27,11 +28,30 @@ export function StepFinish() {
 
   async function handleGoLive() {
     setPublishError(null);
+
+    // The Brand step's logo picker (brand-colors-header-panel.tsx) shares
+    // the theme editor's image pickers, which now only stage a local blob:
+    // preview until the real upload happens right before publish (see
+    // pending-uploads.ts) — resolve that here or a blob: URL (dead outside
+    // this tab) would get saved as the site's real logo forever.
+    let draftSettings = state.draftSettings;
+    if (currentSite?.id) {
+      try {
+        draftSettings = await resolvePendingUploads(currentSite.id, state.draftSettings);
+        dispatch({ type: "patchSettings", patch: draftSettings });
+      } catch (err) {
+        setPublishError(
+          err instanceof Error ? err.message : "Couldn't upload your images. Try again.",
+        );
+        return;
+      }
+    }
+
     // The wizard's shop-basics/brand steps kept their edits in
     // state.draftSettings, not in the theme editor's own localStorage draft
     // — write it there first so publishNow() (which reads loadThemeDraft)
     // actually publishes what the merchant typed in this wizard.
-    saveThemeDraft(state.templateKey, state.draftSettings);
+    saveThemeDraft(state.templateKey, draftSettings);
     const ok = await publishNow();
     if (!ok) {
       setPublishError("Publish failed — check your connection and try again.");

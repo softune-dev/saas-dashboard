@@ -930,8 +930,10 @@ function PanelFields({
     return (
       <TestimonialsEditor
         siteId={siteId}
+        mode={settings.testimonialsMode}
         title={settings.testimonialsTitle}
         items={settings.testimonials}
+        onModeChange={(testimonialsMode) => onChange({ testimonialsMode })}
         onTitleChange={(v) => onChange({ testimonialsTitle: v })}
         onChange={(testimonials) => onChange({ testimonials })}
       />

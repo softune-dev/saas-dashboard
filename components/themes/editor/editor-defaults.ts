@@ -49,10 +49,10 @@ const sweetsSections: PageSection[] = [
  */
 export const defaultSiteSettingsByTheme: Record<string, SiteEditorSettings> = {
   aurora: {
-    siteName: "Modhu Bon",
+    siteName: "Aurora",
     logoType: "text",
     logoImage: "",
-    tagline: "Pure honey from the Sundarbans",
+    tagline: "Editorial fashion and lifestyle, considered.",
     primaryColor: "#FF5A36",
     accentColor: "#171717",
     surfaceColor: "#F4F4F5",
@@ -106,6 +106,7 @@ export const defaultSiteSettingsByTheme: Record<string, SiteEditorSettings> = {
     feature3IconKind: "icon",
     feature3Icon: "package",
     feature3Image: "",
+    testimonialsMode: "cards",
     testimonialsTitle: "",
     testimonials: [],
     ctaTitle: "",
@@ -195,6 +196,7 @@ export const defaultSiteSettingsByTheme: Record<string, SiteEditorSettings> = {
     feature3IconKind: "icon",
     feature3Icon: "truck",
     feature3Image: "",
+    testimonialsMode: "cards",
     testimonialsTitle: "",
     testimonials: [],
     ctaTitle: "",
@@ -281,6 +283,7 @@ export const defaultSiteSettingsByTheme: Record<string, SiteEditorSettings> = {
     feature3IconKind: "icon",
     feature3Icon: "truck",
     feature3Image: "",
+    testimonialsMode: "cards",
     testimonialsTitle: "",
     testimonials: [],
     ctaTitle: "",

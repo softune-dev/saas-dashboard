@@ -161,7 +161,10 @@ export type SiteEditorSettings = {
   feature3IconKind: "icon" | "image";
   feature3Icon: string;
   feature3Image: string;
-  // Testimonials — free-form list
+  // Testimonials — free-form list. "cards" shows name/quote/photo; "images"
+  // shows just the uploaded screenshot (e.g. a WhatsApp/Messenger message
+  // from a real customer) full-size, no name/quote fields collected.
+  testimonialsMode: "cards" | "images";
   testimonialsTitle: string;
   testimonials: EditorTestimonial[];
   // Banner CTA
