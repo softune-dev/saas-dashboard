@@ -73,10 +73,13 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
   // null = lookup finished with no host (API miss) — preview may load without
   // __site rather than hang on the spinner forever.
   const [siteHost, setSiteHost] = useState<string | null | undefined>(undefined);
-  // The real domain to SHOW in the preview's address bar — siteHost itself
-  // is what actually drives the iframe (via ?__site=, so live draft edits
-  // keep showing up, since the shared preview server always reflects the
-  // theme editor's current in-progress settings, not just what's published).
+  // True once this site has published at least once — its real domain then
+  // has actual content to show. Neither preview mechanism reflects
+  // in-progress edits (nothing here pushes unsaved settings to any backend
+  // or iframe; save() only writes localStorage until Publish), so both
+  // sources show the same last-published theme — the only real difference
+  // is freshness after a fresh publish.
+  const [sitePublished, setSitePublished] = useState(false);
   // Cosmetic only: siteHost is either a full custom_domain already, or a
   // bare subdomain that needs SITE_BASE_DOMAIN appended to look real.
   const displayHost = siteHost
@@ -84,6 +87,14 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
       ? siteHost
       : `${siteHost}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz"}`
     : null;
+  // Prefer the site's real domain once it exists: the worker's on-demand
+  // revalidate call after publish targets that exact host, while the shared
+  // saas-themeN.vercel.app preview URL can keep serving its own separately
+  // cached copy for longer. Falls back to the shared preview deployment for
+  // a site that has never published — its real domain has nothing to show
+  // yet ("Site unavailable").
+  const effectivePreviewUrl =
+    sitePublished && displayHost ? `https://${displayHost}` : previewUrl;
   // The real backend site id (a UUID) — different from the `siteId` prop,
   // which is the template key ("aurora") used to namespace local storage.
   // Media uploads need the real id since that's what the API is scoped to.
@@ -164,6 +175,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
     // Re-enter unresolved so the preview iframe does not mount with a stale
     // host (or without __site) while the new lookup is in flight.
     setSiteHost(undefined);
+    setSitePublished(false);
     setRealSiteId(null);
     setThemeReady(hasThemeDraft(siteId));
 
@@ -187,6 +199,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
       // be baked into the template's .env — otherwise you publish to one site
       // and watch another one for changes that never come.
       setSiteHost(site.custom_domain || site.subdomain);
+      setSitePublished(site.status === "published");
       setRealSiteId(site.id);
 
       if (!hasThemeDraft(siteId)) {
@@ -509,7 +522,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
             loading={!themeReady}
             siteId={realSiteId}
             themeId={siteId}
-            previewUrl={previewUrl}
+            previewUrl={effectivePreviewUrl}
             categories={catalogCategories}
             products={catalogProducts}
             panel={panel}
@@ -546,8 +559,8 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
             activePage={activePage}
             device={device}
             onDeviceChange={setDevice}
-            previewUrl={previewUrl}
-            siteHost={siteHost}
+            previewUrl={effectivePreviewUrl}
+            siteHost={sitePublished ? null : siteHost}
             displayHost={displayHost}
             refreshSignal={refreshSignal}
             onPublishClick={handlePublishClick}
