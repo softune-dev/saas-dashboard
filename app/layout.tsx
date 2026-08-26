@@ -175,6 +175,13 @@ const previewNunitoSans = Nunito_Sans({
 export const metadata: Metadata = {
   title: "Softune Dashboard",
   description: "Softune admin dashboard",
+  icons: {
+    icon: [{ url: "/favicon.ico", sizes: "any" }],
+  },
+  // Authenticated admin panel — nothing here is meant for search results,
+  // and a login screen (or worse, a tenant subdomain reference) showing up
+  // in Google is a real leak, not just wasted crawl budget.
+  robots: { index: false, follow: false },
   // Opts out of the Dark Reader extension — a documented tag it respects
   // (https://github.com/darkreader/darkreader#how-to-opt-out-a-website).
   // The dashboard already ships its own dark theme, so Dark Reader has

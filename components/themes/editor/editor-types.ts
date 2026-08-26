@@ -583,9 +583,13 @@ export const FALLBACK_PREVIEW_URL =
  * through unchanged. A template's bundled default (e.g. "/assets/hero-1.jpg",
  * seeded before any real upload happened) is relative to the STOREFRONT's own
  * origin (Aurora on :3050) — rendering it with a bare `<img src>` in the
- * DASHBOARD (:3000) resolves against the wrong origin and 404s. */
+ * DASHBOARD (:3000) resolves against the wrong origin and 404s. A blob: URL
+ * (a locally-picked file not yet published — see pending-uploads.ts) is also
+ * already a complete reference; prepending baseUrl to it produces a
+ * malformed src like "http://localhost:3050/blob:http://localhost:3000/…",
+ * which is why an unpublished pick looked broken in the editor. */
 export function resolveMediaUrl(src: string, baseUrl: string): string {
-  if (/^(https?:)?\/\//.test(src)) return src;
+  if (/^(https?:)?\/\//.test(src) || /^(blob|data):/.test(src)) return src;
   return `${baseUrl.replace(/\/$/, "")}${src.startsWith("/") ? src : `/${src}`}`;
 }
 

@@ -40,7 +40,7 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
 
       <LogoPill />
       <div className="hidden md:contents">
-        <ThemeToggle />
+        <ThemeToggle className="ml-5" />
       </div>
 
       <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 md:gap-2 lg:gap-3">

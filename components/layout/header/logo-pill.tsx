@@ -1,27 +1,15 @@
 import Link from "next/link";
+import { SoftuneLogo } from "@/components/brand/softune-logo";
 
-/** Softune mark from the landing navbar — primary disc + wordmark, same pill bg.
- * Wordmark hides below md so the mobile header stays compact. */
+/** Softune brand in the header — large mark, no background pill. */
 export function LogoPill() {
   return (
     <Link
       href="/"
-      className="flex shrink-0 items-center gap-2.5 rounded-full bg-border py-1.5 pr-1.5 pl-1.5 transition-opacity hover:opacity-90 md:pr-4"
+      className="flex shrink-0 items-center transition-opacity hover:opacity-90"
       aria-label="Softune home"
     >
-      <span
-        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary"
-        aria-hidden
-      >
-        <img
-          src="/logo.svg"
-          alt=""
-          className="h-[18px] w-auto object-contain brightness-0 invert"
-        />
-      </span>
-      <span className="hidden text-sm font-semibold tracking-tight text-foreground md:inline">
-        Softune
-      </span>
+      <SoftuneLogo className="h-9 w-auto md:h-10" />
     </Link>
   );
 }

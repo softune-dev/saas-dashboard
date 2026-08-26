@@ -64,6 +64,15 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* reCAPTCHA v3's floating badge is required by Google's terms UNLESS the
+   site instead shows the visible text disclosure — every form that calls
+   getRecaptchaToken() renders that text next to its submit button, so the
+   badge itself is redundant chrome sitting on top of the dashboard forever
+   after one login. See lib/recaptcha.ts. */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
 /* Hard ban on shadows across the dashboard chrome */
 .no-shadow,
 .no-shadow * {

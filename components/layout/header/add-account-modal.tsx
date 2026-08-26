@@ -2,19 +2,24 @@
 
 import { motion, AnimatePresence } from "motion/react";
 import { useRef, useState } from "react";
-import { RecaptchaChallengeRequiredError, login } from "@/lib/api";
+import { RecaptchaChallengeRequiredError } from "@/lib/api";
 import { getRecaptchaToken, hasV2Fallback } from "@/lib/recaptcha";
-import { RecaptchaDisclosure } from "./recaptcha-disclosure";
-import { RecaptchaV2Fallback, type RecaptchaV2FallbackHandle } from "./recaptcha-v2-fallback";
+import { addLinkedAccount } from "@/lib/linked-accounts";
+import { RecaptchaDisclosure } from "@/components/auth/recaptcha-disclosure";
+import {
+  RecaptchaV2Fallback,
+  type RecaptchaV2FallbackHandle,
+} from "@/components/auth/recaptcha-v2-fallback";
 
-type LoginModalProps = {
+type AddAccountModalProps = {
   open: boolean;
-  /** Called after a successful login. */
-  onSuccess: () => void;
+  onAdded: () => void;
   onDismiss: () => void;
 };
 
-export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
+/** Logs a SECOND account in for the switcher — never touches the currently
+ * active session (see lib/linked-accounts.ts's addLinkedAccount). */
+export function AddAccountModal({ open, onAdded, onDismiss }: AddAccountModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,15 +34,16 @@ export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
     setBusy(true);
     try {
       const recaptchaToken = await getRecaptchaToken("login");
-      await login(email, password, true, recaptchaToken, v2Token ?? "");
+      await addLinkedAccount(email, password, recaptchaToken, v2Token ?? "");
+      setEmail("");
       setPassword("");
-      onSuccess();
+      onAdded();
     } catch (err) {
       if (err instanceof RecaptchaChallengeRequiredError) {
         setNeedsChallenge(true);
         setError(hasV2Fallback ? null : err.message);
       } else {
-        setError(err instanceof Error ? err.message : "Login failed");
+        setError(err instanceof Error ? err.message : "Couldn't add that account");
         v2Ref.current?.reset();
       }
     } finally {
@@ -61,18 +67,19 @@ export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-labelledby="login-title"
+            aria-labelledby="add-account-title"
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="relative z-10 w-full max-w-sm rounded-md bg-surface p-5"
           >
-            <h3 id="login-title" className="text-base font-semibold text-foreground">
-              Sign in to publish
+            <h3 id="add-account-title" className="text-base font-semibold text-foreground">
+              Add another account
             </h3>
             <p className="mt-1.5 text-sm text-muted">
-              Publishing writes to the live site, so it needs your account.
+              Sign in with a different store's login — you'll be able to switch
+              between them instantly, no logout needed.
             </p>
 
             <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
@@ -102,7 +109,7 @@ export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
                 disabled={busy || (needsChallenge && !v2Token)}
                 className="mt-1 inline-flex h-10 w-full items-center justify-center rounded-full bg-primary text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
               >
-                {busy ? "Signing in..." : "Sign in"}
+                {busy ? "Adding..." : "Add account"}
               </button>
               <RecaptchaDisclosure />
             </form>

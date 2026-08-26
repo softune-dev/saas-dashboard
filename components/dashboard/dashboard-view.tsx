@@ -41,12 +41,24 @@ export function DashboardView() {
     isLoading: ordersLoading,
   } = useOrdersSWR(siteId, { limit: 500 });
 
-  const loading = productsLoading || categoriesLoading || ordersLoading;
-  const error = ordersError
+  const rawOrdersError = ordersError
     ? ordersError instanceof Error
       ? ordersError.message
       : "Failed to load dashboard"
     : null;
+  // Supabase's pooler drops prepared statements between requests under a
+  // burst of concurrent connections (same quirk use-publish-theme.ts already
+  // has a friendly message for) — a page load right after switching accounts
+  // (several SWR hooks firing at once on a brand-new connection) is exactly
+  // that kind of burst. SWR is already retrying this in the background and
+  // it resolves within a beat almost every time; flashing "Couldn't load
+  // dashboard" for what fixes itself a second later is worse than just
+  // staying on the skeleton until the retry lands.
+  const isPoolerHiccup =
+    !!rawOrdersError &&
+    (rawOrdersError.includes("prepared statement") || rawOrdersError.includes("pool"));
+  const error = isPoolerHiccup ? null : rawOrdersError;
+  const loading = productsLoading || categoriesLoading || ordersLoading || isPoolerHiccup;
 
   const orders = ordersPage?.items ?? [];
   const products = productPage?.items ?? [];

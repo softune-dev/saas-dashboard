@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MaskIcon } from "@/components/ui/mask-icon";
@@ -7,6 +8,21 @@ import { siteSettingsNav } from "./site-nav-config";
 
 export function SiteSettingsNav() {
   const pathname = usePathname();
+  const activeRef = useRef<HTMLAnchorElement | null>(null);
+
+  // The mobile bar is a horizontally-scrolled <nav> and each tab is a real
+  // route change, so the browser has no memory of scroll position across
+  // navigations — the bar snaps back to its start and the active tab (e.g.
+  // "SEO", scrolled off to the right) is invisible until the merchant
+  // manually swipes again. Scroll it back into view on every route change,
+  // same as the page itself already scrolling to top on navigate.
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }, [pathname]);
 
   return (
     <aside className="w-full shrink-0 sm:sticky sm:top-3 sm:w-56 sm:self-start">
@@ -26,6 +42,7 @@ export function SiteSettingsNav() {
             <Link
               key={item.id}
               href={item.href}
+              ref={active ? activeRef : undefined}
               className={[
                 "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap shrink-0 sm:py-2.5",
                 active

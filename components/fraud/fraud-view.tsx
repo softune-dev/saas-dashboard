@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Shield } from "lucide-react";
+import { Phone, Plus, Shield, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -342,76 +342,82 @@ export function FraudView() {
             const state = draftRules[rule.id];
             const thr = rule.threshold;
             return (
-              <div
-                key={rule.id}
-                className="flex flex-col gap-3 px-4 py-4 sm:px-5"
-              >
-                {/* Title row — icon + name/badge + toggle; never cramps the description */}
-                <div className="flex items-center gap-3">
-                  <span className="hidden size-10 shrink-0 items-center justify-center rounded-full bg-primary text-white sm:flex">
-                    <MaskIcon src={rule.icon} className="size-4" />
+              <div key={rule.id} className="px-4 py-3.5 sm:px-5">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 hidden size-10 shrink-0 items-center justify-center rounded-full bg-primary text-white sm:flex">
+                    <MaskIcon src={rule.icon} className="size-5" />
                   </span>
-                  <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
-                    {rule.name}
-                  </h3>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={state.enabled}
-                    aria-label={`${state.enabled ? "Disable" : "Enable"} ${rule.name}`}
-                    onClick={() => toggleRule(rule.id)}
-                    className={[
-                      "relative h-7 w-12 shrink-0 rounded-full transition-colors",
-                      state.enabled ? "bg-primary" : "bg-border",
-                    ].join(" ")}
-                  >
-                    <span
-                      className={[
-                        "absolute top-0.5 size-6 rounded-full bg-[#ffffff] shadow-sm transition-transform",
-                        state.enabled ? "left-5" : "left-0.5",
-                      ].join(" ")}
-                    />
-                  </button>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-semibold leading-snug text-foreground">
+                          {rule.name}
+                        </h3>
+                        <p className="mt-0.5 text-xs leading-snug text-muted">
+                          {rule.description}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={state.enabled}
+                        aria-label={`${state.enabled ? "Disable" : "Enable"} ${rule.name}`}
+                        onClick={() => toggleRule(rule.id)}
+                        className={[
+                          "relative mt-0.5 h-6 w-10 shrink-0 rounded-full transition-colors",
+                          state.enabled
+                            ? "bg-primary"
+                            : "bg-border dark:bg-white/15",
+                        ].join(" ")}
+                      >
+                        <span
+                          className={[
+                            "absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform",
+                            state.enabled ? "left-[1.125rem]" : "left-0.5",
+                          ].join(" ")}
+                        />
+                      </button>
+                    </div>
+
+                    {thr && state.enabled ? (
+                      <label className="mt-2.5 flex max-w-xs items-center gap-2 rounded-lg bg-search-bg px-2.5 py-2">
+                        <span className="shrink-0 text-xs text-muted">
+                          {thr.label}
+                        </span>
+                        <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 dark:border-transparent">
+                          {thr.suffix === "৳" ? (
+                            <span className="text-xs font-medium text-muted">
+                              ৳
+                            </span>
+                          ) : null}
+                          <input
+                            type="number"
+                            min={thr.min}
+                            max={thr.max}
+                            aria-label={thr.label}
+                            value={state.value ?? thr.defaultValue}
+                            onChange={(e) => {
+                              const n = Number(e.target.value);
+                              if (Number.isFinite(n)) {
+                                setRuleValue(
+                                  rule.id,
+                                  Math.min(thr.max, Math.max(thr.min, n)),
+                                );
+                              }
+                            }}
+                            className="h-7 w-16 bg-transparent text-sm font-semibold tabular-nums text-foreground outline-none"
+                          />
+                          {thr.suffix !== "৳" ? (
+                            <span className="text-xs font-medium text-muted">
+                              {thr.suffix}
+                            </span>
+                          ) : null}
+                        </span>
+                      </label>
+                    ) : null}
+                  </div>
                 </div>
-
-                <p className="text-sm leading-relaxed text-muted sm:pl-[3.25rem]">
-                  {rule.description}
-                </p>
-
-                {thr && state.enabled ? (
-                  <label className="flex flex-wrap items-center gap-2 sm:pl-[3.25rem]">
-                    <span className="text-xs text-muted">{thr.label}</span>
-                    <span className="inline-flex items-center gap-1">
-                      {thr.suffix === "৳" ? (
-                        <span className="text-xs font-medium text-foreground">
-                          ৳
-                        </span>
-                      ) : null}
-                      <input
-                        type="number"
-                        min={thr.min}
-                        max={thr.max}
-                        aria-label={thr.label}
-                        value={state.value ?? thr.defaultValue}
-                        onChange={(e) => {
-                          const n = Number(e.target.value);
-                          if (Number.isFinite(n)) {
-                            setRuleValue(
-                              rule.id,
-                              Math.min(thr.max, Math.max(thr.min, n)),
-                            );
-                          }
-                        }}
-                        className="h-8 w-20 rounded-md border border-border bg-search-bg px-2 text-sm font-medium text-foreground outline-none focus:border-primary focus:bg-surface"
-                      />
-                      {thr.suffix !== "৳" ? (
-                        <span className="text-xs font-medium text-foreground">
-                          {thr.suffix}
-                        </span>
-                      ) : null}
-                    </span>
-                  </label>
-                ) : null}
               </div>
             );
           })}
@@ -423,6 +429,11 @@ export function FraudView() {
           <div>
             <h2 className="text-base font-semibold text-foreground">
               Blocklist
+              {draftBlocklist.length > 0 ? (
+                <span className="ml-2 align-middle text-xs font-medium text-muted">
+                  {draftBlocklist.length}
+                </span>
+              ) : null}
             </h2>
             <p className="mt-0.5 text-xs text-muted">
               Add or remove numbers freely — Save writes the list.
@@ -431,59 +442,77 @@ export function FraudView() {
           <button
             type="button"
             onClick={() => setAddOpen(true)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-3.5 text-sm font-medium text-white shadow-sm shadow-primary/20 transition-opacity hover:opacity-90"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
           >
-            <Plus className="size-4" strokeWidth={2} />
-            Add a number
+            <Plus className="size-3.5" strokeWidth={2.25} />
+            Add number
           </button>
         </div>
 
         {draftBlocklist.length === 0 ? (
-          <div className="px-4 py-10 text-center sm:px-5">
-            <p className="text-sm font-medium text-foreground">
+          <div className="flex flex-col items-center px-4 py-10 text-center sm:px-5">
+            <span className="mb-3 flex size-10 items-center justify-center rounded-lg bg-search-bg text-muted">
+              <Phone className="size-4" strokeWidth={1.75} />
+            </span>
+            <p className="text-sm font-semibold text-foreground">
               No numbers blocked
             </p>
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-0.5 max-w-xs text-xs leading-snug text-muted">
               Add phones you already know are bad — from experience or word of
               mouth.
             </p>
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-lg bg-search-bg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-border dark:hover:bg-white/10"
+            >
+              <Plus className="size-3.5" strokeWidth={2.25} />
+              Add first number
+            </button>
           </div>
         ) : (
           <div className="divide-y divide-border dark:divide-transparent">
             {draftBlocklist.map((entry) => (
               <div
                 key={entry.id}
-                className="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5"
+                className="flex items-center gap-3 px-4 py-3 sm:px-5"
               >
-                <div className="min-w-0">
-                  <p className="font-mono text-sm font-semibold text-foreground">
-                    {entry.phone}
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-search-bg text-muted">
+                  <Phone className="size-3.5" strokeWidth={1.75} />
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-mono text-sm font-semibold tracking-tight text-foreground">
+                      {entry.phone}
+                    </p>
                     {isLocalId(entry.id) ? (
-                      <span className="ml-2 rounded-full bg-amber-500/10 px-2 py-0.5 font-sans text-[10px] font-medium text-amber-700">
+                      <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
                         Unsaved
                       </span>
                     ) : null}
-                  </p>
-                  {entry.note ? (
-                    <p className="mt-0.5 truncate text-sm text-muted">
-                      {entry.note}
-                    </p>
-                  ) : null}
-                  <p className="mt-0.5 text-xs text-muted-soft">
-                    Added{" "}
-                    {new Date(entry.created_at).toLocaleDateString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs leading-snug text-muted">
+                    {entry.note ? entry.note : "No note"}
+                    <span className="text-muted-soft">
+                      {" · "}
+                      {new Date(entry.created_at).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
                   </p>
                 </div>
+
                 <button
                   type="button"
                   onClick={() => setUnblocking(entry)}
-                  className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-search-bg px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-border"
+                  aria-label={`Unblock ${entry.phone}`}
+                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300"
                 >
-                  Unblock
+                  <Trash2 className="size-3.5" strokeWidth={2} />
+                  <span className="hidden sm:inline">Unblock</span>
                 </button>
               </div>
             ))}

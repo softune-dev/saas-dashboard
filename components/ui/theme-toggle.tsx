@@ -6,11 +6,15 @@ import { useEffect, useState } from "react";
 
 type ThemeToggleProps = {
   className?: string;
+  /** `sm` = compact header; `lg` = larger control (mobile sidebar). */
+  size?: "sm" | "lg";
 };
 
-/** Header dark-mode switch — Sun/Moon, same sliding-thumb pattern as
- * account notification toggles. */
-export function ThemeToggle({ className = "ml-2.5" }: ThemeToggleProps) {
+/** Header / drawer dark-mode switch — absolute thumb, no dead track space. */
+export function ThemeToggle({
+  className = "ml-2",
+  size = "sm",
+}: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -19,6 +23,14 @@ export function ThemeToggle({ className = "ml-2.5" }: ThemeToggleProps) {
   }, []);
 
   const isDark = mounted && resolvedTheme === "dark";
+  const isLg = size === "lg";
+  const thumb = isLg ? "size-7" : "size-6";
+  // Thumb diameter: lg 1.75rem, sm 1.5rem — keep 2px inset from the track edge.
+  const thumbLeft = isDark
+    ? isLg
+      ? "left-[calc(100%-0.125rem-1.75rem)]"
+      : "left-[calc(100%-0.125rem-1.5rem)]"
+    : "left-0.5";
 
   return (
     <button
@@ -38,20 +50,22 @@ export function ThemeToggle({ className = "ml-2.5" }: ThemeToggleProps) {
         }
       }}
       className={[
-        "relative flex w-[4.25rem] shrink-0 items-center rounded-full px-1.5 py-1.5 transition-colors duration-300",
+        "relative shrink-0 rounded-full transition-colors duration-300",
+        isLg ? "h-8 w-14" : "h-7 w-11",
         isDark ? "bg-primary" : "bg-border",
         className,
       ].join(" ")}
     >
       <span
         className={[
-          "relative flex size-8 items-center justify-center rounded-full bg-[#ffffff] text-foreground shadow-sm transition-transform duration-300",
-          isDark ? "translate-x-6" : "translate-x-0",
+          "absolute top-0.5 flex items-center justify-center rounded-full bg-white text-foreground shadow-sm transition-[left] duration-300",
+          thumb,
+          thumbLeft,
         ].join(" ")}
       >
         <Moon
           className={[
-            "absolute size-4 text-primary transition-all duration-300",
+            "absolute size-3.5 text-primary transition-all duration-300",
             isDark ? "scale-100 opacity-100 rotate-0" : "scale-50 opacity-0 -rotate-90",
           ].join(" ")}
           strokeWidth={2}
@@ -59,7 +73,7 @@ export function ThemeToggle({ className = "ml-2.5" }: ThemeToggleProps) {
         />
         <Sun
           className={[
-            "absolute size-4 text-muted transition-all duration-300",
+            "absolute size-3.5 text-muted transition-all duration-300",
             isDark ? "scale-50 opacity-0 rotate-90" : "scale-100 opacity-100 rotate-0",
           ].join(" ")}
           strokeWidth={2}

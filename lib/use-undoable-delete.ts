@@ -2,8 +2,16 @@
 
 import { useRef } from "react";
 import { useToast } from "@/components/ui/toast";
+import { useSession } from "@/components/providers/session-provider";
 
 const UNDO_WINDOW_MS = 10_000;
+
+// Same wording as the backend's block_demo_writes (app/security.py) — a
+// demo tenant's delete would fail there anyway (403) once the 10s window
+// closes, so there's no point optimistically removing the row and running
+// a countdown for something that was never going to happen.
+const DEMO_DELETE_BLOCKED_MESSAGE =
+  "This is a demo account for preview only — changes here aren't saved. Contact us to get your own site.";
 
 type Pending = { timer: ReturnType<typeof setTimeout> };
 
@@ -17,6 +25,7 @@ type Pending = { timer: ReturnType<typeof setTimeout> };
  */
 export function useUndoableDelete() {
   const { toast } = useToast();
+  const { me } = useSession();
   const pending = useRef<Map<string, Pending>>(new Map());
 
   function deleteWithUndo<T>(options: {
@@ -29,6 +38,15 @@ export function useUndoableDelete() {
     onError?: (err: unknown) => void;
   }) {
     const { id, item, title, optimisticRemove, restore, commitDelete, onError } = options;
+
+    // Demo accounts never get the optimistic-remove + 10s countdown at
+    // all — the row stays put and they see the real reason immediately,
+    // instead of watching an undo timer for a delete that was always
+    // going to be rejected the moment it actually fired.
+    if (me?.tenant.plan === "demo") {
+      toast({ title: DEMO_DELETE_BLOCKED_MESSAGE, variant: "info" });
+      return;
+    }
 
     optimisticRemove();
 

@@ -1,12 +1,16 @@
 "use client";
 
 import { Trash2, Eye, EyeOff } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion } from "motion/react";
-import { AUTH_EXPIRED_EVENT, getToken, login } from "@/lib/api";
+import { AUTH_EXPIRED_EVENT, RecaptchaChallengeRequiredError, getToken, login } from "@/lib/api";
+import { getRecaptchaToken, hasV2Fallback } from "@/lib/recaptcha";
+import { SoftuneLogo } from "@/components/brand/softune-logo";
 import { useToast } from "@/components/ui/toast";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { ForgotPasswordModal } from "./forgot-password-modal";
+import { RecaptchaDisclosure } from "./recaptcha-disclosure";
+import { RecaptchaV2Fallback, type RecaptchaV2FallbackHandle } from "./recaptcha-v2-fallback";
 
 /**
  * Blocks the entire dashboard behind a login screen. Nothing here is
@@ -112,6 +116,9 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
   const [cleaning, setCleaning] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [slideIndex, setSlideIndex] = useState(0);
+  const [needsChallenge, setNeedsChallenge] = useState(false);
+  const [v2Token, setV2Token] = useState<string | null>(null);
+  const v2Ref = useRef<RecaptchaV2FallbackHandle>(null);
 
   const slides = [
     {
@@ -146,13 +153,20 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
     setError(null);
     setBusy(true);
     try {
-      await login(email, password, rememberMe);
+      const recaptchaToken = await getRecaptchaToken("login");
+      await login(email, password, rememberMe, recaptchaToken, v2Token ?? "");
       setExiting(true);
       setTimeout(() => {
         onSuccess();
       }, 550);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      if (err instanceof RecaptchaChallengeRequiredError) {
+        setNeedsChallenge(true);
+        setError(hasV2Fallback ? null : err.message);
+      } else {
+        setError(err instanceof Error ? err.message : "Login failed");
+        v2Ref.current?.reset();
+      }
       setBusy(false);
     }
   }
@@ -273,13 +287,8 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
             <div className="mx-auto w-full max-w-sm space-y-6">
               {/* Header with Rounded Primary BG & White Softune Logo */}
               <div>
-                <div className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-primary p-2.5 shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/logo.svg"
-                    alt="Softune Logo"
-                    className="size-full object-contain brightness-0 invert"
-                  />
+                <div className="mb-4">
+                  <SoftuneLogo className="h-8 w-auto" alt="Softune Logo" />
                 </div>
                 <h1 className="font-serif text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
                   Sign in to dashboard
@@ -373,10 +382,14 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
                   </div>
                 ) : null}
 
+                {needsChallenge && hasV2Fallback ? (
+                  <RecaptchaV2Fallback ref={v2Ref} onVerify={setV2Token} />
+                ) : null}
+
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={busy || exiting}
+                  disabled={busy || exiting || (needsChallenge && !v2Token)}
                   className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-medium text-white shadow-sm transition-all hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
                 >
                   {busy ? (
@@ -390,6 +403,7 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
                     <span>Sign in</span>
                   )}
                 </button>
+                <RecaptchaDisclosure />
               </form>
 
               {/* Clear browser data trigger */}

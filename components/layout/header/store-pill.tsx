@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Check, ChevronDown } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Plus, Repeat, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import { useSession } from "@/components/providers/session-provider";
 import { getThemeById } from "@/components/themes/themes-data";
-import { clearToken, listTemplates } from "@/lib/api";
+import { clearToken, listTemplates, resolveSiteLogoUrl } from "@/lib/api";
 import { useSiteSettingsSWR } from "@/lib/api/site-settings";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import {
@@ -17,6 +17,16 @@ import {
   settingsItems,
   type NavItem,
 } from "@/components/layout/sidebar/nav-config";
+import {
+  keepCurrentAccountLinked,
+  listLinkedAccounts,
+  MAX_LINKED_ACCOUNTS,
+  removeLinkedAccount,
+  switchToAccount,
+  type LinkedAccount,
+} from "@/lib/linked-accounts";
+import { AccountSwitchOverlay } from "./account-switch-overlay";
+import { AddAccountModal } from "./add-account-modal";
 import { SetupProgressRing } from "./setup-progress-ring";
 
 /** Quick jumps in the user menu — same icons/hrefs as the sidebar. */
@@ -114,6 +124,65 @@ export function StorePill() {
     clearToken();
     setOpen(false);
     window.location.href = "/";
+  }
+
+  // ---------------------------------------------------------------------
+  // Account switcher — see lib/linked-accounts.ts. Never touches passwords;
+  // only ever holds token pairs a real login/refresh already returned.
+  // ---------------------------------------------------------------------
+  const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
+  const [addAccountOpen, setAddAccountOpen] = useState(false);
+  const [switchingLabel, setSwitchingLabel] = useState<string | null>(null);
+  const [switchError, setSwitchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) setLinkedAccounts(listLinkedAccounts());
+  }, [open]);
+
+  const otherAccounts = linkedAccounts.filter((a) => a.userId !== me?.user.id);
+  const atAccountLimit = 1 + otherAccounts.length >= MAX_LINKED_ACCOUNTS;
+
+  // Shop logo, not the user's avatar — two of this person's own stores can
+  // easily share the same name/photo, but never the same shop identity.
+  // Same helper the "My Shop" panel uses (shop-info-panel.tsx's ShopAvatar),
+  // so the switcher's circle matches its size/colors exactly, not an
+  // independent (and, first time round, incomplete) guess at logo lookup.
+  const currentShopLogo = resolveSiteLogoUrl(currentSite);
+
+  function currentAsLinked() {
+    if (!me) return null;
+    return {
+      userId: me.user.id,
+      tenantId: me.user.tenant_id,
+      email: me.user.email,
+      fullName: me.user.full_name || "",
+      avatarUrl: me.user.avatar_url,
+      siteName: me.tenant.name,
+      logoUrl: currentShopLogo,
+    };
+  }
+
+  async function handleSwitchAccount(account: LinkedAccount) {
+    setSwitchError(null);
+    setSwitchingLabel(account.fullName || account.email);
+    try {
+      const current = currentAsLinked();
+      if (current) keepCurrentAccountLinked(current);
+      await switchToAccount(account.userId);
+      // Hard reload, not a client nav — the only way to guarantee nothing
+      // from the old tenant (cached lists, editor drafts, component state)
+      // survives into the new session.
+      window.location.href = "/";
+    } catch (err) {
+      setSwitchingLabel(null);
+      setSwitchError(err instanceof Error ? err.message : "Couldn't switch accounts");
+    }
+  }
+
+  async function handleRemoveLinkedAccount(e: React.MouseEvent, userId: string) {
+    e.stopPropagation();
+    await removeLinkedAccount(userId);
+    setLinkedAccounts(listLinkedAccounts());
   }
 
   return (
@@ -239,6 +308,107 @@ export function StorePill() {
             ) : null}
           </div>
 
+          {/* Account switcher — current account plus any others linked in
+              this browser, and a "+" to add one. Switching never logs out;
+              see lib/linked-accounts.ts. */}
+          <div className="border-b border-border dark:border-transparent p-1.5">
+            <p className="px-2 py-1.5 text-[10px] font-semibold tracking-wide text-muted-soft uppercase">
+              Accounts
+            </p>
+            <div className="flex flex-wrap items-center gap-2 px-2 pb-1.5">
+              {/* Same size/colors as the "My Shop" panel's ShopAvatar
+                  (shop-info-panel.tsx): size-9, white circle + object-contain
+                  for a real logo (logos are rarely 1:1 — cropping with
+                  object-cover cuts marks off), bg-store + shop-bag icon
+                  when there isn't one. The extra ring here is just this
+                  account being the active one, layered on top. */}
+              <span
+                title={`${title} (current)`}
+                className="relative flex size-9 shrink-0 items-center justify-center rounded-full ring-2 ring-neutral-900 dark:ring-neutral-100"
+              >
+                {currentShopLogo ? (
+                  <span className="relative size-full overflow-hidden rounded-full bg-white">
+                    <Image
+                      src={currentShopLogo}
+                      alt=""
+                      fill
+                      className="object-contain p-1.5"
+                      sizes="36px"
+                      unoptimized
+                    />
+                  </span>
+                ) : (
+                  <span className="flex size-full items-center justify-center rounded-full bg-store text-white">
+                    <MaskIcon src="/sidebar/shop-bag.svg" className="size-4" />
+                  </span>
+                )}
+              </span>
+
+              {otherAccounts.map((account) => (
+                <button
+                  key={account.userId}
+                  type="button"
+                  title={`Switch to ${account.siteName || account.email}`}
+                  onClick={() => handleSwitchAccount(account)}
+                  className="group relative flex size-9 shrink-0 items-center justify-center rounded-full transition-opacity hover:opacity-90"
+                >
+                  {/* overflow-hidden lives on this INNER wrapper, not the
+                      button itself — the remove badge below sits partially
+                      outside the circle and would get clipped by the same
+                      overflow rule that keeps the logo image round. */}
+                  <span className="absolute inset-0 overflow-hidden rounded-full bg-white">
+                    {account.logoUrl ? (
+                      <Image
+                        src={account.logoUrl}
+                        alt=""
+                        fill
+                        className="object-contain p-1.5"
+                        sizes="36px"
+                        unoptimized
+                      />
+                    ) : (
+                      <span className="flex size-full items-center justify-center bg-store text-xs font-semibold text-white uppercase">
+                        {(account.siteName || account.email).slice(0, 1)}
+                      </span>
+                    )}
+                    <span className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Repeat className="size-4 text-white" strokeWidth={2} />
+                    </span>
+                  </span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Remove ${account.email}`}
+                    onClick={(e) => handleRemoveLinkedAccount(e, account.userId)}
+                    className="absolute -top-1 -right-1 z-10 flex size-4 items-center justify-center rounded-full bg-surface text-muted-soft opacity-0 ring-1 ring-border transition-opacity group-hover:opacity-100 hover:text-red-500"
+                  >
+                    <X className="size-2.5" strokeWidth={2.5} />
+                  </span>
+                </button>
+              ))}
+
+              {!atAccountLimit ? (
+                <button
+                  type="button"
+                  onClick={() => setAddAccountOpen(true)}
+                  aria-label="Add another account"
+                  title="Add another account"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-full border border-dashed border-border text-muted-soft transition-colors hover:border-primary hover:text-primary"
+                >
+                  <Plus className="size-4" strokeWidth={2} />
+                </button>
+              ) : null}
+            </div>
+            {atAccountLimit ? (
+              <p className="px-2 pb-1 text-xs text-muted-soft">
+                Up to {MAX_LINKED_ACCOUNTS} accounts — remove one to add another.
+              </p>
+            ) : null}
+            {switchError ? (
+              <p className="px-2 pb-1 text-xs text-red-600">{switchError}</p>
+            ) : null}
+          </div>
+
           {/* Site switcher */}
           {sites.length > 1 ? (
             <div className="border-b border-border dark:border-transparent p-1.5">
@@ -318,6 +488,18 @@ export function StorePill() {
             </button>
           </div>
         </div>
+      ) : null}
+
+      <AddAccountModal
+        open={addAccountOpen}
+        onAdded={() => {
+          setAddAccountOpen(false);
+          setLinkedAccounts(listLinkedAccounts());
+        }}
+        onDismiss={() => setAddAccountOpen(false)}
+      />
+      {switchingLabel ? (
+        <AccountSwitchOverlay label={`Switching to ${switchingLabel}…`} />
       ) : null}
     </div>
   );

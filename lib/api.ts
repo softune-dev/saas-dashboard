@@ -33,12 +33,15 @@ export function getToken(): string | null {
   return activeStorage().getItem(TOKEN_KEY);
 }
 
-function getRefreshToken(): string | null {
+export function getRefreshToken(): string | null {
   if (typeof window === "undefined") return null;
   return activeStorage().getItem(REFRESH_TOKEN_KEY);
 }
 
-function setTokens(accessToken: string, refreshToken: string, remember?: boolean) {
+/** Exported for lib/linked-accounts.ts — switching TO a linked account writes
+ * its tokens here as the new active session (same storage rules as a normal
+ * login: remember=true persists past the browser closing). */
+export function setTokens(accessToken: string, refreshToken: string, remember?: boolean) {
   // remember is only ever passed on the initial login() call — a later
   // silent refresh (see refreshAccessToken below) omits it and just keeps
   // writing to whichever storage was already chosen, so a session-only
@@ -88,6 +91,18 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 }
 
+/** Thrown when the backend's reCAPTCHA v3 score was too low and it's
+ * offering a v2 checkbox fallback instead of a flat rejection (see
+ * app/recaptcha.py's enforce()). Callers (auth-gate.tsx, login-modal.tsx,
+ * add-account-modal.tsx) catch this specifically to render
+ * RecaptchaV2Fallback and retry, rather than showing a dead-end error. */
+export class RecaptchaChallengeRequiredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RecaptchaChallengeRequiredError";
+  }
+}
+
 export async function request<T>(
   path: string,
   init?: RequestInit,
@@ -117,7 +132,12 @@ export async function request<T>(
       }
     }
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `Request failed (${res.status})`);
+    const detail = body.detail;
+    if (detail && typeof detail === "object" && detail.code === "recaptcha_challenge_required") {
+      throw new RecaptchaChallengeRequiredError(detail.message || "Additional verification required.");
+    }
+    const message = typeof detail === "string" ? detail : detail?.message;
+    throw new Error(message || `Request failed (${res.status})`);
   }
   // DELETE endpoints return 204 No Content — res.json() would throw on the
   // empty body.
@@ -129,10 +149,17 @@ export async function login(
   email: string,
   password: string,
   remember: boolean = true,
+  recaptchaToken: string = "",
+  recaptchaV2Token: string = "",
 ): Promise<void> {
   const data = await request<TokenPair>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      recaptcha_token: recaptchaToken,
+      recaptcha_v2_token: recaptchaV2Token,
+    }),
   });
   setTokens(data.access_token, data.refresh_token, remember);
 }
