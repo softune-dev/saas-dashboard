@@ -9,6 +9,8 @@ import { useToast } from "@/components/ui/toast";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { saveSiteAbout, useSiteSettingsSWR, type SiteAbout } from "@/lib/api/site-settings";
+import { AiGenerateButton } from "@/components/ui/ai-generate-button";
+import { generateAiText } from "@/lib/api/ai";
 import { SettingsActions } from "../ui/settings-actions";
 import { SettingsInput, SettingsTextarea } from "../ui/settings-field";
 import { SettingsRowSkeleton, SettingsTextareaSkeleton } from "../ui/settings-skeleton";
@@ -199,6 +201,24 @@ export function AboutSection() {
                 onChange={(e) => updateParagraph(index, e.target.value)}
                 placeholder="Tell your store's story…"
                 className="!min-h-[100px]"
+                labelExtra={
+                  <AiGenerateButton
+                    hasContext={!!currentSite?.name}
+                    hasContent={!!paragraph.trim()}
+                    onGenerate={async () => {
+                      const text = await generateAiText(
+                        "site_about_paragraph",
+                        {
+                          site_name: currentSite?.name,
+                          heading: form.heading,
+                          other_paragraphs: paragraphs.filter((_, i) => i !== index),
+                        },
+                        paragraph,
+                      );
+                      updateParagraph(index, text);
+                    }}
+                  />
+                }
               />
             </li>
           ))}

@@ -56,6 +56,37 @@ export async function suggestThemePatch(
   return res.patch;
 }
 
+/** Every field a "Generate"/"Regenerate" button can drive — mirrors
+ * app/ai.py's _TEXT_PROMPTS keys exactly. */
+export type GenerateTextKind =
+  | "product_short_description"
+  | "product_description"
+  | "category_description"
+  | "site_meta_description"
+  | "site_og_description"
+  | "site_about_paragraph";
+
+/**
+ * POST /ai/generate-text — real copywriting, not a settings patch. `context`
+ * is whatever the merchant already typed elsewhere in the same form (product
+ * name/category/price, site name, etc.); the backend refuses to generate
+ * without the one field each kind actually needs (see app/ai.py's
+ * _TEXT_REQUIRED_CONTEXT) so the AI never invents a product/store out of
+ * nothing. `currentText`, when non-empty, asks the model to improve the
+ * existing draft instead of overwriting it from scratch.
+ */
+export async function generateAiText(
+  kind: GenerateTextKind,
+  context: Record<string, unknown>,
+  currentText?: string,
+): Promise<string> {
+  const res = await request<{ text: string }>("/ai/generate-text", {
+    method: "POST",
+    body: JSON.stringify({ kind, context, current_text: currentText || undefined }),
+  });
+  return res.text;
+}
+
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
 export type SetCategoriesAction = {

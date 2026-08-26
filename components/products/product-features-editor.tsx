@@ -1,6 +1,8 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
+import { DynamicIcon } from "lucide-react/dynamic";
+import { IconPicker } from "@/components/themes/editor/editor-field";
 import type { ProductFeature } from "@/lib/api/commerce";
 
 type ProductFeaturesEditorProps = {
@@ -20,7 +22,7 @@ export function ProductFeaturesEditor({
 }: ProductFeaturesEditorProps) {
   function addFeature() {
     if (features.length >= MAX_FEATURES) return;
-    onChange([...features, { title: "", description: "" }]);
+    onChange([...features, { title: "", description: "", icon: null }]);
   }
 
   function updateFeature(index: number, patch: Partial<ProductFeature>) {
@@ -40,6 +42,25 @@ export function ProductFeaturesEditor({
               key={index}
               className="flex items-start gap-2 rounded-xl bg-search-bg/70 p-3"
             >
+              <IconPicker
+                value={feature.icon ?? null}
+                onChange={(icon) => updateFeature(index, { icon })}
+                trigger={({ open, name }) => (
+                  <button
+                    type="button"
+                    onClick={open}
+                    title="Choose an icon"
+                    aria-label="Choose feature icon"
+                    className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-surface text-muted ring-1 ring-border transition-colors hover:text-primary dark:ring-transparent"
+                  >
+                    {feature.icon ? (
+                      <DynamicIcon name={name} className="size-4" strokeWidth={1.75} />
+                    ) : (
+                      <Plus className="size-4" strokeWidth={1.75} />
+                    )}
+                  </button>
+                )}
+              />
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <input
                   value={feature.title}

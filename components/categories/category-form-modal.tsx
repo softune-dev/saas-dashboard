@@ -11,6 +11,8 @@ import { SettingsInput, SettingsTextarea } from "@/components/settings/site/ui/s
 import { IconPicker } from "@/components/themes/editor/editor-field";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { randomIconValue } from "@/lib/icon-options";
+import { AiGenerateButton } from "@/components/ui/ai-generate-button";
+import { generateAiText } from "@/lib/api/ai";
 
 type CoverImage =
   | { kind: "uploaded"; url: string }
@@ -289,6 +291,20 @@ export function CategoryFormModal({
           }
           rows={3}
           placeholder="Optional"
+          labelExtra={
+            <AiGenerateButton
+              hasContext={!!form.name.trim()}
+              hasContent={!!form.description.trim()}
+              onGenerate={async () => {
+                const text = await generateAiText(
+                  "category_description",
+                  { name: form.name.trim() },
+                  form.description,
+                );
+                setForm((f) => ({ ...f, description: text }));
+              }}
+            />
+          }
         />
       </div>
     </FormModal>

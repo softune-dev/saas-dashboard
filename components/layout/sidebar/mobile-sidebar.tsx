@@ -50,7 +50,7 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
           >
             <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-3 dark:border-transparent">
               <div className="min-w-0 flex-1">
-                <SoftuneLogo className="h-9 w-auto" />
+                <SoftuneLogo className="h-7 w-auto" />
               </div>
               <ThemeToggle size="lg" className="ml-0 shrink-0" />
               <button

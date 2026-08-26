@@ -17,19 +17,27 @@ type FieldShellProps = {
   label?: string;
   htmlFor: string;
   hint?: string;
+  /** Rendered inline next to the label, right-aligned — used for the
+   * AiGenerateButton on description-style fields. */
+  labelExtra?: ReactNode;
   children: ReactNode;
 };
 
-export function FieldShell({ label, htmlFor, hint, children }: FieldShellProps) {
+export function FieldShell({ label, htmlFor, hint, labelExtra, children }: FieldShellProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      {label ? (
-        <label
-          htmlFor={htmlFor}
-          className="text-sm font-medium text-muted"
-        >
-          {label}
-        </label>
+      {label || labelExtra ? (
+        <div className="flex items-center justify-between gap-2">
+          {label ? (
+            <label
+              htmlFor={htmlFor}
+              className="text-sm font-medium text-muted"
+            >
+              {label}
+            </label>
+          ) : <span />}
+          {labelExtra}
+        </div>
       ) : null}
       {children}
       {hint ? <p className="text-xs text-muted">{hint}</p> : null}
@@ -67,11 +75,13 @@ export function SettingsInput({
 type SettingsTextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   label: string;
   hint?: string;
+  labelExtra?: ReactNode;
 };
 
 export function SettingsTextarea({
   label,
   hint,
+  labelExtra,
   id,
   className = "",
   ...props
@@ -79,7 +89,7 @@ export function SettingsTextarea({
   const fieldId = id ?? props.name ?? label.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <FieldShell label={label} htmlFor={fieldId} hint={hint}>
+    <FieldShell label={label} htmlFor={fieldId} hint={hint} labelExtra={labelExtra}>
       <textarea
         id={fieldId}
         className={`${textareaClass} ${className}`}

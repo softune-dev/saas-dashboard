@@ -7,6 +7,8 @@ import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { saveSiteSeo, useSiteSettingsSWR, type SiteSeo } from "@/lib/api/site-settings";
 import { MaskIcon } from "@/components/ui/mask-icon";
+import { AiGenerateButton } from "@/components/ui/ai-generate-button";
+import { generateAiText } from "@/lib/api/ai";
 import { SettingsActions } from "../ui/settings-actions";
 import {
   SettingsInput,
@@ -129,6 +131,20 @@ export function SeoSection() {
         value={form.meta_description ?? ""}
         onChange={(e) => setField("meta_description", e.target.value)}
         className="!min-h-[88px]"
+        labelExtra={
+          <AiGenerateButton
+            hasContext={!!data?.name}
+            hasContent={!!form.meta_description?.trim()}
+            onGenerate={async () => {
+              const text = await generateAiText(
+                "site_meta_description",
+                { site_name: data?.name, tagline: form.title_suffix },
+                form.meta_description,
+              );
+              setField("meta_description", text);
+            }}
+          />
+        }
       />
 
       <SettingsInput
@@ -160,6 +176,20 @@ export function SeoSection() {
         value={form.og_description ?? ""}
         onChange={(e) => setField("og_description", e.target.value)}
         className="!min-h-[72px]"
+        labelExtra={
+          <AiGenerateButton
+            hasContext={!!data?.name}
+            hasContent={!!form.og_description?.trim()}
+            onGenerate={async () => {
+              const text = await generateAiText(
+                "site_og_description",
+                { site_name: data?.name, meta_description: form.meta_description },
+                form.og_description,
+              );
+              setField("og_description", text);
+            }}
+          />
+        }
       />
 
       <div className="grid grid-cols-1 gap-4 border-t border-border dark:border-transparent pt-5 sm:grid-cols-2">

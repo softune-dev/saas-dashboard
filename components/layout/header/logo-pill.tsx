@@ -9,7 +9,7 @@ export function LogoPill() {
       className="flex shrink-0 items-center transition-opacity hover:opacity-90"
       aria-label="Softune home"
     >
-      <SoftuneLogo className="h-9 w-auto md:h-10" />
+      <SoftuneLogo className="h-7 w-auto md:h-8" />
     </Link>
   );
 }

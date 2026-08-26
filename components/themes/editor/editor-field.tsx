@@ -3,7 +3,7 @@
 import { Check, ChevronDown, Pipette, Search, Shuffle, X } from "lucide-react";
 import { DynamicIcon, type IconName } from "lucide-react/dynamic";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ColorPalette, FontPair } from "./editor-types";
 import { fontFamilyFor } from "./editor-types";
 import { ICON_NAMES } from "@/lib/icon-options";
@@ -399,6 +399,25 @@ export function IconPicker({
     setPage(1);
   }, [query]);
 
+  // Scroll-triggered paging instead of a manual "Load more" click: an
+  // invisible sentinel row sits after the last icon and pages in the next
+  // batch the moment it scrolls into view, so browsing the full ~2000-icon
+  // library just feels like one continuous scroll.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open || !hasMore) return;
+    const node = sentinelRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) setPage((p) => p + 1);
+      },
+      { root: node.closest(".scrollbar-thin"), rootMargin: "200px" },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [open, hasMore, results.length]);
+
   return (
     <>
       {trigger ? (
@@ -470,43 +489,37 @@ export function IconPicker({
                     No icons match &ldquo;{query}&rdquo;
                   </p>
                 ) : (
-                  results.map((name) => {
-                    const isActive = name === activeName;
-                    return (
-                      <button
-                        key={name}
-                        type="button"
-                        title={name.replace(/-/g, " ")}
-                        aria-label={name.replace(/-/g, " ")}
-                        onClick={() => {
-                          onChange(name);
-                          setOpen(false);
-                          setQuery("");
-                        }}
-                        className={[
-                          "flex aspect-square items-center justify-center rounded-lg border transition-colors",
-                          isActive
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-search-bg/60 text-muted hover:border-muted-soft hover:text-foreground",
-                        ].join(" ")}
-                      >
-                        <DynamicIcon name={name} className="size-4" strokeWidth={1.75} />
-                      </button>
-                    );
-                  })
+                  <>
+                    {results.map((name) => {
+                      const isActive = name === activeName;
+                      return (
+                        <button
+                          key={name}
+                          type="button"
+                          title={name.replace(/-/g, " ")}
+                          aria-label={name.replace(/-/g, " ")}
+                          onClick={() => {
+                            onChange(name);
+                            setOpen(false);
+                            setQuery("");
+                          }}
+                          className={[
+                            "flex aspect-square items-center justify-center rounded-lg border transition-colors",
+                            isActive
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border bg-search-bg/60 text-muted hover:border-muted-soft hover:text-foreground",
+                          ].join(" ")}
+                        >
+                          <DynamicIcon name={name} className="size-4" strokeWidth={1.75} />
+                        </button>
+                      );
+                    })}
+                    {/* Scroll-triggered paging sentinel — invisible, just an
+                     * IntersectionObserver target (see the effect above). */}
+                    {hasMore ? <div ref={sentinelRef} className="col-span-full h-1" /> : null}
+                  </>
                 )}
               </div>
-              {hasMore ? (
-                <div className="shrink-0 border-t border-border dark:border-transparent p-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => p + 1)}
-                    className="w-full rounded-lg py-1.5 text-center text-[12px] font-medium text-primary transition-colors hover:bg-search-bg"
-                  >
-                    Load more ({matches.length - results.length} left) — or keep typing to narrow it down
-                  </button>
-                </div>
-              ) : null}
             </motion.div>
           </div>
         ) : null}

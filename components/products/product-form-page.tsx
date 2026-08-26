@@ -12,6 +12,8 @@ import {
 import { useSiteSettingsSWR } from "@/lib/api/site-settings";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
+import { AiGenerateButton } from "@/components/ui/ai-generate-button";
+import { generateAiText } from "@/lib/api/ai";
 import type { MediaImage } from "@/lib/api";
 import {
   createProduct,
@@ -146,6 +148,21 @@ export function ProductFormPage({ productId }: { productId?: string }) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveStage, setSaveStage] = useState<"idle" | "uploading" | "saving">("idle");
   const busy = saveStage !== "idle";
+
+  // Real facts already on the form — what keeps AI-generated copy specific
+  // to this product instead of generic filler. Recomputed fresh on every
+  // Generate click (not memoized) since it just reads the latest form state.
+  function productAiContext() {
+    const category = categories.find((c) => c.id === form.categoryId)?.name;
+    return {
+      name: form.name.trim(),
+      category: category || undefined,
+      price: form.price ? `৳${form.price}` : undefined,
+      unit: form.unit || undefined,
+      variant_types: form.variants.map((v) => v.type).filter(Boolean),
+      feature_titles: form.features.map((f) => f.title).filter(Boolean),
+    };
+  }
 
   useEffect(() => {
     if (!currentSite) return;
@@ -429,11 +446,39 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 rows={2}
                 maxLength={300}
                 placeholder="One or two sentences — used for SEO and search result snippets."
+                labelExtra={
+                  <AiGenerateButton
+                    hasContext={!!form.name.trim()}
+                    hasContent={!!form.shortDescription.trim()}
+                    onGenerate={async () => {
+                      const text = await generateAiText(
+                        "product_short_description",
+                        productAiContext(),
+                        form.shortDescription,
+                      );
+                      setForm((f) => ({ ...f, shortDescription: text }));
+                    }}
+                  />
+                }
               />
               <ProductDescriptionEditor
                 value={form.description}
                 onChange={(html) => setForm((f) => ({ ...f, description: html }))}
                 onUploadImage={uploadDescriptionImage}
+                headerRight={
+                  <AiGenerateButton
+                    hasContext={!!form.name.trim()}
+                    hasContent={!!form.description.trim()}
+                    onGenerate={async () => {
+                      const text = await generateAiText(
+                        "product_description",
+                        productAiContext(),
+                        form.description,
+                      );
+                      setForm((f) => ({ ...f, description: text }));
+                    }}
+                  />
+                }
               />
             </div>
           </section>
@@ -465,6 +510,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
               variants={form.variants}
               basePriceCents={majorToCents(form.price)}
               onChange={(variants) => setForm((f) => ({ ...f, variants }))}
+              siteId={currentSite?.id ?? null}
             />
           </section>
 

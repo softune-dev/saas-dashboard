@@ -87,19 +87,29 @@ export async function deleteCategory(
 /** One value within a variant type, e.g. {value: "500g", priceDeltaCents: 15000}.
  * priceDeltaCents only means anything (and is only sent) when the parent
  * type's affectsPrice is true — see app/products.py's validate_attributes,
- * which is the actual source of truth for this shape. */
+ * which is the actual source of truth for this shape.
+ *
+ * hex is only meaningful when the parent type's isColor is true — a real
+ * merchant-picked color, not a guess from the label text. image works on
+ * ANY value regardless of isColor (e.g. a "Pattern" swatch benefits from
+ * its own photo too) and is what lets the storefront swap the main product
+ * photo when that value is selected. */
 export type ProductVariantValue = {
   value: string;
   priceDeltaCents?: number;
+  hex?: string;
+  image?: string;
 };
 
-/** One variant type, e.g. "Size" (labels only) or "Weight" (priced). Stored
- * under ProductOut.attributes.variants — there is no separate variants
- * table; stock stays pooled per-product (see
- * docs/TODO_PRODUCT_PAGE_REBUILD.md for why). */
+/** One variant type, e.g. "Size" (labels only), "Color" (isColor: real hex +
+ * optional image per value), or "Weight" (priced). Stored under
+ * ProductOut.attributes.variants — there is no separate variants table;
+ * stock stays pooled per-product (see docs/TODO_PRODUCT_PAGE_REBUILD.md for
+ * why). */
 export type ProductVariant = {
   type: string;
   affectsPrice: boolean;
+  isColor?: boolean;
   values: ProductVariantValue[];
 };
 
@@ -139,6 +149,10 @@ export type ProductOut = {
 export type ProductFeature = {
   title: string;
   description: string;
+  /** lucide-react icon name (kebab-case) — same icon library/picker as
+   * category icons. Undefined/null means not chosen yet; the storefront
+   * falls back to a neutral default icon, never a guess from the title. */
+  icon?: string | null;
 };
 
 /** One delivery-charge option offered for this product (e.g. "Inside Dhaka"

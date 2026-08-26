@@ -347,6 +347,8 @@ type ProductDescriptionEditorProps = {
    * gallery — real Cloudinary URLs, not local blobs, since this content is
    * stored as HTML and a blob: URL wouldn't survive a page reload. */
   onUploadImage: (file: File) => Promise<string>;
+  /** Rendered next to the "Description" label — the AiGenerateButton. */
+  headerRight?: React.ReactNode;
 };
 
 /** TipTap-backed product description field. Output is HTML stored in
@@ -356,6 +358,7 @@ export function ProductDescriptionEditor({
   value,
   onChange,
   onUploadImage,
+  headerRight,
 }: ProductDescriptionEditorProps) {
   const [imageUploading, setImageUploading] = useState(false);
 
@@ -435,7 +438,10 @@ export function ProductDescriptionEditor({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <EditorLabel>Description</EditorLabel>
+      <div className="flex items-center justify-between gap-2">
+        <EditorLabel>Description</EditorLabel>
+        {headerRight}
+      </div>
       {/* Placeholder needs the empty-paragraph ::before rule TipTap documents;
        * without it the Placeholder extension is a no-op visually. */}
       <style>{`
