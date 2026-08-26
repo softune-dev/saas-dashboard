@@ -29,7 +29,7 @@ const GROUPS: { label: string; fields: (keyof SiteEditorSettings)[] }[] = [
       "feature3Title", "feature3", "feature3IconKind", "feature3Icon", "feature3Image",
     ],
   },
-  { label: "Testimonials", fields: ["testimonialsTitle", "testimonials"] },
+  { label: "Testimonials", fields: ["testimonialsTitle", "testimonials", "testimonialsCards", "testimonialsScreenshots"] },
   { label: "Banner CTA", fields: ["ctaTitle", "ctaBody", "ctaButton"] },
   { label: "Footer", fields: ["footerDescription", "footerShopLabel", "footerShopLinks", "footerCompanyLabel", "footerCompanyLinks"] },
 ];

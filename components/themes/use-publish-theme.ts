@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { findSiteByTemplateKey, getToken, publishSite, publishSiteTheme } from "@/lib/api";
-import { loadThemeDraft, publishThemeDraft } from "./theme-store";
+import { resolvePendingUploads } from "./editor/pending-uploads";
+import { loadThemeDraft, publishThemeDraft, saveThemeDraft } from "./theme-store";
 
 /** Publish progress, as a percentage of the work actually done.
  *
@@ -40,7 +41,12 @@ export function usePublishTheme(siteId: string) {
       }
 
       setProgress(STAGE.writing);
-      await publishSiteTheme(site.id, loadThemeDraft(siteId));
+      // A draft may still carry blob: preview URLs if it was saved without
+      // going through the editor's own Publish button (see pending-uploads.ts)
+      // — resolve them here too so every publish path writes real URLs.
+      const draft = await resolvePendingUploads(site.id, loadThemeDraft(siteId));
+      saveThemeDraft(siteId, draft);
+      await publishSiteTheme(site.id, draft);
       // Writing the theme alone leaves sites.status stuck on "draft" forever
       // — this is the step that actually takes the site live (see publishSite's
       // docstring in lib/api.ts). Safe to call every time; it's idempotent.

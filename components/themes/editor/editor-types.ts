@@ -161,12 +161,17 @@ export type SiteEditorSettings = {
   feature3IconKind: "icon" | "image";
   feature3Icon: string;
   feature3Image: string;
-  // Testimonials — free-form list. "cards" shows name/quote/photo; "images"
-  // shows just the uploaded screenshot (e.g. a WhatsApp/Messenger message
-  // from a real customer) full-size, no name/quote fields collected.
+  // Testimonials — "cards" shows name/quote/photo; "images" shows just the
+  // uploaded screenshot (e.g. a WhatsApp/Messenger message from a real
+  // customer) full-size, no name/quote fields collected. Cards and
+  // screenshots are separate lists so switching mode never edits or clears
+  // the other one; `testimonials` always mirrors whichever list is active
+  // and is the only one the storefront/backend reads.
   testimonialsMode: "cards" | "images";
   testimonialsTitle: string;
   testimonials: EditorTestimonial[];
+  testimonialsCards: EditorTestimonial[];
+  testimonialsScreenshots: EditorTestimonial[];
   // Banner CTA
   ctaTitle: string;
   ctaBody: string;

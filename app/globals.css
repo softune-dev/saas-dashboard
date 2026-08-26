@@ -39,7 +39,11 @@
   --color-border: var(--border);
   --color-store: var(--store);
   --color-search-bg: var(--search-bg);
-  --font-sans: var(--font-geist-sans);
+  /* Google Sans only supplies glyphs Geist lacks (Bangla script) — CSS
+     font-family fallback is per-glyph, so Latin/English text still renders
+     in Geist untouched; only Bangla characters (e.g. category/product
+     names) fall through to Google Sans, everywhere in the dashboard. */
+  --font-sans: var(--font-geist-sans), var(--font-google-sans);
   --font-mono: var(--font-geist-mono);
   /* AI chat drawer — Google Sans (Latin + Bengali) for mixed EN/BN replies */
   --font-ai-chat: var(--font-google-sans), system-ui, sans-serif;

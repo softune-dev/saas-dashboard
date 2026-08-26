@@ -54,7 +54,20 @@ function withDefaults(
 ): SiteEditorSettings {
   const defaults = getDefaultSiteSettings(siteId);
   if (!stored) return defaults;
-  return { ...defaults, ...stored };
+  const merged = { ...defaults, ...stored };
+
+  // Cards/screenshots used to share one `testimonials` list (bug: switching
+  // mode edited the same array). A draft/remote theme saved before the split
+  // has real data in `testimonials` but not yet in the new per-mode field —
+  // backfill whichever mode was active so that data isn't lost.
+  if (!stored.testimonialsCards?.length && !stored.testimonialsScreenshots?.length && stored.testimonials?.length) {
+    if (stored.testimonialsMode === "images") {
+      merged.testimonialsScreenshots = stored.testimonials;
+    } else {
+      merged.testimonialsCards = stored.testimonials;
+    }
+  }
+  return merged;
 }
 
 export function loadThemeDraft(siteId: string): SiteEditorSettings {
