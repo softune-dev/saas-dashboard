@@ -55,6 +55,7 @@ type FormState = {
   shortDescription: string;
   price: string;
   compareAt: string;
+  costPrice: string;
   stock: string;
   categoryId: string;
   images: GalleryImage[];
@@ -77,6 +78,7 @@ const empty: FormState = {
   shortDescription: "",
   price: "",
   compareAt: "",
+  costPrice: "",
   stock: "0",
   categoryId: "",
   images: [],
@@ -109,6 +111,7 @@ function fromProduct(product: ProductOut): FormState {
     shortDescription: product.short_description ?? "",
     price: centsToMajor(product.price_cents),
     compareAt: product.compare_at_cents ? centsToMajor(product.compare_at_cents) : "",
+    costPrice: product.cost_price_cents ? centsToMajor(product.cost_price_cents) : "",
     stock: String(product.stock),
     categoryId: product.category_id ?? "",
     images: (product.images ?? []).map((img) => ({
@@ -283,6 +286,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
         short_description: form.shortDescription.trim() || undefined,
         price_cents: majorToCents(form.price),
         compare_at_cents: form.compareAt.trim() ? majorToCents(form.compareAt) : undefined,
+        cost_price_cents: form.costPrice.trim() ? majorToCents(form.costPrice) : undefined,
         currency: "BDT",
         stock: Number.parseInt(form.stock, 10) || 0,
         category_id: form.categoryId || null,
@@ -418,7 +422,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 placeholder="e.g. Structured Jacket"
               />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <SettingsInput
                   label="Price (৳)"
                   required
@@ -437,6 +441,16 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                   value={form.compareAt}
                   onChange={(e) => setForm((f) => ({ ...f, compareAt: e.target.value }))}
                   placeholder="Optional"
+                />
+                <SettingsInput
+                  label="Cost Price (৳)"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={form.costPrice}
+                  onChange={(e) => setForm((f) => ({ ...f, costPrice: e.target.value }))}
+                  placeholder="Optional"
+                  hint="What this actually costs you — powers real profit in Analytics. Never shown to customers."
                 />
               </div>
               <SettingsTextarea

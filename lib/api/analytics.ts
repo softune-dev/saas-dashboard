@@ -1,9 +1,9 @@
 /**
  * Store analytics — mirrors app/api/analytics.py exactly. Real numbers
- * computed from Order/OrderItem/Product/Category; no traffic tracking
- * exists in this app, so there is no "conversion rate" field here — see
- * the backend module docstring for why that's an honest omission rather
- * than a placeholder.
+ * computed from Order/OrderItem/Product/Category/PageView. `visits` is
+ * unique visitors (distinct session_id), from real page-load beacons the
+ * storefront fires (see each template's PageViewBeacon component), not an
+ * estimate.
  */
 
 import useSWR, { type SWRResponse } from "swr";
@@ -52,6 +52,13 @@ export type AnalyticsOut = {
   orders: AnalyticsStat;
   aov: AnalyticsStat;
   refund_rate: AnalyticsStat;
+  visits: AnalyticsStat;
+  conversion_rate: AnalyticsStat;
+  profit: AnalyticsStat;
+  /** Share of current-period revenue that actually had a Cost Price set —
+   * profit is computed only from items with a cost snapshot, so a low
+   * number here means the profit figure is incomplete, not necessarily low. */
+  cost_data_coverage_percent: number;
   revenue_curve: RevenueCurvePoint[];
   category_shares: CategoryShare[];
   best_sellers: BestSeller[];

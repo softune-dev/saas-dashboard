@@ -28,6 +28,8 @@ export type SiteSeo = {
   google_analytics?: string;
   google_search_console?: string;
   facebook_pixel?: string;
+  tiktok_pixel?: string;
+  gtm_container_id?: string;
 };
 
 export type BusinessHour = {

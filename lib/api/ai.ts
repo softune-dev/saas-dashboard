@@ -34,6 +34,28 @@ export function useAIUsageSWR(): SWRResponse<AIUsage> {
   return useSWR(AI_USAGE_SWR_KEY, getAIUsage, { refreshInterval: 60000 });
 }
 
+export type SuggestedPrompt = { text: string; icon: string };
+
+/** GET /ai/suggested-prompts — real per-merchant suggestion chips (low
+ * stock, missing About/FAQs/SEO, no sales yet) instead of a fixed "honey
+ * store" placeholder list. Plain DB reads server-side, never counts against
+ * the AI daily cap. `context` picks the ranking rules — see
+ * app/ai_tools.py's get_suggested_prompts. */
+export async function getSuggestedPrompts(
+  context: "default" | "theme_editor" = "default",
+): Promise<SuggestedPrompt[]> {
+  const res = await request<{ suggestions: SuggestedPrompt[] }>(
+    `/ai/suggested-prompts?context=${context}`,
+  );
+  return res.suggestions;
+}
+
+export function useSuggestedPromptsSWR(
+  context: "default" | "theme_editor" = "default",
+): SWRResponse<SuggestedPrompt[]> {
+  return useSWR(["ai-suggested-prompts", context], () => getSuggestedPrompts(context));
+}
+
 export type AISuggestPatch = Partial<{
   siteName: string;
   tagline: string;

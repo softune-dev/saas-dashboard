@@ -42,6 +42,10 @@ export function ExportMenu({
       ["Orders", data.orders.count ?? 0],
       ["Avg. Order Value", formatTaka((data.aov.cents ?? 0) / 100)],
       ["Refund Rate", `${data.refund_rate.percent ?? 0}%`],
+      ["Visitors", data.visits.count ?? 0],
+      ["Conversion Rate", `${data.conversion_rate.percent ?? 0}%`],
+      ["Profit", formatTaka((data.profit.cents ?? 0) / 100)],
+      ["Profit Cost Data Coverage", `${data.cost_data_coverage_percent}%`],
       [],
       ["Sales Report"],
       ["Period", "Orders", "Customers", "Revenue", "Refunds", "Net Sales"],
@@ -101,6 +105,9 @@ export function ExportMenu({
         <div class="stat"><div class="stat-value">${data.orders.count ?? 0}</div><div class="stat-label">ORDERS</div></div>
         <div class="stat"><div class="stat-value">${formatTaka((data.aov.cents ?? 0) / 100)}</div><div class="stat-label">AVG. ORDER VALUE</div></div>
         <div class="stat"><div class="stat-value">${data.refund_rate.percent ?? 0}%</div><div class="stat-label">REFUND RATE</div></div>
+        <div class="stat"><div class="stat-value">${data.visits.count ?? 0}</div><div class="stat-label">VISITORS</div></div>
+        <div class="stat"><div class="stat-value">${data.conversion_rate.percent ?? 0}%</div><div class="stat-label">CONVERSION RATE</div></div>
+        <div class="stat"><div class="stat-value">${formatTaka((data.profit.cents ?? 0) / 100)}</div><div class="stat-label">PROFIT</div></div>
       </div>
       <h2>Sales Report</h2>
       <table><thead><tr><th>Period</th><th>Orders</th><th>Customers</th><th>Revenue</th><th>Refunds</th><th>Net</th></tr></thead><tbody>${salesRows}</tbody></table>

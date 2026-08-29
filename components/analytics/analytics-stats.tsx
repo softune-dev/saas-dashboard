@@ -32,13 +32,42 @@ export function AnalyticsStats({ data }: { data: AnalyticsOut }) {
       changePercent: data.refund_rate.change_percent ?? undefined,
       icon: "/sidebar/analytics.svg",
     },
+    {
+      id: "visits",
+      title: "Visitors",
+      value: String(data.visits.count ?? 0),
+      changePercent: data.visits.change_percent ?? undefined,
+      icon: "/sidebar/analytics.svg",
+    },
+    {
+      id: "conversion_rate",
+      title: "Conversion Rate",
+      value: `${(data.conversion_rate.percent ?? 0).toFixed(1)}%`,
+      changePercent: data.conversion_rate.change_percent ?? undefined,
+      icon: "/sidebar/analytics.svg",
+    },
+    {
+      id: "profit",
+      title: "Profit",
+      value: formatTaka((data.profit.cents ?? 0) / 100),
+      changePercent: data.profit.change_percent ?? undefined,
+      icon: "/sidebar/wallet.svg",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
-      {stats.map((stat) => (
-        <StatCard key={stat.id} stat={stat} compact />
-      ))}
+    <div className="flex flex-col gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-5">
+        {stats.map((stat) => (
+          <StatCard key={stat.id} stat={stat} compact />
+        ))}
+      </div>
+      {data.cost_data_coverage_percent < 100 ? (
+        <p className="text-xs text-muted">
+          Profit is based on {data.cost_data_coverage_percent.toFixed(0)}% of this period's
+          revenue — set a Cost Price on more products for a fuller number.
+        </p>
+      ) : null}
     </div>
   );
 }

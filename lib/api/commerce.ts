@@ -127,6 +127,9 @@ export type ProductOut = {
   short_description: string | null;
   price_cents: number;
   compare_at_cents: number | null;
+  /** Merchant's own cost basis — dashboard-only, powers real profit in
+   * analytics. Never shown to customers on the storefront. */
+  cost_price_cents: number | null;
   currency: string;
   stock: number;
   track_stock: boolean;
@@ -171,6 +174,7 @@ export type ProductCreate = {
   short_description?: string;
   price_cents: number;
   compare_at_cents?: number;
+  cost_price_cents?: number;
   currency?: string;
   stock?: number;
   track_stock?: boolean;

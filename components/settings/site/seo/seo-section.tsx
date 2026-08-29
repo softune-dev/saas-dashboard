@@ -6,6 +6,11 @@ import { useToast } from "@/components/ui/toast";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { saveSiteSeo, useSiteSettingsSWR, type SiteSeo } from "@/lib/api/site-settings";
+import {
+  connectMetaCapi,
+  disconnectMarketing,
+  useMarketingConnectionsSWR,
+} from "@/lib/api/marketing";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { AiGenerateButton } from "@/components/ui/ai-generate-button";
 import { generateAiText } from "@/lib/api/ai";
@@ -33,6 +38,8 @@ const emptyForm: SiteSeo = {
   google_analytics: "",
   google_search_console: "",
   facebook_pixel: "",
+  tiktok_pixel: "",
+  gtm_container_id: "",
 };
 
 export function SeoSection() {
@@ -44,6 +51,15 @@ export function SeoSection() {
   const [form, setForm] = useState<SiteSeo>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState<"og_image" | "favicon" | null>(null);
+
+  const {
+    data: marketingConnections,
+    isLoading: capiLoading,
+    mutate: mutateMarketing,
+  } = useMarketingConnectionsSWR(siteId);
+  const capiConnection = marketingConnections?.find((c) => c.provider === "meta_capi") ?? null;
+  const [capiToken, setCapiToken] = useState("");
+  const [capiSaving, setCapiSaving] = useState(false);
 
   // Hydrate the form once real data arrives — SWR may re-fetch in the
   // background, but this must not stomp on an in-progress edit.
@@ -87,6 +103,43 @@ export function SeoSection() {
       });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleConnectCapi() {
+    if (!siteId || !capiToken.trim()) return;
+    setCapiSaving(true);
+    try {
+      await connectMetaCapi(siteId, { access_token: capiToken.trim() });
+      setCapiToken("");
+      await mutateMarketing();
+      toast({ title: "Meta Conversions API connected", variant: "success" });
+    } catch (err) {
+      toast({
+        title: "Couldn't connect Meta Conversions API",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "info",
+      });
+    } finally {
+      setCapiSaving(false);
+    }
+  }
+
+  async function handleDisconnectCapi() {
+    if (!siteId || !capiConnection) return;
+    setCapiSaving(true);
+    try {
+      await disconnectMarketing(siteId, capiConnection.id);
+      await mutateMarketing();
+      toast({ title: "Meta Conversions API disconnected", variant: "success" });
+    } catch (err) {
+      toast({
+        title: "Couldn't disconnect Meta Conversions API",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "info",
+      });
+    } finally {
+      setCapiSaving(false);
     }
   }
 
@@ -229,6 +282,18 @@ export function SeoSection() {
           onChange={(e) => setField("facebook_pixel", e.target.value)}
           placeholder="Pixel ID"
         />
+        <SettingsInput
+          label="TikTok Pixel"
+          value={form.tiktok_pixel ?? ""}
+          onChange={(e) => setField("tiktok_pixel", e.target.value)}
+          placeholder="Pixel Code"
+        />
+        <SettingsInput
+          label="Google Tag Manager"
+          value={form.gtm_container_id ?? ""}
+          onChange={(e) => setField("gtm_container_id", e.target.value)}
+          placeholder="GTM-XXXXXXX"
+        />
         <ImageUploadField
           label="Favicon"
           siteId={siteId}
@@ -238,6 +303,49 @@ export function SeoSection() {
           onPick={(url) => setField("favicon", url)}
           onClear={() => setField("favicon", "")}
         />
+      </div>
+
+      <div className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-5">
+        <span className="text-sm font-medium text-muted">Meta Conversions API</span>
+        <p className="text-xs leading-relaxed text-muted">
+          Sends Purchase events from our server, not the customer's browser — survives ad
+          blockers and iOS tracking prevention that strip the Facebook Pixel. Uses the same
+          Pixel ID set above.
+        </p>
+        {!capiLoading && capiConnection ? (
+          <div className="flex items-center gap-2">
+            <span className="flex h-10 flex-1 items-center rounded-md border border-border bg-search-bg px-3 text-sm text-muted">
+              Connected · {capiConnection.access_token_hint}
+            </span>
+            <button
+              type="button"
+              onClick={handleDisconnectCapi}
+              disabled={capiSaving}
+              className="h-10 shrink-0 rounded-md border border-border px-3 text-xs font-medium text-muted transition-colors hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {capiSaving ? "Disconnecting…" : "Disconnect"}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <SettingsInput
+                label=""
+                value={capiToken}
+                onChange={(e) => setCapiToken(e.target.value)}
+                placeholder="Meta CAPI access token"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleConnectCapi}
+              disabled={capiSaving || !capiToken.trim()}
+              className="h-10 shrink-0 rounded-md bg-primary px-4 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {capiSaving ? "Connecting…" : "Connect"}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="rounded-xl bg-search-bg p-4">

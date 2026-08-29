@@ -17,7 +17,16 @@
  */
 import type { Cache } from "swr";
 
-const STORAGE_KEY = "softune.swr.cache";
+// Bump this suffix whenever an API response shape changes in a way that
+// could crash a component reading a stale cached entry (a field renamed or
+// added as required, not just an additive optional field) — e.g. Analytics
+// gaining required visits/profit fields. A stale cache from before that
+// change would otherwise survive both a page reload AND a backend restart
+// (it's on disk, not in memory) and crash the first render before SWR's
+// background revalidation can replace it with fresh data. Bumping this
+// key makes every old entry simply invisible to the new provider, so it
+// refetches clean instead of rehydrating something incompatible.
+const STORAGE_KEY = "softune.swr.cache.v2";
 
 export function localStorageProvider(): Cache {
   const map = new Map<string, unknown>(

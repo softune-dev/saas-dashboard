@@ -3,6 +3,7 @@
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { ArrowUpRight } from "lucide-react";
 import { DEFAULT_SUGGESTIONS, THEME_EDITOR_SUGGESTIONS } from "./ai-chat-store";
+import { useSuggestedPromptsSWR } from "@/lib/api/ai";
 
 type AiEmptyStateProps = {
   onSelectSuggestion: (prompt: string) => void;
@@ -10,7 +11,14 @@ type AiEmptyStateProps = {
 };
 
 export function AiEmptyState({ onSelectSuggestion, isThemeEditor }: AiEmptyStateProps) {
-  const suggestions = isThemeEditor ? THEME_EDITOR_SUGGESTIONS : DEFAULT_SUGGESTIONS;
+  // Real per-merchant suggestions (low stock, missing About/FAQs/SEO, no
+  // sales yet) — falls back to the generic hardcoded list while loading or
+  // if the lookup fails, so the sidebar's empty state is never blank.
+  const { data: realSuggestions } = useSuggestedPromptsSWR(
+    isThemeEditor ? "theme_editor" : "default",
+  );
+  const fallback = isThemeEditor ? THEME_EDITOR_SUGGESTIONS : DEFAULT_SUGGESTIONS;
+  const suggestions = realSuggestions && realSuggestions.length > 0 ? realSuggestions : fallback;
 
   return (
     <div className="flex flex-1 flex-col justify-center p-6 text-left">
