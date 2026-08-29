@@ -305,10 +305,12 @@ export async function uploadProductVideo(
 }
 
 // ---------------------------------------------------------------------------
-// Orders — paginated (Page<OrderOut>). No create/delete UI: creation is the
-// storefront checkout's job (this is exposed for that, not the dashboard),
-// and the backend has no delete endpoint at all — order history is
-// immutable by design (see CLAUDE.md rule 8).
+// Orders — paginated (Page<OrderOut>). Creation is normally the storefront
+// checkout's job — createOrder below exists for the one dashboard exception,
+// the New Sale / POS screen (components/pos/new-sale-page.tsx), which is a
+// merchant manually entering a walk-in sale against the same catalog/stock.
+// The backend has no delete endpoint at all — order history is immutable
+// by design (see CLAUDE.md rule 8).
 // ---------------------------------------------------------------------------
 
 export type OrderItemOut = {
@@ -328,11 +330,15 @@ export type OrderStatus =
   | "cancelled"
   | "refunded";
 
+/** "storefront" = a real customer checkout. "pos" = a merchant-entered
+ * walk-in sale from the New Sale screen. See migrations/038_order_channel.sql. */
+export type OrderChannel = "storefront" | "pos";
+
 export type OrderOut = {
   id: string;
   site_id: string;
   order_number: string;
-  customer: Record<string, unknown>;
+  customer: Record<string, unknown> | null;
   /** Linked Customer record — null for orders placed before customers
    * shipped, or with no usable phone number. See lib/api/customers.ts. */
   customer_id: string | null;
@@ -350,10 +356,40 @@ export type OrderOut = {
     payment_method?: string;
     delivery_location?: string | null;
     transaction_id?: string | null;
-  };
+  } | null;
   items: OrderItemOut[];
+  /** Older rows may omit this until backfilled — treat missing as storefront. */
+  channel?: OrderChannel | null;
   created_at: string;
 };
+
+export type OrderCreateItem = {
+  product_id: string;
+  quantity: number;
+};
+
+/** Body for POST /sites/{site_id}/orders — currently only used by the New
+ * Sale (POS) screen; a real customer checkout goes through
+ * lib/checkout.ts's submitOrder against the public storefront API instead. */
+export type OrderCreate = {
+  customer?: Record<string, unknown>;
+  items: OrderCreateItem[];
+  shipping_cents?: number;
+  tax_cents?: number;
+  notes?: string;
+  meta?: Record<string, unknown>;
+  channel?: OrderChannel;
+};
+
+export async function createOrder(
+  siteId: string,
+  data: OrderCreate,
+): Promise<OrderOut> {
+  return request<OrderOut>(`/sites/${siteId}/orders`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
 
 export type ListOrdersParams = {
   status?: OrderStatus;

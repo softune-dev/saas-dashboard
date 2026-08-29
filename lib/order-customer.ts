@@ -5,9 +5,10 @@
  */
 
 function pickString(
-  customer: Record<string, unknown>,
+  customer: Record<string, unknown> | null | undefined,
   ...keys: string[]
 ): string {
+  if (!customer || typeof customer !== "object") return "";
   for (const key of keys) {
     const v = customer[key];
     if (typeof v === "string" && v.trim()) return v.trim();
@@ -21,7 +22,9 @@ function looksLikeEmail(v: string): boolean {
   return v.includes("@");
 }
 
-export function customerName(customer: Record<string, unknown>): string {
+export function customerName(
+  customer: Record<string, unknown> | null | undefined,
+): string {
   const direct = pickString(customer, "name", "full_name", "fullName");
   if (direct) return direct;
   // Aurora's checkout collects first_name/last_name separately.
@@ -31,7 +34,9 @@ export function customerName(customer: Record<string, unknown>): string {
   return combined || "Guest";
 }
 
-export function customerEmail(customer: Record<string, unknown>): string {
+export function customerEmail(
+  customer: Record<string, unknown> | null | undefined,
+): string {
   const direct = pickString(customer, "email");
   if (direct) return direct;
   // Aurora's checkout has one combined "Phone number or Email" field.
@@ -39,7 +44,9 @@ export function customerEmail(customer: Record<string, unknown>): string {
   return looksLikeEmail(contact) ? contact : "";
 }
 
-export function customerPhone(customer: Record<string, unknown>): string {
+export function customerPhone(
+  customer: Record<string, unknown> | null | undefined,
+): string {
   const direct = pickString(customer, "phone", "phone_number", "mobile", "tel");
   if (direct) return direct;
   const contact = pickString(customer, "contact");
@@ -48,7 +55,9 @@ export function customerPhone(customer: Record<string, unknown>): string {
 
 /** Full shipping address, when the storefront collected one (Aurora does:
  * address/city/zip). Empty string when nothing was collected. */
-export function customerAddress(customer: Record<string, unknown>): string {
+export function customerAddress(
+  customer: Record<string, unknown> | null | undefined,
+): string {
   const address = pickString(customer, "address");
   const city = pickString(customer, "city");
   const zip = pickString(customer, "zip", "postal_code", "postcode");
@@ -59,7 +68,7 @@ export function customerAddress(customer: Record<string, unknown>): string {
  * fall back to phone, then a synthetic key so guests without either still
  * group by name+order rather than collapsing into one row. */
 export function customerKey(
-  customer: Record<string, unknown>,
+  customer: Record<string, unknown> | null | undefined,
   orderId: string,
 ): string {
   const email = customerEmail(customer).toLowerCase();

@@ -18,6 +18,7 @@ export const menuItems: NavItem[] = [
   { label: "Categories", href: "/categories", icon: "/sidebar/categories.svg" },
   { label: "Products", href: "/products", icon: "/sidebar/products.svg" },
   { label: "Orders", href: "/orders", icon: "/sidebar/orders.svg" },
+  { label: "Store Sale", href: "/pos", icon: "/sidebar/shop-bag.svg", tag: "New" },
   { label: "Analytics", href: "/analytics", icon: "/sidebar/analytics.svg" },
   { label: "Themes", href: "/themes", icon: "/sidebar/themes.svg", tag: "New" },
   { label: "Customers", href: "/customers", icon: "/sidebar/customers.svg" },

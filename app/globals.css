@@ -206,3 +206,39 @@ body {
 .dark .scrollbar-auto-hide.is-scrolling::-webkit-scrollbar-thumb:hover {
   background-color: rgb(113 113 122);
 }
+
+/* POS "Print Receipt" (components/pos/new-sale-page.tsx) — window.print()
+   with no printer hardware/SDK, so this just hides the dashboard chrome
+   (sidebar, header, buttons) and prints only the receipt card itself. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #pos-receipt,
+  #pos-receipt * {
+    visibility: visible;
+  }
+  #pos-receipt {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* Order detail print (OrderDetailModal / Recent Sales on POS) — same
+   scoped visibility pattern as #pos-receipt; do not reuse that id. */
+@media print {
+  #pos-order-detail,
+  #pos-order-detail * {
+    visibility: visible;
+  }
+  #pos-order-detail {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    color: black;
+  }
+}

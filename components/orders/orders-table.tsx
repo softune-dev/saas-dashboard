@@ -112,6 +112,22 @@ export function OrdersTable({
       ),
     },
     {
+      id: "channel",
+      header: "Channel",
+      cell: (row) => (
+        <span
+          className={[
+            "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+            row.channel === "pos"
+              ? "bg-violet-500/10 text-violet-600"
+              : "bg-sky-500/10 text-sky-600",
+          ].join(" ")}
+        >
+          {row.channel === "pos" ? "In-Person" : "Online"}
+        </span>
+      ),
+    },
+    {
       id: "status",
       header: "Status",
       cell: (row) => <OrderStatusBadge status={row.status} />,

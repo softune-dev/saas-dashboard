@@ -95,109 +95,17 @@ export function OrderDetailModal({
 
   if (!order && !open) return null;
 
-  const name = order ? customerName(order.customer) : "";
-  const email = order ? customerEmail(order.customer) : "";
-  const phone = order ? customerPhone(order.customer) : "";
-  const address = order ? customerAddress(order.customer) : "";
+  const name = order ? customerName(order.customer ?? {}) : "";
+  const email = order ? customerEmail(order.customer ?? {}) : "";
+  const phone = order ? customerPhone(order.customer ?? {}) : "";
+  const address = order ? customerAddress(order.customer ?? {}) : "";
   const itemCount = order
-    ? order.items.reduce((n, i) => n + i.quantity, 0)
+    ? (order.items ?? []).reduce((n, i) => n + i.quantity, 0)
     : 0;
 
+  /** Same scoped @media print pattern as POS receipt (#pos-order-detail in globals.css). */
   const handlePrint = () => {
-    if (!order) return;
-    const printWindow = window.open('', '', 'width=800,height=800');
-    if (!printWindow) return;
-    
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Order ${order.order_number}</title>
-          <style>
-            body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; color: #111; line-height: 1.5; }
-            h1 { margin: 0 0 5px; font-size: 24px; }
-            .header { border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px; }
-            .meta { color: #666; font-size: 14px; }
-            .row { display: flex; justify-content: space-between; gap: 40px; margin-bottom: 40px; }
-            .col { flex: 1; }
-            h3 { font-size: 14px; text-transform: uppercase; color: #666; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-            p { margin: 0; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-            th, td { padding: 12px 0; text-align: left; border-bottom: 1px solid #eee; }
-            th { font-weight: 600; color: #666; font-size: 14px; }
-            .text-right { text-align: right; }
-            .totals { margin-left: auto; width: 300px; }
-            .totals-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; font-size: 14px; }
-            .totals-row:last-child { border-bottom: none; font-weight: bold; font-size: 16px; padding-top: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Delivery Slip / Invoice</h1>
-            <div class="meta">Order #${order.order_number} &bull; ${formatDisplayDate(new Date(order.created_at))}</div>
-          </div>
-          
-          <div class="row">
-            <div class="col">
-              <h3>Customer Details</h3>
-              <p><strong>${name}</strong><br/>${email ? email + '<br/>' : ''}${phone ? phone : ''}</p>
-            </div>
-            <div class="col">
-              <h3>Shipping Address</h3>
-              <p>${address || 'No address provided'}</p>
-            </div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Qty</th>
-                <th class="text-right">Price</th>
-                <th class="text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map(item => `
-                <tr>
-                  <td>
-                    <strong>${item.name_snapshot}</strong>
-                    ${item.sku_snapshot ? `<br/><span style="color:#666;font-size:12px;">SKU: ${item.sku_snapshot}</span>` : ''}
-                  </td>
-                  <td>${item.quantity}</td>
-                  <td class="text-right">${formatTaka(item.unit_price_cents / 100)}</td>
-                  <td class="text-right">${formatTaka(item.total_cents / 100)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-
-          <div class="totals">
-            <div class="totals-row">
-              <span>Subtotal</span>
-              <span>${formatTaka(order.subtotal_cents / 100)}</span>
-            </div>
-            <div class="totals-row">
-              <span>Shipping</span>
-              <span>${formatTaka(order.shipping_cents / 100)}</span>
-            </div>
-            <div class="totals-row">
-              <span>Tax</span>
-              <span>${formatTaka(order.tax_cents / 100)}</span>
-            </div>
-            <div class="totals-row">
-              <span>Total</span>
-              <span>${formatTaka(order.total_cents / 100)} ${order.currency}</span>
-            </div>
-          </div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
+    window.print();
   };
 
   return (
@@ -224,7 +132,7 @@ export function OrderDetailModal({
             className="relative z-10 flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-surface"
           >
             {/* Header */}
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-primary/10 bg-primary px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-primary/10 bg-primary px-5 py-4 print:hidden">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h3
@@ -264,17 +172,28 @@ export function OrderDetailModal({
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+            <div
+              id="pos-order-detail"
+              className="min-h-0 flex-1 space-y-5 overflow-y-auto bg-surface px-5 py-5 print:overflow-visible print:bg-white print:text-black"
+            >
               {/* Customer + status side by side */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="mb-2 text-xs font-medium text-muted">Customer</p>
-                  <p className="font-medium text-foreground">{name}</p>
+                  <p className="mb-2 text-xs font-medium text-muted print:text-neutral-500">
+                    Customer
+                  </p>
+                  <p className="font-medium text-foreground print:text-black">
+                    {name}
+                  </p>
                   {email ? (
-                    <p className="mt-0.5 text-sm text-muted">{email}</p>
+                    <p className="mt-0.5 text-sm text-muted print:text-neutral-700">
+                      {email}
+                    </p>
                   ) : null}
                   {phone ? (
-                    <p className="mt-0.5 text-sm text-muted">{phone}</p>
+                    <p className="mt-0.5 text-sm text-muted print:text-neutral-700">
+                      {phone}
+                    </p>
                   ) : null}
                   {!email && !phone ? (
                     <p className="mt-0.5 text-sm text-muted-soft">
@@ -283,7 +202,7 @@ export function OrderDetailModal({
                   ) : null}
                 </div>
 
-                <div className="w-full shrink-0 sm:w-44">
+                <div className="w-full shrink-0 sm:w-44 print:hidden">
                   <label
                     htmlFor="order-status"
                     className="mb-2 block text-xs font-medium text-muted"
@@ -374,14 +293,14 @@ export function OrderDetailModal({
                 <p className="mb-3 text-xs font-medium text-muted">
                   Products ordered
                 </p>
-                {order.items.length === 0 ? (
+                {(order.items ?? []).length === 0 ? (
                   <div className="flex flex-col items-center gap-2 py-8 text-muted">
                     <Package className="size-5 text-muted-soft" strokeWidth={1.5} />
                     <p className="text-sm">No products on this order.</p>
                   </div>
                 ) : (
                   <ul className="divide-y divide-border dark:divide-transparent">
-                    {order.items.map((item) => (
+                    {(order.items ?? []).map((item) => (
                       <li
                         key={item.id}
                         className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
