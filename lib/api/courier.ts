@@ -4,6 +4,8 @@
  * REST surface (all under /sites/{site_id}/couriers):
  *   GET    /                          → list connections for the site
  *   POST   /steadfast                 → connect Steadfast credentials
+ *   POST   /pathao                    → connect Pathao credentials
+ *   POST   /redx                      → connect RedX credentials
  *   DELETE /{connection_id}           → disconnect / revoke
  *   POST   /{connection_id}/verify    → re-check stored credentials
  *
@@ -20,8 +22,8 @@ import { request, type Page } from "../api";
 
 /**
  * Known BD courier providers shown in the dashboard catalog.
- * Only `steadfast` is first-wave for connect; others are UI placeholders
- * until their connect routes land.
+ * `steadfast`, `pathao`, `redx` have live connect routes; the rest are UI
+ * placeholders — no confirmed public self-serve merchant API to connect to.
  */
 export type CourierProvider =
   | "steadfast"
@@ -68,19 +70,29 @@ export type SteadfastConnectIn = {
 };
 
 /**
- * Pathao / RedX connect shapes — reserved for a later wave. Defined here so
- * the backend can add routes without renaming fields later.
+ * Pathao / RedX connect shapes — live, mirrors app/schemas.py's
+ * PathaoConnectIn / RedxConnectIn exactly.
  */
 export type PathaoConnectIn = {
   client_id: string;
   client_secret: string;
   username: string;
   password: string;
+  base_url?: string;
   label?: string;
 };
 
 export type RedxConnectIn = {
-  api_key: string;
+  access_token: string;
+  base_url?: string;
+  label?: string;
+};
+
+/** eCourier — username/password only, no separate API key. Saved unverified:
+ * see app/api/courier.py's connect_ecourier for why there's no live check. */
+export type EcourierConnectIn = {
+  username: string;
+  password: string;
   label?: string;
 };
 
@@ -141,23 +153,46 @@ export async function connectSteadfast(
 }
 
 /**
- * POST /sites/{site_id}/couriers/pathao — not implemented server-side yet.
+ * POST /sites/{site_id}/couriers/pathao
+ * Validates credentials against Pathao's issue-token endpoint server-side
+ * (same connect-either-way behavior as connectSteadfast).
  */
 export async function connectPathao(
-  _siteId: string,
-  _data: PathaoConnectIn,
+  siteId: string,
+  data: PathaoConnectIn,
 ): Promise<CourierConnectionOut> {
-  throw new Error("Pathao isn't connected yet — Steadfast is the only live provider.");
+  return request<CourierConnectionOut>(`/sites/${siteId}/couriers/pathao`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 /**
- * POST /sites/{site_id}/couriers/redx — not implemented server-side yet.
+ * POST /sites/{site_id}/couriers/redx
+ * Validates the access token against RedX's area-list endpoint server-side.
  */
 export async function connectRedx(
-  _siteId: string,
-  _data: RedxConnectIn,
+  siteId: string,
+  data: RedxConnectIn,
 ): Promise<CourierConnectionOut> {
-  throw new Error("RedX isn't connected yet — Steadfast is the only live provider.");
+  return request<CourierConnectionOut>(`/sites/${siteId}/couriers/redx`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/**
+ * POST /sites/{site_id}/couriers/ecourier
+ * No live verification — see EcourierConnectIn's comment.
+ */
+export async function connectEcourier(
+  siteId: string,
+  data: EcourierConnectIn,
+): Promise<CourierConnectionOut> {
+  return request<CourierConnectionOut>(`/sites/${siteId}/couriers/ecourier`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 /**

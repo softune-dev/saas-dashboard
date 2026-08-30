@@ -8,10 +8,14 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
 import { useToast } from "@/components/ui/toast";
 import {
+  connectEcourier,
+  connectPathao,
+  connectRedx,
   connectSteadfast,
   disconnectCourier,
   useCourierConnectionsSWR,
   type CourierConnectionOut,
+  type CourierProvider,
 } from "@/lib/api/courier";
 import { COURIER_CATALOG } from "./courier-data";
 import { CourierCard } from "./courier-card";
@@ -19,6 +23,9 @@ import {
   SteadfastConnectModal,
   type SteadfastConnectValues,
 } from "./steadfast-connect-modal";
+import { RedxConnectModal, type RedxConnectValues } from "./redx-connect-modal";
+import { PathaoConnectModal, type PathaoConnectValues } from "./pathao-connect-modal";
+import { EcourierConnectModal, type EcourierConnectValues } from "./ecourier-connect-modal";
 
 export function CourierView() {
   const { currentSite, loading: sessionLoading } = useSession();
@@ -32,14 +39,28 @@ export function CourierView() {
   } = useCourierConnectionsSWR(currentSite?.id ?? null);
   const error = swrError instanceof Error ? swrError.message : swrError ? "Failed to load couriers" : null;
 
-  const [connectOpen, setConnectOpen] = useState(false);
+  const [connectingProvider, setConnectingProvider] = useState<CourierProvider | null>(null);
   const [connectBusy, setConnectBusy] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
 
   const [disconnecting, setDisconnecting] = useState<CourierConnectionOut | null>(null);
   const [disconnectBusy, setDisconnectBusy] = useState(false);
 
-  async function handleConnect(values: SteadfastConnectValues) {
+  function applyConnection(connection: CourierConnectionOut, providerLabel: string) {
+    mutate((prev = []) => [connection, ...prev.filter((c) => c.id !== connection.id)], false);
+    setConnectingProvider(null);
+    if (connection.status === "connected") {
+      toast({ title: `${providerLabel} connected`, variant: "success" });
+    } else {
+      toast({
+        title: `Saved, but ${providerLabel} rejected these credentials`,
+        description: "Double-check your credentials, then reconnect.",
+        variant: "info",
+      });
+    }
+  }
+
+  async function handleConnectSteadfast(values: SteadfastConnectValues) {
     if (!currentSite) return;
     setConnectBusy(true);
     setConnectError(null);
@@ -50,19 +71,66 @@ export function CourierView() {
         base_url: values.baseUrl || undefined,
         label: values.label || undefined,
       });
-      mutate((prev = []) => [connection, ...prev.filter((c) => c.id !== connection.id)], false);
-      setConnectOpen(false);
-      if (connection.status === "connected") {
-        toast({ title: "Steadfast connected", variant: "success" });
-      } else {
-        toast({
-          title: "Saved, but Steadfast rejected these credentials",
-          description: "Double-check your API key and secret key, then reconnect.",
-          variant: "info",
-        });
-      }
+      applyConnection(connection, "Steadfast");
     } catch (err) {
       setConnectError(err instanceof Error ? err.message : "Couldn't connect Steadfast.");
+    } finally {
+      setConnectBusy(false);
+    }
+  }
+
+  async function handleConnectRedx(values: RedxConnectValues) {
+    if (!currentSite) return;
+    setConnectBusy(true);
+    setConnectError(null);
+    try {
+      const connection = await connectRedx(currentSite.id, {
+        access_token: values.accessToken,
+        base_url: values.baseUrl || undefined,
+        label: values.label || undefined,
+      });
+      applyConnection(connection, "RedX");
+    } catch (err) {
+      setConnectError(err instanceof Error ? err.message : "Couldn't connect RedX.");
+    } finally {
+      setConnectBusy(false);
+    }
+  }
+
+  async function handleConnectEcourier(values: EcourierConnectValues) {
+    if (!currentSite) return;
+    setConnectBusy(true);
+    setConnectError(null);
+    try {
+      const connection = await connectEcourier(currentSite.id, {
+        username: values.username,
+        password: values.password,
+        label: values.label || undefined,
+      });
+      applyConnection(connection, "eCourier");
+    } catch (err) {
+      setConnectError(err instanceof Error ? err.message : "Couldn't connect eCourier.");
+    } finally {
+      setConnectBusy(false);
+    }
+  }
+
+  async function handleConnectPathao(values: PathaoConnectValues) {
+    if (!currentSite) return;
+    setConnectBusy(true);
+    setConnectError(null);
+    try {
+      const connection = await connectPathao(currentSite.id, {
+        client_id: values.clientId,
+        client_secret: values.clientSecret,
+        username: values.username,
+        password: values.password,
+        base_url: values.baseUrl || undefined,
+        label: values.label || undefined,
+      });
+      applyConnection(connection, "Pathao");
+    } catch (err) {
+      setConnectError(err instanceof Error ? err.message : "Couldn't connect Pathao.");
     } finally {
       setConnectBusy(false);
     }
@@ -125,7 +193,7 @@ export function CourierView() {
                 connection={connection}
                 onConnect={() => {
                   setConnectError(null);
-                  setConnectOpen(true);
+                  setConnectingProvider(entry.provider);
                 }}
                 onDisconnect={() => setDisconnecting(connection)}
                 onUnlock={() =>
@@ -143,11 +211,35 @@ export function CourierView() {
       )}
 
       <SteadfastConnectModal
-        open={connectOpen}
+        open={connectingProvider === "steadfast"}
         busy={connectBusy}
         error={connectError}
-        onClose={() => setConnectOpen(false)}
-        onConnect={handleConnect}
+        onClose={() => setConnectingProvider(null)}
+        onConnect={handleConnectSteadfast}
+      />
+
+      <RedxConnectModal
+        open={connectingProvider === "redx"}
+        busy={connectBusy}
+        error={connectError}
+        onClose={() => setConnectingProvider(null)}
+        onConnect={handleConnectRedx}
+      />
+
+      <PathaoConnectModal
+        open={connectingProvider === "pathao"}
+        busy={connectBusy}
+        error={connectError}
+        onClose={() => setConnectingProvider(null)}
+        onConnect={handleConnectPathao}
+      />
+
+      <EcourierConnectModal
+        open={connectingProvider === "ecourier"}
+        busy={connectBusy}
+        error={connectError}
+        onClose={() => setConnectingProvider(null)}
+        onConnect={handleConnectEcourier}
       />
 
       <ConfirmDialog

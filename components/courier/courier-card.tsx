@@ -74,8 +74,8 @@ export function CourierCard({
           </p>
           {hasError ? (
             <p className="text-rose-600">
-              Steadfast rejected these credentials. Disconnect and reconnect with a
-              valid API key/secret.
+              {entry.name} rejected these credentials. Disconnect and reconnect with
+              valid credentials.
             </p>
           ) : connection.last_verified_at ? (
             <p className="text-xs text-muted-soft">

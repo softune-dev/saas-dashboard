@@ -30,14 +30,14 @@ export const COURIER_CATALOG: CourierCatalogEntry[] = [
     description:
       "Pathao Parcel merchant API — same-city and nationwide home delivery.",
     logoSrc: "/couriers/pathao.png",
-    available: false,
+    available: true,
   },
   {
     provider: "redx",
     name: "RedX",
     description: "REDX tech-first logistics for online and offline businesses.",
     logoSrc: "/couriers/redx.svg",
-    available: false,
+    available: true,
   },
   {
     provider: "paperfly",
@@ -53,7 +53,7 @@ export const COURIER_CATALOG: CourierCatalogEntry[] = [
     description:
       "Ecommerce-focused courier with merchant panel and API for consignments.",
     logoSrc: "/couriers/ecourier.png",
-    available: false,
+    available: true,
   },
   {
     provider: "sundarban",
