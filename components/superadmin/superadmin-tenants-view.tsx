@@ -123,6 +123,48 @@ export function SuperAdminTenantsView() {
       cell: (row) => <TenantStatusBadge status={row.status} />,
     },
     {
+      id: "content",
+      header: "Categories / Products / Orders",
+      cell: (row) => (
+        <span className="text-muted">
+          {row.category_count ?? 0} / {row.product_count ?? 0} / {row.order_count ?? 0}
+        </span>
+      ),
+    },
+    {
+      id: "integrations",
+      header: "Payment / Courier",
+      // Guarded against undefined: a stale SWR-persisted cache from before
+      // these fields existed on the response can render one frame before
+      // revalidation replaces it with the real shape.
+      cell: (row) => {
+        const payments = row.payment_providers ?? [];
+        const couriers = row.courier_providers ?? [];
+        return (
+          <div className="flex flex-col gap-0.5 text-xs">
+            <span className={payments.length ? "text-foreground" : "text-muted-soft"}>
+              {payments.length ? payments.join(", ") : "None"}
+            </span>
+            <span className={couriers.length ? "text-foreground" : "text-muted-soft"}>
+              {couriers.length ? couriers.join(", ") : "No courier"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      id: "billing",
+      header: "Billing",
+      cell: (row) => {
+        const label = row.business?.trade_name || row.business?.legal_name;
+        return label ? (
+          <span className="truncate text-muted">{label}</span>
+        ) : (
+          <span className="text-muted-soft">Not set</span>
+        );
+      },
+    },
+    {
       id: "created",
       header: "Created",
       cell: (row) => (

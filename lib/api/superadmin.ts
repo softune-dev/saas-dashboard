@@ -16,6 +16,21 @@ export type SuperAdminTenant = {
   plan: "demo" | "starter" | "growth" | "business";
   status: "active" | "suspended" | "cancelled";
   created_at: string;
+  business: {
+    legal_name?: string | null;
+    trade_name?: string | null;
+    business_type?: string | null;
+    trade_license?: string | null;
+    tin?: string | null;
+    billing_email?: string | null;
+  };
+  site_count: number;
+  category_count: number;
+  product_count: number;
+  order_count: number;
+  user_count: number;
+  payment_providers: string[];
+  courier_providers: string[];
 };
 
 export type SuperAdminStats = {
