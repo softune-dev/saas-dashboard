@@ -25,7 +25,7 @@ export function ForgotPasswordModal({
 }: ForgotPasswordModalProps) {
   if (!open) return null;
 
-  const mailtoHref = `mailto:support@softune.com?subject=${encodeURIComponent(
+  const mailtoHref = `mailto:support@softunebd.com?subject=${encodeURIComponent(
     "Password reset request",
   )}${initialEmail ? `&body=${encodeURIComponent(`Account email: ${initialEmail}`)}` : ""}`;
 

@@ -4,7 +4,7 @@ import { X, Mail } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import type { Plan } from "./billing-data";
 
-const SALES_EMAIL = "support@softune.com";
+const SALES_EMAIL = "support@softunebd.com";
 
 type ContactSalesModalProps = {
   open: boolean;

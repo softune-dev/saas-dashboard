@@ -1,6 +1,8 @@
 "use client";
 
 import { LayoutDashboard } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -21,8 +23,14 @@ import { StatsGrid } from "./stats/stats-grid";
 import { ShopInfoPanel } from "./shop-info/shop-info-panel";
 
 export function DashboardView() {
-  const { currentSite, loading: sessionLoading } = useSession();
+  const router = useRouter();
+  const { currentSite, me, loading: sessionLoading } = useSession();
   const siteId = currentSite?.id ?? null;
+  const isSuperadmin = me?.user.is_superadmin === true;
+
+  useEffect(() => {
+    if (!sessionLoading && isSuperadmin) router.replace("/superadmin");
+  }, [sessionLoading, isSuperadmin, router]);
 
   // limit 100 on products so created_at is available for stock MoM (same
   // practical ceiling as Products/Orders pages). Page.total still drives
@@ -128,6 +136,8 @@ export function DashboardView() {
     .slice(0, 3);
 
   const showSkeleton = sessionLoading || (loading && currentSite && stats.length === 0);
+
+  if (isSuperadmin) return null;
 
   return (
     <div className="flex flex-col gap-4 pb-2">

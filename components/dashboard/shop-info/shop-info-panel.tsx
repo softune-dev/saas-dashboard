@@ -207,7 +207,7 @@ export function ShopInfoPanel({
   // the shared template preview server. A draft has no real domain yet
   // (that's what publishing does), so it falls back to the same
   // preview-with-?__site= mechanism the theme editor uses.
-  const siteBaseDomain = process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz";
+  const siteBaseDomain = process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com";
   const realShopUrl =
     currentSite?.status === "published" && host
       ? `https://${host.includes(".") ? host : `${host}.${siteBaseDomain}`}`

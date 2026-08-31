@@ -1,0 +1,166 @@
+"use client";
+
+import { ChevronDown } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useSession } from "@/components/providers/session-provider";
+import { clearToken } from "@/lib/api";
+import { MaskIcon } from "@/components/ui/mask-icon";
+import { logoutItem, settingsItems } from "@/components/layout/sidebar/nav-config";
+
+const accountItem = settingsItems.find((i) => i.href === "/settings/account")!;
+
+export function SuperadminAccountPill() {
+  const pathname = usePathname();
+  const { me, loading } = useSession();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const displayName = me?.user.full_name?.trim() || "";
+  const email = me?.user.email?.trim() || "";
+  const title = loading ? "Loading…" : displayName || "Superadmin";
+  const subtitle = loading ? "" : email;
+  const avatarUrl = me?.user.avatar_url ?? null;
+  const accountActive =
+    pathname === accountItem.href || pathname.startsWith(`${accountItem.href}/`);
+
+  function handleLogout() {
+    clearToken();
+    setOpen(false);
+    window.location.href = "/";
+  }
+
+  return (
+    <div ref={rootRef} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex max-w-[11.5rem] shrink-0 items-center gap-2 rounded-full bg-border py-1.5 pr-1.5 pl-1.5 transition-opacity hover:opacity-90 md:max-w-[13rem] md:gap-2.5 md:pr-3"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Account menu: ${title}${subtitle ? ` — ${subtitle}` : ""}`}
+      >
+        {avatarUrl ? (
+          <span className="relative size-9 shrink-0 overflow-hidden rounded-full bg-border">
+            <Image
+              src={avatarUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="36px"
+              unoptimized
+            />
+          </span>
+        ) : (
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-store text-white">
+            <MaskIcon src="/sidebar/account.svg" className="size-4" />
+          </span>
+        )}
+
+        <span className="hidden min-w-0 flex-col items-start text-left leading-tight md:flex">
+          <span className="w-full max-w-[6.5rem] truncate text-sm font-semibold text-foreground">
+            {title}
+          </span>
+          {subtitle ? (
+            <span className="w-full max-w-[6.5rem] truncate text-[11px] font-medium text-muted">
+              {subtitle}
+            </span>
+          ) : null}
+        </span>
+
+        <ChevronDown
+          className={[
+            "hidden size-4 shrink-0 text-muted transition-transform md:block",
+            open ? "rotate-180" : "",
+          ].join(" ")}
+          strokeWidth={1.75}
+          aria-hidden
+        />
+      </button>
+
+      {open ? (
+        <div
+          role="menu"
+          className="absolute top-full right-0 z-50 mt-2 w-[min(17.5rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-border bg-surface"
+        >
+          <div className="border-b border-border px-3.5 py-3 dark:border-transparent">
+            <div className="min-w-0">
+              {displayName ? (
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {displayName}
+                </p>
+              ) : null}
+              {email ? (
+                <p
+                  className={[
+                    "truncate",
+                    displayName
+                      ? "mt-0.5 text-xs text-muted"
+                      : "text-sm font-semibold text-foreground",
+                  ].join(" ")}
+                >
+                  {email}
+                </p>
+              ) : !displayName ? (
+                <p className="truncate text-sm font-semibold text-foreground">
+                  Account
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="p-1.5">
+            <Link
+              href={accountItem.href}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+              className={[
+                "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                accountActive
+                  ? "bg-primary/10 font-medium text-primary"
+                  : "text-foreground hover:bg-search-bg",
+              ].join(" ")}
+            >
+              <MaskIcon src={accountItem.icon} className="size-4" />
+              <span className="truncate">Account settings</span>
+            </Link>
+          </div>
+
+          <div className="border-t border-border p-1.5 dark:border-transparent">
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
+            >
+              <MaskIcon src={logoutItem.icon} className="size-4" />
+              <span>{logoutItem.label}</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

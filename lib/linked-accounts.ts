@@ -11,7 +11,17 @@
  * /auth/refresh (the same call api.ts's silent-refresh already trusts),
  * never reuses a possibly-stale access token directly.
  */
-import { API_URL, RecaptchaChallengeRequiredError, getRefreshToken, getToken, setTokens } from "./api";
+import {
+  API_URL,
+  RecaptchaChallengeRequiredError,
+  exchangeLoginOtp,
+  getDeviceId,
+  getRefreshToken,
+  getToken,
+  setTokens,
+  type LoginResult,
+  type LoginTokens,
+} from "./api";
 
 const KEY = "softune.auth.linkedAccounts";
 
@@ -149,22 +159,36 @@ function toAccount(me: MeOut, tokens: TokenPair, logoUrl: string | null): Linked
  * currently active session's tokens. The MAX_LINKED_ACCOUNTS cap (current
  * session included) is enforced by the caller hiding the "+" button —
  * store-pill.tsx is the one place that actually knows which account is
- * "current" and isn't in this stored list until it's switched away from. */
+ * "current" and isn't in this stored list until it's switched away from.
+ *
+ * May return an OTP challenge instead of a stored account — the modal
+ * then exchanges the login_token via LoginOtpForm / finishLinkedAccount. */
 export async function addLinkedAccount(
   email: string,
   password: string,
   recaptchaToken: string = "",
   recaptchaV2Token: string = "",
-): Promise<LinkedAccount> {
-  const tokens = await raw<TokenPair>("/auth/login", {
+): Promise<LoginResult | LinkedAccount> {
+  const result = await raw<LoginResult>("/auth/login", {
     method: "POST",
     body: JSON.stringify({
       email,
       password,
       recaptcha_token: recaptchaToken,
       recaptcha_v2_token: recaptchaV2Token,
+      device_id: getDeviceId() || undefined,
     }),
   });
+  if (result.otp_required) return result;
+  if (!result.access_token || !result.refresh_token) {
+    throw new Error("Couldn't add that account");
+  }
+  return finishLinkedAccount(result);
+}
+
+export async function finishLinkedAccount(
+  tokens: LoginTokens | TokenPair,
+): Promise<LinkedAccount> {
   const [me, logoUrl] = await Promise.all([
     raw<MeOut>("/auth/me", {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
@@ -174,6 +198,14 @@ export async function addLinkedAccount(
   const account = toAccount(me, tokens, logoUrl);
   upsert(account);
   return account;
+}
+
+export async function verifyLinkedAccountOtp(
+  loginToken: string,
+  otp: string,
+): Promise<LinkedAccount> {
+  const tokens = await exchangeLoginOtp(loginToken, otp);
+  return finishLinkedAccount(tokens);
 }
 
 /** Save the CURRENTLY ACTIVE session into the linked list under its own

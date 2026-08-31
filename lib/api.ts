@@ -38,6 +38,27 @@ export function getRefreshToken(): string | null {
   return activeStorage().getItem(REFRESH_TOKEN_KEY);
 }
 
+/** Picks up tokens the landing funnel left in the URL hash after
+ * POST /leads/demo-access — landing and dashboard are different origins,
+ * so localStorage on softunebd.com cannot seed dashboard.softunebd.com.
+ * Hash is stripped immediately so tokens never sit in history. */
+export function ingestLeadDemoTokens(): boolean {
+  if (typeof window === "undefined") return false;
+  const raw = window.location.hash.replace(/^#/, "");
+  if (!raw) return false;
+  const params = new URLSearchParams(raw);
+  const access = params.get("softune_at");
+  const refresh = params.get("softune_rt");
+  if (!access || !refresh) return false;
+  setTokens(access, refresh, true);
+  history.replaceState(
+    null,
+    "",
+    `${window.location.pathname}${window.location.search}`,
+  );
+  return true;
+}
+
 /** Exported for lib/linked-accounts.ts — switching TO a linked account writes
  * its tokens here as the new active session (same storage rules as a normal
  * login: remember=true persists past the browser closing). */
@@ -67,7 +88,79 @@ export function clearToken() {
  * exceptions and return a plain array instead. */
 export type Page<T> = { items: T[]; total: number; limit: number; offset: number };
 
+const DEVICE_ID_KEY = "softune.device.id";
+
+/** Stable per-browser id for login 2FA — generated once, localStorage only
+ * (never a cookie). Same id is sent on every /auth/login so a previously
+ * OTP-verified device can skip the challenge. */
+export function getDeviceId(): string {
+  if (typeof window === "undefined") return "";
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
+
 type TokenPair = { access_token: string; refresh_token: string };
+
+export type LoginChallenge = {
+  otp_required: true;
+  login_token: string;
+};
+
+export type LoginTokens = {
+  otp_required: false;
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in: number;
+};
+
+export type LoginResult = LoginChallenge | LoginTokens;
+
+/** Fetch that never attaches the current session and never clears it on
+ * 401 — used for login-OTP exchange, where the bearer is a short-lived
+ * login_token, not an access token. A 401 here must not log the (possibly
+ * different) active account out. */
+async function authUnauthed<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...init?.headers,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const detail = body.detail;
+    if (
+      detail &&
+      typeof detail === "object" &&
+      detail.code === "recaptcha_challenge_required"
+    ) {
+      throw new RecaptchaChallengeRequiredError(
+        detail.message || "Additional verification required.",
+      );
+    }
+    const message = typeof detail === "string" ? detail : detail?.message;
+    throw new Error(message || `Request failed (${res.status})`);
+  }
+  if (res.status === 204) return undefined as T;
+  return res.json() as Promise<T>;
+}
+
+function asLoginResult(data: LoginResult): LoginResult {
+  if (data.otp_required) {
+    if (!data.login_token) throw new Error("Login failed");
+    return { otp_required: true, login_token: data.login_token };
+  }
+  if (!data.access_token || !data.refresh_token) {
+    throw new Error("Login failed");
+  }
+  return data;
+}
 
 /** Access tokens expire after 30 minutes by default (app/config.py) — a
  * dashboard session realistically lasts longer than that, so a 401 triggers
@@ -151,17 +244,46 @@ export async function login(
   remember: boolean = true,
   recaptchaToken: string = "",
   recaptchaV2Token: string = "",
-): Promise<void> {
-  const data = await request<TokenPair>("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({
-      email,
-      password,
-      recaptcha_token: recaptchaToken,
-      recaptcha_v2_token: recaptchaV2Token,
+): Promise<LoginResult> {
+  const data = asLoginResult(
+    await request<LoginResult>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+        recaptcha_token: recaptchaToken,
+        recaptcha_v2_token: recaptchaV2Token,
+        device_id: getDeviceId() || undefined,
+      }),
     }),
-  });
-  setTokens(data.access_token, data.refresh_token, remember);
+  );
+  if (!data.otp_required) {
+    setTokens(data.access_token, data.refresh_token, remember);
+  }
+  return data;
+}
+
+/** POST /auth/verify-login-otp — bearer is the login_token from the
+ * challenge, not a dashboard access token. Does not write the session;
+ * callers (login screen vs. add-account) decide whether to setTokens. */
+export async function exchangeLoginOtp(
+  loginToken: string,
+  otp: string,
+  rememberDevice: boolean = true,
+): Promise<LoginTokens> {
+  const data = asLoginResult(
+    await authUnauthed<LoginResult>("/auth/verify-login-otp", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${loginToken}` },
+      body: JSON.stringify({
+        otp,
+        device_id: getDeviceId() || undefined,
+        remember_device: rememberDevice,
+      }),
+    }),
+  );
+  if (data.otp_required) throw new Error("Couldn't verify code");
+  return data;
 }
 
 export type UserOut = {
@@ -173,6 +295,9 @@ export type UserOut = {
   timezone: string | null;
   avatar_url: string | null;
   role: string;
+  /** Platform-level flag, unrelated to `role`. True only for internal
+   * Softune operators — gates the /superadmin section, nothing else. */
+  is_superadmin: boolean;
   created_at: string;
 };
 

@@ -80,7 +80,7 @@ export function CurrentPlanCard() {
           ) : null}
           {!isDemo ? (
             <a
-              href="mailto:support@softune.com?subject=Cancel%20my%20plan"
+              href="mailto:support@softunebd.com?subject=Cancel%20my%20plan"
               className="inline-flex h-9 w-full items-center justify-center rounded-full text-sm font-semibold text-white border border-white/50 transition-colors hover:bg-black/20"
             >
               Contact support to cancel

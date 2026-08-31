@@ -86,7 +86,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
   const displayHost = siteHost
     ? siteHost.includes(".")
       ? siteHost
-      : `${siteHost}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz"}`
+      : `${siteHost}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com"}`
     : null;
   // Prefer the site's real domain once it exists: the worker's on-demand
   // revalidate call after publish targets that exact host, while the shared

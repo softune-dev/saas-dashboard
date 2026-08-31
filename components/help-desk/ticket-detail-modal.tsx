@@ -18,7 +18,7 @@ export function TicketDetailModal({ ticket, onClose }: TicketDetailModalProps) {
   return (
     <SettingsModal
       open={!!ticket}
-      title={ticket ? `#${ticket.id.slice(0, 8).toUpperCase()}` : ""}
+      title={ticket ? ticket.ticket_number_display : ""}
       onClose={onClose}
     >
       {ticket ? (

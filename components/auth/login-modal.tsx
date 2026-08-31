@@ -1,9 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RecaptchaChallengeRequiredError, login } from "@/lib/api";
 import { getRecaptchaToken, hasV2Fallback } from "@/lib/recaptcha";
+import { LoginOtpForm } from "./login-otp-form";
 import { RecaptchaDisclosure } from "./recaptcha-disclosure";
 import { RecaptchaV2Fallback, type RecaptchaV2FallbackHandle } from "./recaptcha-v2-fallback";
 
@@ -21,7 +22,12 @@ export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
   const [busy, setBusy] = useState(false);
   const [needsChallenge, setNeedsChallenge] = useState(false);
   const [v2Token, setV2Token] = useState<string | null>(null);
+  const [loginToken, setLoginToken] = useState<string | null>(null);
   const v2Ref = useRef<RecaptchaV2FallbackHandle>(null);
+
+  useEffect(() => {
+    if (!open) setLoginToken(null);
+  }, [open]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,7 +35,11 @@ export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
     setBusy(true);
     try {
       const recaptchaToken = await getRecaptchaToken("login");
-      await login(email, password, true, recaptchaToken, v2Token ?? "");
+      const result = await login(email, password, true, recaptchaToken, v2Token ?? "");
+      if (result.otp_required) {
+        setLoginToken(result.login_token);
+        return;
+      }
       setPassword("");
       onSuccess();
     } catch (err) {
@@ -69,12 +79,30 @@ export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
             className="relative z-10 w-full max-w-sm rounded-md bg-surface p-5"
           >
             <h3 id="login-title" className="text-base font-semibold text-foreground">
-              Sign in to publish
+              {loginToken ? "Check your email" : "Sign in to publish"}
             </h3>
             <p className="mt-1.5 text-sm text-muted">
-              Publishing writes to the live site, so it needs your account.
+              {loginToken
+                ? "Enter the 6-digit code we sent. It expires in 10 minutes."
+                : "Publishing writes to the live site, so it needs your account."}
             </p>
 
+            {loginToken ? (
+              <LoginOtpForm
+                email={email}
+                loginToken={loginToken}
+                compact
+                onSuccess={() => {
+                  setPassword("");
+                  setLoginToken(null);
+                  onSuccess();
+                }}
+                onBack={() => {
+                  setLoginToken(null);
+                  setError(null);
+                }}
+              />
+            ) : (
             <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
               <input
                 type="email"
@@ -106,6 +134,7 @@ export function LoginModal({ open, onSuccess, onDismiss }: LoginModalProps) {
               </button>
               <RecaptchaDisclosure />
             </form>
+            )}
           </motion.div>
         </div>
       ) : null}

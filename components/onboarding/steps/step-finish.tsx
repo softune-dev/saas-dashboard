@@ -23,7 +23,7 @@ export function StepFinish() {
   // second way to go live.
   const { publishing, publishNow } = usePublishTheme(state.templateKey);
   const [publishError, setPublishError] = useState<string | null>(null);
-  const liveUrl = `https://${state.subdomainPreview}.softune.xyz`;
+  const liveUrl = `https://${state.subdomainPreview}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com"}`;
   const done = !!state.finishedAt;
 
   async function handleGoLive() {

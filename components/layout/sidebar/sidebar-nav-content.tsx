@@ -14,6 +14,7 @@ import {
   menuItems,
   settingsItems,
   setupItem,
+  superadminItems,
   tourIdForHref,
   tourItem,
 } from "./nav-config";
@@ -21,7 +22,8 @@ import { SidebarNavItem } from "./sidebar-nav-item";
 import { SidebarSection } from "./sidebar-section";
 
 function isActivePath(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
+  // Exact match for roots so /superadmin/tenants doesn't light up Overview.
+  if (href === "/" || href === "/superadmin") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -43,16 +45,21 @@ export function SidebarNavContent({
   const pathname = usePathname();
   const [logoutOpen, setLogoutOpen] = useState(false);
   const navScroll = useAutoHideScrollbar();
-  const { currentSite } = useSession();
+  const { currentSite, me } = useSession();
   const siteId = currentSite?.id ?? null;
   const { startTour } = useTour();
+  const isSuperadmin = me?.user.is_superadmin === true;
 
-  const { data: notifications = [] } = useNotificationsSWR(siteId);
+  const { data: notifications = [] } = useNotificationsSWR(
+    isSuperadmin ? null : siteId,
+  );
   const unreadOrderCount = notifications.filter(
     (n) => n.type === "order_created" && !n.read_at,
   ).length;
   const { badgeLabel: setupBadge } = useOnboardingSidebarProgress();
-  const showSetup = currentSite ? currentSite.status !== "published" : true;
+  const showSetup = currentSite
+    ? currentSite.status !== "published"
+    : true;
 
   return (
     <>
@@ -67,57 +74,75 @@ export function SidebarNavContent({
           .filter(Boolean)
           .join(" ")}
       >
-        {showSetup ? (
-          <div data-tour="nav-setup">
-            <SidebarSection title="Getting Started">
+        {isSuperadmin ? (
+          <SidebarSection title="Super Admin">
+            {superadminItems.map((item) => (
               <SidebarNavItem
-                item={setupItem}
-                active={isActivePath(pathname, setupItem.href)}
-                badgeLabel={setupBadge}
-                tourId={tourIdForHref(setupItem.href)}
+                key={item.href}
+                item={item}
+                active={isActivePath(pathname, item.href)}
+                tourId={tourIdForHref(item.href)}
                 onNavigate={onNavigate}
               />
+            ))}
+          </SidebarSection>
+        ) : (
+          <>
+            {showSetup ? (
+              <div data-tour="nav-setup">
+                <SidebarSection title="Getting Started">
+                  <SidebarNavItem
+                    item={setupItem}
+                    active={isActivePath(pathname, setupItem.href)}
+                    badgeLabel={setupBadge}
+                    tourId={tourIdForHref(setupItem.href)}
+                    onNavigate={onNavigate}
+                  />
+                </SidebarSection>
+              </div>
+            ) : null}
+
+            <SidebarSection title="Menu">
+              {menuItems.map((item) => (
+                <SidebarNavItem
+                  key={item.href}
+                  item={item}
+                  active={isActivePath(pathname, item.href)}
+                  badge={item.href === "/orders" ? unreadOrderCount : undefined}
+                  tourId={tourIdForHref(item.href)}
+                  onNavigate={onNavigate}
+                />
+              ))}
             </SidebarSection>
-          </div>
-        ) : null}
 
-        <SidebarSection title="Menu">
-          {menuItems.map((item) => (
-            <SidebarNavItem
-              key={item.href}
-              item={item}
-              active={isActivePath(pathname, item.href)}
-              badge={item.href === "/orders" ? unreadOrderCount : undefined}
-              tourId={tourIdForHref(item.href)}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </SidebarSection>
-
-        <SidebarSection title="Settings">
-          {settingsItems.map((item) => (
-            <SidebarNavItem
-              key={item.href}
-              item={item}
-              active={isActivePath(pathname, item.href)}
-              tourId={tourIdForHref(item.href)}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </SidebarSection>
+            <SidebarSection title="Settings">
+              {settingsItems.map((item) => (
+                <SidebarNavItem
+                  key={item.href}
+                  item={item}
+                  active={isActivePath(pathname, item.href)}
+                  tourId={tourIdForHref(item.href)}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </SidebarSection>
+          </>
+        )}
       </div>
 
       <div className="flex shrink-0 flex-col gap-0.5 p-3">
-        {footerExtras}
-        <div className="hidden md:block">
-          <SidebarNavItem
-            item={tourItem}
-            onClick={() => {
-              onNavigate?.();
-              startTour();
-            }}
-          />
-        </div>
+        {isSuperadmin ? null : footerExtras}
+        {isSuperadmin ? null : (
+          <div className="hidden md:block">
+            <SidebarNavItem
+              item={tourItem}
+              onClick={() => {
+                onNavigate?.();
+                startTour();
+              }}
+            />
+          </div>
+        )}
         <SidebarNavItem
           item={logoutItem}
           variant="logout"

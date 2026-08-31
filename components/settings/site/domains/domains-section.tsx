@@ -14,7 +14,7 @@ import {
 import { SettingsModal } from "../ui/settings-modal";
 import { SettingsRowSkeleton } from "../ui/settings-skeleton";
 
-const SITE_BASE_DOMAIN = process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz";
+const SITE_BASE_DOMAIN = process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com";
 
 /** One-line value with its own copy button — the CNAME target / IP the
  * merchant has to paste verbatim into a DNS panel they've never used

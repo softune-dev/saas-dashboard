@@ -93,7 +93,7 @@ export function StorePill() {
   const theme = templateKey ? getThemeById(templateKey) : undefined;
   const host = currentSite?.custom_domain || currentSite?.subdomain;
   const siteBaseDomain =
-    process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softune.xyz";
+    process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com";
   const realShopUrl =
     currentSite?.status === "published" && host
       ? `https://${host.includes(".") ? host : `${host}.${siteBaseDomain}`}`

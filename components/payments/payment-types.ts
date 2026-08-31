@@ -15,4 +15,7 @@ export type PaymentConnection = {
   apiKeyHint?: string;
   /** Gateway: optional store/merchant id. */
   merchantId?: string;
+  status?: "connected" | "error" | "disabled";
+  /** Only bKash ever sets this — SSLCommerz/Nagad stay null. */
+  lastVerifiedAt?: string | null;
 };

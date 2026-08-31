@@ -35,6 +35,15 @@ export const settingsItems: NavItem[] = [
   { label: "Help Desk", href: "/settings/help", icon: "/sidebar/help-desk.svg" },
 ];
 
+/** Rendered only when me.user.is_superadmin — see SidebarNavContent. */
+export const superadminItems: NavItem[] = [
+  { label: "Overview", href: "/superadmin", icon: "/sidebar/dashboard.svg" },
+  { label: "Tenants", href: "/superadmin/tenants", icon: "/sidebar/customers.svg" },
+  { label: "Users", href: "/superadmin/users", icon: "/sidebar/user.svg" },
+  { label: "Leads", href: "/superadmin/leads", icon: "/sidebar/inbox.svg" },
+  { label: "Tickets", href: "/superadmin/tickets", icon: "/sidebar/help-desk.svg" },
+];
+
 export const tourItem: NavItem = {
   label: "Take a Tour",
   href: "#tour",

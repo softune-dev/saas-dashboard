@@ -6,6 +6,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { SoftuneLogo } from "@/components/brand/softune-logo";
 import { CreditsPill } from "@/components/layout/header/credits-pill";
 import { SearchBar } from "@/components/layout/header/search-bar";
+import { SuperadminSearchBar } from "@/components/layout/header/superadmin-search-bar";
+import { useSession } from "@/components/providers/session-provider";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarNavContent } from "./sidebar-nav-content";
 
@@ -16,6 +18,9 @@ type MobileSidebarProps = {
 
 /** Slide-in nav drawer for < md — same items as the desktop sidebar. */
 export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
+  const { me } = useSession();
+  const isSuperadmin = me?.user.is_superadmin === true;
+
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -67,7 +72,11 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
               onNavigate={onClose}
               headerExtras={
                 <div className="shrink-0 space-y-3 border-b border-border px-3 py-3 dark:border-transparent">
-                  <SearchBar className="w-full" />
+                  {isSuperadmin ? (
+                    <SuperadminSearchBar className="w-full" />
+                  ) : (
+                    <SearchBar className="w-full" />
+                  )}
                 </div>
               }
               footerExtras={

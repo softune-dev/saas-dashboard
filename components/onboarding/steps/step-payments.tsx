@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
+import { BkashConnectModal, type BkashConnectValues } from "@/components/payments/bkash-connect-modal";
 import { CodConnectModal, type CodConnectValues } from "@/components/payments/cod-connect-modal";
-import {
-  GatewayConnectModal,
-  type GatewayConnectValues,
-} from "@/components/payments/gateway-connect-modal";
 import {
   ManualConnectModal,
   type ManualConnectValues,
 } from "@/components/payments/manual-connect-modal";
+import { NagadConnectModal, type NagadConnectValues } from "@/components/payments/nagad-connect-modal";
+import {
+  SslcommerzConnectModal,
+  type SslcommerzConnectValues,
+} from "@/components/payments/sslcommerz-connect-modal";
 import { PaymentCard } from "@/components/payments/payment-card";
 import { PAYMENT_CATALOG, type PaymentProvider } from "@/components/payments/payment-data";
 import type { PaymentConnection } from "@/components/payments/payment-types";
@@ -27,11 +29,11 @@ export function StepPayments() {
 
   const [codOpen, setCodOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
-  const [gatewayOpen, setGatewayOpen] = useState(false);
-  const [gatewayProvider, setGatewayProvider] = useState<PaymentProvider | null>(
-    null,
-  );
+  const [bkashOpen, setBkashOpen] = useState(false);
+  const [sslOpen, setSslOpen] = useState(false);
+  const [nagadOpen, setNagadOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
 
   const connections = state.paymentConnections;
 
@@ -50,6 +52,8 @@ export function StepPayments() {
       wallets: c.config.wallets,
       apiKeyHint: c.api_key_hint ?? undefined,
       merchantId: c.config.merchant_id,
+      status: c.status,
+      lastVerifiedAt: c.last_verified_at,
     };
   }
 
@@ -57,6 +61,13 @@ export function StepPayments() {
     if (!siteId) return;
     const fresh = await listPaymentConnections(siteId);
     dispatch({ type: "setPaymentConnections", connections: fresh });
+  }
+
+  function applyConnection(row: (typeof connections)[number]) {
+    dispatch({
+      type: "setPaymentConnections",
+      connections: [row, ...connections.filter((c) => c.provider !== row.provider)],
+    });
   }
 
   async function handleDisconnect(connectionId: string) {
@@ -74,6 +85,7 @@ export function StepPayments() {
   }
 
   function openConfig(provider: PaymentProvider) {
+    setConnectError(null);
     if (provider === "cod") {
       setCodOpen(true);
       return;
@@ -82,8 +94,17 @@ export function StepPayments() {
       setManualOpen(true);
       return;
     }
-    setGatewayProvider(provider);
-    setGatewayOpen(true);
+    if (provider === "bkash") {
+      setBkashOpen(true);
+      return;
+    }
+    if (provider === "sslcommerz") {
+      setSslOpen(true);
+      return;
+    }
+    if (provider === "nagad") {
+      setNagadOpen(true);
+    }
   }
 
   async function handleCod(values: CodConnectValues) {
@@ -91,11 +112,11 @@ export function StepPayments() {
     try {
       if (siteId) {
         const feeTaka = values.codFee.trim();
-        await connectPayment(siteId, "cod", {
+        const row = await connectPayment(siteId, "cod", {
           label: "Cash on Delivery",
           cod_fee_cents: feeTaka ? Math.round(parseFloat(feeTaka) * 100) : undefined,
         });
-        await refresh();
+        applyConnection(row);
       }
       setCodOpen(false);
       toast({ title: "Cash on Delivery saved", variant: "success" });
@@ -114,12 +135,12 @@ export function StepPayments() {
     setBusy(true);
     try {
       if (siteId) {
-        await connectPayment(siteId, "manual", {
+        const row = await connectPayment(siteId, "manual", {
           label: "Manual Payment",
           payment_number: values.paymentNumber,
           wallets: values.wallets,
         });
-        await refresh();
+        applyConnection(row);
       }
       setManualOpen(false);
       toast({ title: "Manual payment saved", variant: "success" });
@@ -134,27 +155,84 @@ export function StepPayments() {
     }
   }
 
-  async function handleGateway(values: GatewayConnectValues) {
-    if (!gatewayProvider) return;
+  async function handleBkash(values: BkashConnectValues) {
     setBusy(true);
+    setConnectError(null);
     try {
       if (siteId) {
-        await connectPayment(siteId, gatewayProvider, {
-          label: gatewayProvider,
-          merchant_id: values.merchantId,
-          api_key: values.apiKey,
-          secret_key: values.secretKey,
+        const row = await connectPayment(siteId, "bkash", {
+          api_key: values.appKey,
+          secret_key: values.appSecret,
+          username: values.username,
+          password: values.password,
+          sandbox: values.sandbox,
+          label: values.label || undefined,
         });
-        await refresh();
+        applyConnection(row);
+        if (row.last_verified_at) {
+          toast({ title: "bKash connected", variant: "success" });
+        } else {
+          toast({
+            title: "Saved, but bKash rejected these credentials",
+            description: "Double-check the details, then reconnect.",
+            variant: "info",
+          });
+        }
       }
-      setGatewayOpen(false);
-      toast({ title: `${gatewayProvider} saved`, variant: "success" });
+      setBkashOpen(false);
     } catch (err) {
-      toast({
-        title: "Couldn't save gateway",
-        description: err instanceof Error ? err.message : "Something went wrong.",
-        variant: "info",
-      });
+      setConnectError(
+        err instanceof Error ? err.message : "Couldn't connect bKash.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleSsl(values: SslcommerzConnectValues) {
+    setBusy(true);
+    setConnectError(null);
+    try {
+      if (siteId) {
+        const row = await connectPayment(siteId, "sslcommerz", {
+          api_key: values.storeId,
+          secret_key: values.storePassword,
+          sandbox: values.sandbox,
+          label: values.label || undefined,
+        });
+        applyConnection(row);
+      }
+      setSslOpen(false);
+      toast({ title: "SSLCommerz saved — not yet verified", variant: "info" });
+    } catch (err) {
+      setConnectError(
+        err instanceof Error ? err.message : "Couldn't save SSLCommerz.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleNagad(values: NagadConnectValues) {
+    setBusy(true);
+    setConnectError(null);
+    try {
+      if (siteId) {
+        const row = await connectPayment(siteId, "nagad", {
+          merchant_id: values.merchantId,
+          merchant_private_key: values.merchantPrivateKey,
+          nagad_public_key: values.nagadPublicKey,
+          sandbox: values.sandbox,
+          label: values.label || undefined,
+        });
+        applyConnection(row);
+      }
+      setNagadOpen(false);
+      toast({ title: "Nagad saved — not yet verified", variant: "info" });
+    } catch (err) {
+      setConnectError(
+        err instanceof Error ? err.message : "Couldn't save Nagad.",
+      );
     } finally {
       setBusy(false);
     }
@@ -208,21 +286,35 @@ export function StepPayments() {
         onClose={() => setManualOpen(false)}
         onConnect={handleManual}
       />
-      <GatewayConnectModal
-        open={gatewayOpen}
+      <BkashConnectModal
+        open={bkashOpen}
         busy={busy}
-        provider={gatewayProvider}
-        providerName={
-          PAYMENT_CATALOG.find((p) => p.provider === gatewayProvider)?.name
-        }
-        comingSoon={
-          gatewayProvider
-            ? !PAYMENT_CATALOG.find((p) => p.provider === gatewayProvider)
-                ?.available
-            : true
-        }
-        onClose={() => setGatewayOpen(false)}
-        onConnect={handleGateway}
+        error={connectError}
+        onClose={() => {
+          setBkashOpen(false);
+          setConnectError(null);
+        }}
+        onConnect={handleBkash}
+      />
+      <SslcommerzConnectModal
+        open={sslOpen}
+        busy={busy}
+        error={connectError}
+        onClose={() => {
+          setSslOpen(false);
+          setConnectError(null);
+        }}
+        onConnect={handleSsl}
+      />
+      <NagadConnectModal
+        open={nagadOpen}
+        busy={busy}
+        error={connectError}
+        onClose={() => {
+          setNagadOpen(false);
+          setConnectError(null);
+        }}
+        onConnect={handleNagad}
       />
     </div>
   );

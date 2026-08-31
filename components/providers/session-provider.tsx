@@ -18,7 +18,12 @@ const CURRENT_SITE_KEY = "softune.currentSiteId";
 // a blank "loading" state even though this exact data was just fetched
 // seconds ago. Caching it the same way (last-known-good shown instantly,
 // refetched quietly in the background) removes that wait on reload too.
-const SESSION_CACHE_KEY = "softune.session.cache";
+// v2: bumped when UserOut gained `is_superadmin` — an old cached session
+// predates that field, so it reads as `false` on the very first render
+// (before the background refetch corrects it), which is one render too
+// late for use-onboarding-guard.ts's redirect decision. Bump this again on
+// any future change to MeOut's shape that a stale value could act wrong on.
+const SESSION_CACHE_KEY = "softune.session.cache.v2";
 
 type SessionCache = { me: MeOut; sites: SiteOut[] };
 

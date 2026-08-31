@@ -976,7 +976,7 @@ function PosThermalReceipt({
         </p>
         {site?.subdomain ? (
           <p className="mt-2 text-[9px] text-neutral-400">
-            {site.custom_domain || `${site.subdomain}.softune.xyz`}
+            {site.custom_domain || `${site.subdomain}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com"}`}
           </p>
         ) : null}
       </div>

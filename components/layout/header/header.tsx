@@ -2,12 +2,15 @@
 
 import { Menu } from "lucide-react";
 import { motion } from "motion/react";
+import { useSession } from "@/components/providers/session-provider";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ActionIconsPill } from "./action-icons-pill";
 import { CreditsPill } from "./credits-pill";
 import { LogoPill } from "./logo-pill";
 import { SearchBar } from "./search-bar";
 import { StorePill } from "./store-pill";
+import { SuperadminAccountPill } from "./superadmin-account-pill";
+import { SuperadminSearchBar } from "./superadmin-search-bar";
 
 type HeaderProps = {
   /** Opens the mobile nav drawer (< md). */
@@ -19,6 +22,9 @@ type HeaderProps = {
  * shared controls mount once (no duplicate AI/notification state).
  */
 export function Header({ onOpenMobileNav }: HeaderProps) {
+  const { me } = useSession();
+  const isSuperadmin = me?.user.is_superadmin === true;
+
   return (
     <motion.header
       data-tour="header"
@@ -44,14 +50,25 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
       </div>
 
       <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 md:gap-2 lg:gap-3">
-        <div className="hidden md:block">
-          <SearchBar />
-        </div>
-        <div className="hidden md:block">
-          <CreditsPill />
-        </div>
-        <ActionIconsPill />
-        <StorePill />
+        {isSuperadmin ? (
+          <>
+            <div className="hidden md:block">
+              <SuperadminSearchBar />
+            </div>
+            <SuperadminAccountPill />
+          </>
+        ) : (
+          <>
+            <div className="hidden md:block">
+              <SearchBar />
+            </div>
+            <div className="hidden md:block">
+              <CreditsPill />
+            </div>
+            <ActionIconsPill />
+            <StorePill />
+          </>
+        )}
       </div>
     </motion.header>
   );

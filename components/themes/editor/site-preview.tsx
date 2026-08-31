@@ -28,7 +28,7 @@ type SitePreviewProps = {
    * __site). Mounting before resolve causes a double load: first without
    * __site (wrong default site), then again with the real host. */
   siteHost?: string | null;
-  /** Real domain to show in the address bar (e.g. "shop.softune.xyz") —
+  /** Real domain to show in the address bar (e.g. "shop.softunebd.com") —
    * cosmetic only. The iframe itself keeps loading from `previewUrl` +
    * ?__site= regardless (see siteHost above), since that shared preview
    * server is what reflects this editor's live, unsaved changes; the site's

@@ -12,17 +12,15 @@ import {
   TicketStatusBadge,
 } from "./ticket-status-badge";
 
-function shortId(id: string): string {
-  return `#${id.slice(0, 8).toUpperCase()}`;
-}
-
 function buildColumns(onView: (row: HelpTicketOut) => void): TableColumn<HelpTicketOut>[] {
   return [
     {
       id: "ticketId",
       header: "Ticket",
       cell: (row) => (
-        <span className="font-semibold text-foreground">{shortId(row.id)}</span>
+        <span className="font-semibold text-foreground">
+          {row.ticket_number_display}
+        </span>
       ),
     },
     {
@@ -63,7 +61,7 @@ function buildColumns(onView: (row: HelpTicketOut) => void): TableColumn<HelpTic
         <button
           type="button"
           onClick={() => onView(row)}
-          aria-label={`View ${shortId(row.id)}`}
+          aria-label={`View ${row.ticket_number_display}`}
           className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
         >
           <Eye className="size-3.5" strokeWidth={1.75} />
@@ -85,7 +83,7 @@ export function TicketsTable() {
     if (!q) return tickets;
     return tickets.filter(
       (t) =>
-        shortId(t.id).toLowerCase().includes(q) ||
+        t.ticket_number_display.toLowerCase().includes(q) ||
         t.subject.toLowerCase().includes(q) ||
         t.category.toLowerCase().includes(q) ||
         t.status.toLowerCase().includes(q) ||

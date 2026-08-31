@@ -3,11 +3,18 @@
 import { Trash2, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { AUTH_EXPIRED_EVENT, RecaptchaChallengeRequiredError, getToken, login } from "@/lib/api";
+import {
+  AUTH_EXPIRED_EVENT,
+  RecaptchaChallengeRequiredError,
+  getToken,
+  ingestLeadDemoTokens,
+  login,
+} from "@/lib/api";
 import { getRecaptchaToken, hasV2Fallback } from "@/lib/recaptcha";
 import { useToast } from "@/components/ui/toast";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { ForgotPasswordModal } from "./forgot-password-modal";
+import { LoginOtpForm } from "./login-otp-form";
 import { RecaptchaDisclosure } from "./recaptcha-disclosure";
 import { RecaptchaV2Fallback, type RecaptchaV2FallbackHandle } from "./recaptcha-v2-fallback";
 
@@ -22,6 +29,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
+    ingestLeadDemoTokens();
     setAuthed(!!getToken());
     const onStorage = () => setAuthed(!!getToken());
     // Same-tab session expiry (a 401 that a refresh couldn't recover from) —
@@ -117,6 +125,7 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
   const [cleaning, setCleaning] = useState(false);
   const [needsChallenge, setNeedsChallenge] = useState(false);
   const [v2Token, setV2Token] = useState<string | null>(null);
+  const [loginToken, setLoginToken] = useState<string | null>(null);
   const v2Ref = useRef<RecaptchaV2FallbackHandle>(null);
 
   useEffect(() => {
@@ -133,7 +142,18 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
     setBusy(true);
     try {
       const recaptchaToken = await getRecaptchaToken("login");
-      await login(email, password, rememberMe, recaptchaToken, v2Token ?? "");
+      const result = await login(
+        email,
+        password,
+        rememberMe,
+        recaptchaToken,
+        v2Token ?? "",
+      );
+      if (result.otp_required) {
+        setLoginToken(result.login_token);
+        setBusy(false);
+        return;
+      }
       onSuccess();
     } catch (err) {
       if (err instanceof RecaptchaChallengeRequiredError) {
@@ -179,12 +199,26 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
             />
 
             <h1 className="mt-8 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              Sign in to dashboard
+              {loginToken ? "Check your email" : "Sign in to dashboard"}
             </h1>
             <p className="mt-2 text-sm text-muted">
-              Please enter your credentials to access your store dashboard.
+              {loginToken
+                ? "Enter the 6-digit code we sent. It expires in 10 minutes."
+                : "Please enter your credentials to access your store dashboard."}
             </p>
 
+            {loginToken ? (
+              <LoginOtpForm
+                email={email}
+                loginToken={loginToken}
+                remember={rememberMe}
+                onSuccess={onSuccess}
+                onBack={() => {
+                  setLoginToken(null);
+                  setError(null);
+                }}
+              />
+            ) : (
             <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
               <div className="flex flex-col gap-2.5">
                 <label
@@ -310,13 +344,14 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
 
               <RecaptchaDisclosure />
             </form>
+            )}
 
             <a
-              href="mailto:support@softune.com"
+              href="mailto:support@softunebd.com"
               className="mt-6 inline-flex items-center gap-2 self-start text-sm text-muted transition-colors hover:text-primary"
             >
               <Mail className="size-4 shrink-0" />
-              <span>support@softune.com</span>
+              <span>support@softunebd.com</span>
             </a>
           </div>
 

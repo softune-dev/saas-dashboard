@@ -1,10 +1,14 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RecaptchaChallengeRequiredError } from "@/lib/api";
 import { getRecaptchaToken, hasV2Fallback } from "@/lib/recaptcha";
-import { addLinkedAccount } from "@/lib/linked-accounts";
+import {
+  addLinkedAccount,
+  finishLinkedAccount,
+} from "@/lib/linked-accounts";
+import { LoginOtpForm } from "@/components/auth/login-otp-form";
 import { RecaptchaDisclosure } from "@/components/auth/recaptcha-disclosure";
 import {
   RecaptchaV2Fallback,
@@ -26,7 +30,22 @@ export function AddAccountModal({ open, onAdded, onDismiss }: AddAccountModalPro
   const [busy, setBusy] = useState(false);
   const [needsChallenge, setNeedsChallenge] = useState(false);
   const [v2Token, setV2Token] = useState<string | null>(null);
+  const [loginToken, setLoginToken] = useState<string | null>(null);
   const v2Ref = useRef<RecaptchaV2FallbackHandle>(null);
+
+  function resetForm() {
+    setEmail("");
+    setPassword("");
+    setLoginToken(null);
+    setNeedsChallenge(false);
+    setV2Token(null);
+    setError(null);
+  }
+
+  useEffect(() => {
+    if (!open) resetForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the modal closes
+  }, [open]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,9 +53,17 @@ export function AddAccountModal({ open, onAdded, onDismiss }: AddAccountModalPro
     setBusy(true);
     try {
       const recaptchaToken = await getRecaptchaToken("login");
-      await addLinkedAccount(email, password, recaptchaToken, v2Token ?? "");
-      setEmail("");
-      setPassword("");
+      const result = await addLinkedAccount(
+        email,
+        password,
+        recaptchaToken,
+        v2Token ?? "",
+      );
+      if ("otp_required" in result && result.otp_required) {
+        setLoginToken(result.login_token);
+        return;
+      }
+      resetForm();
       onAdded();
     } catch (err) {
       if (err instanceof RecaptchaChallengeRequiredError) {
@@ -75,13 +102,30 @@ export function AddAccountModal({ open, onAdded, onDismiss }: AddAccountModalPro
             className="relative z-10 w-full max-w-sm rounded-md bg-surface p-5"
           >
             <h3 id="add-account-title" className="text-base font-semibold text-foreground">
-              Add another account
+              {loginToken ? "Check your email" : "Add another account"}
             </h3>
             <p className="mt-1.5 text-sm text-muted">
-              Sign in with a different store's login — you'll be able to switch
-              between them instantly, no logout needed.
+              {loginToken
+                ? "Enter the 6-digit code we sent. It expires in 10 minutes."
+                : "Sign in with a different store's login — you'll be able to switch between them instantly, no logout needed."}
             </p>
 
+            {loginToken ? (
+              <LoginOtpForm
+                email={email}
+                loginToken={loginToken}
+                compact
+                complete={finishLinkedAccount}
+                onSuccess={() => {
+                  resetForm();
+                  onAdded();
+                }}
+                onBack={() => {
+                  setLoginToken(null);
+                  setError(null);
+                }}
+              />
+            ) : (
             <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
               <input
                 type="email"
@@ -113,6 +157,7 @@ export function AddAccountModal({ open, onAdded, onDismiss }: AddAccountModalPro
               </button>
               <RecaptchaDisclosure />
             </form>
+            )}
           </motion.div>
         </div>
       ) : null}

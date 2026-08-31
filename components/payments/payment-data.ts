@@ -14,7 +14,7 @@ export type PaymentCatalogEntry = {
    * (e.g. /payments/bkash.svg). Wide wordmarks (~2.3:1) and square icons both fit.
    */
   logoSrc: string;
-  /** First-wave methods can enable; gateways are disabled UI until accounts exist. */
+  /** False = locked behind a plan (Unlock CTA). Gateways are connectable. */
   available: boolean;
 };
 
@@ -43,7 +43,7 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     description:
       "Official bKash merchant checkout — mobile payments at scale once merchant credentials are ready.",
     logoSrc: "/payments/bkash.webp",
-    available: false,
+    available: true,
   },
   {
     provider: "nagad",
@@ -51,7 +51,7 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     description:
       "Nagad merchant API for online payments once your merchant account is approved.",
     logoSrc: "/payments/nagad.webp",
-    available: false,
+    available: true,
   },
   {
     provider: "sslcommerz",
@@ -59,6 +59,6 @@ export const PAYMENT_CATALOG: PaymentCatalogEntry[] = [
     description:
       "Aggregator gateway covering cards, mobile banking, and netbanking in one integration.",
     logoSrc: "/payments/sslcommerz.webp",
-    available: false,
+    available: true,
   },
 ];

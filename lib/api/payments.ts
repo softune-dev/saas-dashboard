@@ -7,8 +7,9 @@
  *   DELETE /{connection_id} → disconnect
  *
  * cod/manual have no credentials — only `config` is used. Gateway providers
- * (bkash/nagad/sslcommerz/rocket) send api_key/secret_key, which the server
- * encrypts; only a masked hint ever comes back.
+ * (bkash/nagad/sslcommerz/rocket) send credentials, which the server
+ * encrypts; only a masked hint ever comes back. last_verified_at is only
+ * ever set for bKash — SSLCommerz/Nagad have no live credential check.
  */
 
 import useSWR, { type SWRResponse } from "swr";
@@ -26,8 +27,10 @@ export type PaymentConnectionOut = {
     payment_number?: string;
     wallets?: ("bkash" | "nagad")[];
     merchant_id?: string;
+    sandbox?: boolean;
   };
   api_key_hint: string | null;
+  last_verified_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -40,6 +43,11 @@ export type PaymentConnectIn = {
   merchant_id?: string;
   api_key?: string;
   secret_key?: string;
+  username?: string;
+  password?: string;
+  merchant_private_key?: string;
+  nagad_public_key?: string;
+  sandbox?: boolean;
 };
 
 export async function listPaymentConnections(siteId: string): Promise<PaymentConnectionOut[]> {

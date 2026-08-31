@@ -41,7 +41,17 @@ export function PaymentCard({
           />
         </span>
         {entry.available ? (
-          connected ? (
+          connected && connection?.status === "error" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2.5 py-1 text-xs font-medium text-rose-600">
+              Needs attention
+            </span>
+          ) : connected &&
+            (entry.provider === "sslcommerz" || entry.provider === "nagad") &&
+            !connection?.lastVerifiedAt ? (
+            <span className="rounded-full bg-search-bg px-2.5 py-1 text-xs font-medium text-muted">
+              Saved — not yet verified
+            </span>
+          ) : connected ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
               <CheckCircle2 className="size-3.5" strokeWidth={2} />
               Connected
