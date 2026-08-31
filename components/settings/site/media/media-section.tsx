@@ -180,16 +180,31 @@ export function MediaSection() {
         ))}
       </div>
 
-      {/* Filters & Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1.5">
+      {/* Filters & Actions — Upload sits above the chips on small screens
+       * (full width) so the category tabs can stay a single swipeable row
+       * instead of wrapping under a squeezed button. */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={() => setUploadOpen(true)}
+          disabled={!siteId}
+          className="inline-flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:order-2 sm:w-auto"
+        >
+          <Upload className="size-3.5" strokeWidth={2} />
+          Upload
+        </button>
+        <div
+          role="group"
+          aria-label="Filter by category"
+          className="flex min-w-0 flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain scrollbar-none sm:order-1 sm:flex-1"
+        >
           {FILTERS.map((f) => (
             <button
               key={f.value}
               type="button"
               onClick={() => setFilter(f.value)}
               className={[
-                "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
+                "shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
                 filter === f.value
                   ? "bg-primary text-white"
                   : "bg-search-bg text-muted hover:text-foreground",
@@ -199,15 +214,6 @@ export function MediaSection() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={() => setUploadOpen(true)}
-          disabled={!siteId}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
-          <Upload className="size-3.5" strokeWidth={2} />
-          Upload
-        </button>
       </div>
       {/* Bulk selection bar */}
       {selectedImages.length > 0 ? (

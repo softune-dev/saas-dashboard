@@ -188,9 +188,9 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
   return (
     <>
       <div className="flex min-h-dvh w-full items-center justify-center bg-background p-4 sm:p-6 lg:p-8">
-        <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl bg-surface shadow-[0_20px_50px_-12px_rgba(0,0,0,0.18)] sm:rounded-3xl lg:grid-cols-2">
+        <div className="grid w-full min-w-0 max-w-5xl overflow-hidden rounded-2xl bg-surface shadow-[0_20px_50px_-12px_rgba(0,0,0,0.18)] sm:rounded-3xl lg:grid-cols-2">
           {/* Left: form on transparent card surface */}
-          <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
+          <div className="flex min-w-0 flex-col justify-center p-5 sm:p-8 lg:p-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-icon.png"

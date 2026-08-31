@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Check, Copy, Globe, Info, RefreshCw, Trash2 } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Globe, Info, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/ui/toast";
@@ -274,50 +274,42 @@ export function DomainsSection() {
         ) : null}
       </div>
 
+      {/* One custom domain per site. Once it's set, the row above is the
+       * source of truth — showing the input + Save/Remove again looks like
+       * you can add a second one. */}
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="custom-domain" className="text-sm font-medium text-muted">
-          Custom domain
-        </label>
-        <div className="flex items-center gap-2">
-          <input
-            id="custom-domain"
-            type="text"
-            value={host}
-            onChange={(e) => setHost(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSave();
-            }}
-            placeholder="shop.yourstore.com"
-            className="h-10 w-full min-w-0 flex-1 rounded-md border border-border bg-surface px-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
-          />
-          <PrimaryButton
-            type="button"
-            onClick={() => handleSave()}
-            disabled={saving}
-            className="h-10 shrink-0"
-          >
-            {saving ? "Saving…" : "Save"}
-          </PrimaryButton>
-          {data?.custom_domain ? (
-            <button
-              type="button"
-              aria-label="Remove custom domain"
-              title="Remove custom domain"
-              onClick={() => {
-                setHost("");
-                handleSave("");
-              }}
-              disabled={saving}
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-red-500 disabled:opacity-50"
-            >
-              <Trash2 className="size-4" strokeWidth={1.75} />
-            </button>
-          ) : null}
-        </div>
+        {!data?.custom_domain ? (
+          <>
+            <label htmlFor="custom-domain" className="text-sm font-medium text-muted">
+              Custom domain
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="custom-domain"
+                type="text"
+                value={host}
+                onChange={(e) => setHost(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSave();
+                }}
+                placeholder="shop.yourstore.com"
+                className="h-10 w-full min-w-0 flex-1 rounded-md border border-border bg-surface px-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
+              />
+              <PrimaryButton
+                type="button"
+                onClick={() => handleSave()}
+                disabled={saving}
+                className="h-10 shrink-0"
+              >
+                {saving ? "Saving…" : "Save"}
+              </PrimaryButton>
+            </div>
+          </>
+        ) : null}
         <button
           type="button"
           onClick={() => setSetupOpen(true)}
-          className="mr-auto mt-1 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-opacity hover:opacity-80"
+          className="mr-auto inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-opacity hover:opacity-80"
         >
           <Info className="size-3.5" strokeWidth={2} />
           How to connect a domain

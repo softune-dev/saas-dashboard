@@ -94,7 +94,11 @@ export function OtpBoxes({
   }
 
   return (
-    <div className="flex gap-2" role="group" aria-label="6-digit verification code">
+    <div
+      className="mx-auto grid w-full min-w-0 max-w-[22rem] grid-cols-6 gap-1.5 sm:max-w-sm sm:gap-2"
+      role="group"
+      aria-label="6-digit verification code"
+    >
       {value.map((digit, index) => (
         <input
           key={index}
@@ -107,6 +111,7 @@ export function OtpBoxes({
           autoComplete={index === 0 ? "one-time-code" : "off"}
           autoFocus={autoFocus && index === 0}
           maxLength={index === 0 ? OTP_LENGTH : 1}
+          size={1}
           pattern="[0-9]*"
           aria-label={`Digit ${index + 1} of ${OTP_LENGTH}`}
           value={digit}
@@ -115,7 +120,7 @@ export function OtpBoxes({
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
           onFocus={(e) => e.currentTarget.select()}
-          className="h-12 min-w-0 flex-1 rounded-lg border border-border bg-search-bg text-center font-mono text-xl font-semibold text-foreground outline-none transition-colors focus:border-primary focus:bg-surface disabled:opacity-60 sm:h-14 sm:text-2xl"
+          className="h-11 w-full min-w-0 rounded-lg border border-border bg-search-bg px-0 text-center font-mono text-lg font-semibold tabular-nums text-foreground outline-none transition-colors focus:border-primary focus:bg-surface disabled:opacity-60 sm:h-14 sm:text-2xl"
         />
       ))}
     </div>
