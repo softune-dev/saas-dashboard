@@ -17,12 +17,11 @@ import { ONBOARDING_STEPS, type OnboardingStepId } from "../onboarding-steps";
 import { useOnboarding } from "../onboarding-context";
 
 // Same icon each step already uses for its own header (step-shop-basics.tsx,
-// step-brand.tsx, etc.) — reused here instead of inventing a second set, so
+// step-categories.tsx, etc.) — reused here instead of inventing a second set, so
 // a step reads as the same thing whether you're inside it or looking at
 // this summary of it.
 const STEP_ICONS: Record<OnboardingStepId, string> = {
   shop: "/sidebar/shop-bag.svg",
-  brand: "/sidebar/color.svg",
   categories: "/sidebar/categories.svg",
   products: "/sidebar/products.svg",
   courier: "/sidebar/delivery.svg",
@@ -109,11 +108,11 @@ export function StepFinish() {
   async function handleGoLive() {
     setPublishError(null);
 
-    // The Brand step's logo picker (brand-colors-header-panel.tsx) shares
-    // the theme editor's image pickers, which now only stage a local blob:
-    // preview until the real upload happens right before publish (see
-    // pending-uploads.ts) — resolve that here or a blob: URL (dead outside
-    // this tab) would get saved as the site's real logo forever.
+    // step-shop-basics's logo picker shares the theme editor's image
+    // pickers, which now only stage a local blob: preview until the real
+    // upload happens right before publish (see pending-uploads.ts) —
+    // resolve that here or a blob: URL (dead outside this tab) would get
+    // saved as the site's real logo forever.
     let draftSettings = state.draftSettings;
     if (currentSite?.id) {
       try {
@@ -127,8 +126,8 @@ export function StepFinish() {
       }
     }
 
-    // The wizard's shop-basics/brand steps kept their edits in
-    // state.draftSettings, not in the theme editor's own localStorage draft
+    // The wizard's own steps keep their edits in state.draftSettings, not
+    // in the theme editor's own localStorage draft
     // — write it there first so publishNow() (which reads loadThemeDraft)
     // actually publishes what the merchant typed in this wizard.
     saveThemeDraft(state.templateKey, draftSettings);

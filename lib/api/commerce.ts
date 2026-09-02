@@ -81,6 +81,76 @@ export async function deleteCategory(
 }
 
 // ---------------------------------------------------------------------------
+// Events — sale/promo campaigns. GET paginates (Page<EventOut>) even though
+// the per-tenant cap is small, mirroring app/api/events.py exactly.
+// ---------------------------------------------------------------------------
+
+export type EventOut = {
+  id: string;
+  site_id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  cta_label: string;
+  discount_percent: number;
+  is_active: boolean;
+  /** Not a real column — derived from the event's bound products, built by
+   * app/api/events.py's _event_out(). */
+  product_ids: string[];
+  product_count: number;
+  created_at: string;
+};
+
+export type EventCreate = {
+  name: string;
+  slug?: string;
+  description?: string | null;
+  image_url?: string | null;
+  cta_label?: string;
+  discount_percent: number;
+  product_ids?: string[];
+  is_active?: boolean;
+};
+
+export type EventUpdate = Partial<EventCreate>;
+
+export async function listEvents(
+  siteId: string,
+  params: { limit?: number; offset?: number } = {},
+): Promise<Page<EventOut>> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params.limit ?? 100));
+  search.set("offset", String(params.offset ?? 0));
+  return request<Page<EventOut>>(`/sites/${siteId}/events?${search.toString()}`);
+}
+
+export async function createEvent(siteId: string, data: EventCreate): Promise<EventOut> {
+  return request<EventOut>(`/sites/${siteId}/events`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateEvent(
+  siteId: string,
+  eventId: string,
+  data: EventUpdate,
+): Promise<EventOut> {
+  return request<EventOut>(`/sites/${siteId}/events/${eventId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/** Products bound to this event are NOT deleted — only the event_products
+ * membership rows go (event_products.event_id is ON DELETE CASCADE, not
+ * anything on the products table itself). */
+export async function deleteEvent(siteId: string, eventId: string): Promise<void> {
+  await request<void>(`/sites/${siteId}/events/${eventId}`, { method: "DELETE" });
+}
+
+// ---------------------------------------------------------------------------
 // Products — paginated (Page<ProductOut>).
 // ---------------------------------------------------------------------------
 
@@ -450,6 +520,10 @@ export async function updateOrderStatus(
 
 export function useCategoriesSWR(siteId: string | null): SWRResponse<CategoryOut[]> {
   return useSWR(siteId ? [siteId, "categories"] : null, ([id]) => listCategories(id));
+}
+
+export function useEventsSWR(siteId: string | null): SWRResponse<Page<EventOut>> {
+  return useSWR(siteId ? [siteId, "events"] : null, ([id]) => listEvents(id));
 }
 
 export function useProductsSWR(

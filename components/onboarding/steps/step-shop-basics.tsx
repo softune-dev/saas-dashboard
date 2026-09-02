@@ -7,7 +7,7 @@ import { SettingsInput, SettingsSelect } from "@/components/settings/site/ui/set
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { useToast } from "@/components/ui/toast";
-import { updateTenantBusiness, uploadSiteMedia } from "@/lib/api";
+import { uploadSiteMedia } from "@/lib/api";
 import { getSiteSettings, saveSiteBusiness } from "@/lib/api/site-settings";
 import { useOnboarding } from "../onboarding-context";
 
@@ -24,18 +24,13 @@ export function StepShopBasics() {
   const s = state.draftSettings;
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
-  // These fields are batched into two real writes (tenant identity via
-  // updateTenantBusiness, storefront category via saveSiteBusiness) rather
-  // than one call per keystroke — the save runs once, right before the
-  // wizard advances past this step (see onboarding-context's continueOrSkip).
+  // Storefront category is batched into one real write (saveSiteBusiness)
+  // rather than one call per keystroke — the save runs once, right before
+  // the wizard advances past this step (see onboarding-context's
+  // continueOrSkip). Legal business name/TIN/trade license used to be
+  // collected here too; that's now Settings → Business, not onboarding.
   useEffect(() => {
     registerSaveHandler(async () => {
-      await updateTenantBusiness({
-        legal_name: state.legalBusinessName || undefined,
-        trade_name: state.tradeName || undefined,
-        tin: state.taxId || undefined,
-        trade_license: state.tradeLicenseNo || undefined,
-      });
       if (currentSite?.id && state.shopCategory) {
         // business.type is the one real field this "shop category" question
         // maps to — patchSite replaces the whole `business` object, so the
@@ -48,15 +43,7 @@ export function StepShopBasics() {
       }
     });
     return () => registerSaveHandler(null);
-  }, [
-    registerSaveHandler,
-    currentSite?.id,
-    state.legalBusinessName,
-    state.tradeName,
-    state.taxId,
-    state.tradeLicenseNo,
-    state.shopCategory,
-  ]);
+  }, [registerSaveHandler, currentSite?.id, state.shopCategory]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -186,50 +173,6 @@ export function StepShopBasics() {
         }
         placeholder="A short line about your brand"
       />
-
-      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
-        <MaskIcon src="/sidebar/account.svg" className="size-4 text-primary" />
-        Business details
-      </div>
-
-      <div className="flex flex-col gap-4 rounded-md border border-border bg-search-bg/40 p-4">
-        <SettingsInput
-          label="Legal business name *"
-          value={state.legalBusinessName || ""}
-          onChange={(e) =>
-            dispatch({ type: "setField", field: "legalBusinessName", value: e.target.value })
-          }
-          placeholder="Type your legal business name"
-        />
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <SettingsInput
-            label="Trade / brand name"
-            value={state.tradeName || ""}
-            onChange={(e) =>
-              dispatch({ type: "setField", field: "tradeName", value: e.target.value })
-            }
-            placeholder="Type your trade or brand name"
-          />
-          <SettingsInput
-            label="TIN / VAT number"
-            value={state.taxId || ""}
-            onChange={(e) =>
-              dispatch({ type: "setField", field: "taxId", value: e.target.value })
-            }
-            placeholder="Type your TIN or VAT number"
-          />
-        </div>
-
-        <SettingsInput
-          label="Trade license no."
-          value={state.tradeLicenseNo || ""}
-          onChange={(e) =>
-            dispatch({ type: "setField", field: "tradeLicenseNo", value: e.target.value })
-          }
-          placeholder="Type your trade license number"
-        />
-      </div>
     </div>
   );
 }

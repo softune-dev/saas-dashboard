@@ -1,49 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { updateTenantNotifications, type TenantNotificationPrefs } from "@/lib/api";
+import { useSession } from "@/components/providers/session-provider";
 import { SettingsActions } from "@/components/settings/site/ui/settings-actions";
+import { useToast } from "@/components/ui/toast";
 
-type Toggle = {
-  id: string;
-  label: string;
-  description: string;
-  enabled: boolean;
-};
-
-const initialToggles: Toggle[] = [
+const TOGGLES: { id: keyof TenantNotificationPrefs; label: string; description: string }[] = [
   {
     id: "orders",
     label: "New orders",
     description: "Email when a customer places an order",
-    enabled: true,
   },
   {
-    id: "low-stock",
+    id: "low_stock",
     label: "Low stock alerts",
     description: "Notify when product stock is low",
-    enabled: true,
   },
   {
     id: "billing",
     label: "Billing & invoices",
     description: "Subscription renewals and payment receipts",
-    enabled: true,
   },
   {
     id: "marketing",
     label: "Product tips",
     description: "Occasional Softune product updates",
-    enabled: false,
   },
 ];
 
-export function AccountNotifications() {
-  const [toggles, setToggles] = useState(initialToggles);
+const FALLBACK: TenantNotificationPrefs = {
+  orders: true,
+  low_stock: true,
+  billing: true,
+  marketing: false,
+};
 
-  function flip(id: string) {
-    setToggles((list) =>
-      list.map((t) => (t.id === id ? { ...t, enabled: !t.enabled } : t)),
-    );
+export function AccountNotifications() {
+  const { me, refetch } = useSession();
+  const { toast } = useToast();
+  const [prefs, setPrefs] = useState<TenantNotificationPrefs>(
+    me?.tenant.notifications ?? FALLBACK,
+  );
+  const [busy, setBusy] = useState(false);
+
+  // Real tenant data may arrive after this component's first render — sync
+  // once it does, instead of only ever showing the fallback defaults.
+  useEffect(() => {
+    if (me?.tenant.notifications) setPrefs(me.tenant.notifications);
+  }, [me?.tenant.notifications]);
+
+  function flip(id: keyof TenantNotificationPrefs) {
+    setPrefs((p) => ({ ...p, [id]: !p[id] }));
+  }
+
+  async function handleSave() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await updateTenantNotifications(prefs);
+      await refetch();
+      toast({ title: "Notification preferences saved", variant: "success" });
+    } catch (err) {
+      toast({
+        title: "Couldn't save preferences",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "info",
+      });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -53,7 +79,7 @@ export function AccountNotifications() {
       </h2>
 
       <ul className="flex flex-col gap-3">
-        {toggles.map((item) => (
+        {TOGGLES.map((item) => (
           <li
             key={item.id}
             className="flex items-center justify-between gap-4 rounded-md border border-border px-3 py-3"
@@ -68,18 +94,18 @@ export function AccountNotifications() {
             <button
               type="button"
               role="switch"
-              aria-checked={item.enabled}
+              aria-checked={prefs[item.id]}
               onClick={() => flip(item.id)}
               className={[
                 "relative h-6 w-11 shrink-0 rounded-full transition-colors",
-                item.enabled ? "bg-primary" : "bg-border",
+                prefs[item.id] ? "bg-primary" : "bg-border",
               ].join(" ")}
             >
               <span
                 className={[
                   // Thumb stays white in both themes for contrast on the track.
                   "absolute top-0.5 left-0.5 size-5 rounded-full bg-[#ffffff] transition-transform",
-                  item.enabled ? "translate-x-5" : "translate-x-0",
+                  prefs[item.id] ? "translate-x-5" : "translate-x-0",
                 ].join(" ")}
               />
             </button>
@@ -87,7 +113,10 @@ export function AccountNotifications() {
         ))}
       </ul>
 
-      <SettingsActions saveLabel="Save preferences" />
+      <SettingsActions
+        saveLabel={busy ? "Saving…" : "Save preferences"}
+        onSave={handleSave}
+      />
     </section>
   );
 }

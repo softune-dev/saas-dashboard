@@ -335,6 +335,13 @@ export type TenantBusiness = {
   billing_email: string | null;
 };
 
+export type TenantNotificationPrefs = {
+  orders: boolean;
+  low_stock: boolean;
+  billing: boolean;
+  marketing: boolean;
+};
+
 export type TenantOut = {
   id: string;
   slug: string;
@@ -342,6 +349,7 @@ export type TenantOut = {
   plan: string;
   status: string;
   business: TenantBusiness;
+  notifications: TenantNotificationPrefs;
   /** ISO timestamp when plan is "trial"; null for every other plan. */
   trial_expires_at: string | null;
   created_at: string;
@@ -386,13 +394,34 @@ export async function updateTenantBusiness(data: {
   });
 }
 
-export async function changePassword(data: {
-  current_password: string;
-  new_password: string;
-}): Promise<void> {
-  await request<void>("/auth/change-password", {
-    method: "POST",
+/** PATCH /auth/tenant/notifications — Account -> Notifications toggles.
+ * Only the changed keys need to be sent; unset ones keep their current
+ * value (see app/api/auth.py's merge-into-JSONB behavior). */
+export async function updateTenantNotifications(
+  data: Partial<TenantNotificationPrefs>,
+): Promise<TenantOut> {
+  return request<TenantOut>("/auth/tenant/notifications", {
+    method: "PATCH",
     body: JSON.stringify(data),
+  });
+}
+
+/** Step 1 of the OTP-verified password change — verifies the current
+ * password and emails a code. Throws if the current password is wrong,
+ * same as the old single-step endpoint did. */
+export async function requestChangePasswordOtp(currentPassword: string): Promise<void> {
+  await request<void>("/auth/change-password/request-otp", {
+    method: "POST",
+    body: JSON.stringify({ current_password: currentPassword }),
+  });
+}
+
+/** Step 2 — the code from requestChangePasswordOtp, plus the new password.
+ * Signs out every other session on success. */
+export async function confirmChangePassword(otp: string, newPassword: string): Promise<void> {
+  await request<void>("/auth/change-password/confirm", {
+    method: "POST",
+    body: JSON.stringify({ otp, new_password: newPassword }),
   });
 }
 
@@ -539,7 +568,7 @@ export async function completeOnboarding(siteId: string): Promise<SiteOut> {
   return request<SiteOut>(`/sites/${siteId}/complete-onboarding`, { method: "POST" });
 }
 
-export type MediaCategory = "hero" | "products" | "categories" | "other";
+export type MediaCategory = "hero" | "products" | "categories" | "events" | "other";
 
 export type UploadedMedia = {
   url: string;
@@ -709,4 +738,24 @@ export async function cleanupSiteMedia(siteId: string): Promise<MediaCleanupResu
   return request<MediaCleanupResult>(`/sites/${siteId}/media/cleanup`, {
     method: "POST",
   });
+}
+
+export type InvoiceOut = {
+  id: string;
+  invoice_number: string;
+  plan: string;
+  amount_cents: number;
+  currency: string;
+  period_label: string;
+  /** Cloudinary URL — null in the gap between the invoice row being
+   * created and the worker's PDF-generation job draining. */
+  pdf_url: string | null;
+  issued_at: string;
+};
+
+/** Every invoice this tenant has ever been issued — event-triggered (trial
+ * start, or a manual plan change by the team), not a recurring billing
+ * cycle. See app/api/billing.py. */
+export async function listInvoices(): Promise<Page<InvoiceOut>> {
+  return request<Page<InvoiceOut>>("/billing/invoices");
 }

@@ -11,6 +11,7 @@ const CATEGORY_LABELS: Record<MediaCategory, string> = {
   hero: "Hero",
   products: "Products",
   categories: "Categories",
+  events: "Events",
   other: "Other",
 };
 
@@ -19,6 +20,7 @@ const FILTERS: { value: MediaCategory | "all"; label: string }[] = [
   { value: "hero", label: "Hero" },
   { value: "products", label: "Products" },
   { value: "categories", label: "Categories" },
+  { value: "events", label: "Events" },
   { value: "other", label: "Other" },
 ];
 

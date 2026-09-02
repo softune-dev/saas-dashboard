@@ -52,10 +52,6 @@ function freshState(templateKey: TemplateKey = "aurora"): OnboardingState {
     templateKey,
     draftSettings: draft,
     shopCategory: "",
-    legalBusinessName: "",
-    taxId: "",
-    tradeName: "",
-    tradeLicenseNo: "",
     categories: [],
     products: [],
     courierConnections: [],
@@ -219,16 +215,9 @@ export function canContinue(state: OnboardingState, stepId: OnboardingStepId): b
     case "shop":
       return (
         (state.draftSettings.siteName || "").trim().length > 0 &&
-        (state.legalBusinessName || "").trim().length > 0 &&
         (state.draftSettings.tagline || "").trim().length > 0 &&
         (state.draftSettings.logoType === "text" ||
           (state.draftSettings.logoImage || "").trim().length > 0)
-      );
-    case "brand":
-      return (
-        !!state.draftSettings.primaryColor &&
-        !!state.draftSettings.displayFont &&
-        !!state.draftSettings.bodyFont
       );
     case "categories":
       return state.categories.length >= 1;
@@ -380,10 +369,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           seoOgDescription: keep(baseline.seoOgDescription, settings.seo?.og_description),
           seoOgImage: keep(baseline.seoOgImage, settings.seo?.og_image),
           seoFavicon: keep(baseline.seoFavicon, settings.seo?.favicon),
-          legalBusinessName: keep(baseline.legalBusinessName, me?.tenant.business.legal_name ?? undefined),
-          tradeName: keep(baseline.tradeName, me?.tenant.business.trade_name ?? undefined),
-          taxId: keep(baseline.taxId, me?.tenant.business.tin ?? undefined),
-          tradeLicenseNo: keep(baseline.tradeLicenseNo, me?.tenant.business.trade_license ?? undefined),
         };
         dispatch({ type: "hydrateFromBackend", patch });
       } catch {

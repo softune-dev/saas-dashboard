@@ -21,10 +21,6 @@ export type OnboardingState = {
   templateKey: TemplateKey;
   draftSettings: SiteEditorSettings;
   shopCategory: string;
-  legalBusinessName: string;
-  taxId: string;
-  tradeName: string;
-  tradeLicenseNo: string;
   // Real rows fetched from the backend (listCategories/listProducts/
   // listCourierConnections/listPaymentConnections) — never client-generated,
   // so ids are always real DB ids. Refetched into these on every mutation

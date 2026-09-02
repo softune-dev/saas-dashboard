@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import { useSession } from "@/components/providers/session-provider";
+import { listInvoices } from "@/lib/api";
 import { SWITCHABLE_PLANS, planById } from "./billing-data";
 import { ContactSalesModal } from "./contact-sales-modal";
 
@@ -14,6 +15,23 @@ export function CurrentPlanCard() {
   const plan = planById(currentPlanId);
   const isDemo = currentPlanId === "demo";
   const [upgradeTarget, setUpgradeTarget] = useState<typeof SWITCHABLE_PLANS[number] | null>(null);
+  // Most recent invoice — items come back newest-first (see
+  // app/api/billing.py's order_by), so [0] is the latest.
+  const [latestInvoiceNumber, setLatestInvoiceNumber] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    listInvoices()
+      .then((page) => {
+        if (!cancelled) setLatestInvoiceNumber(page.items[0]?.invoice_number ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setLatestInvoiceNumber(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // First switchable plan above the current one, for the "Upgrade plan"
   // shortcut — Business has nothing above it, so that button just hides.
@@ -38,6 +56,11 @@ export function CurrentPlanCard() {
         <p className="mt-1 text-xs text-white/80">
           {isDemo ? "Assigned by the Softune team" : "1 store"}
         </p>
+        {latestInvoiceNumber ? (
+          <p className="mt-1 text-[11px] font-medium tracking-wide text-white/70">
+            Latest invoice: {latestInvoiceNumber}
+          </p>
+        ) : null}
 
         {plan ? (
           <ul className="mt-5 flex flex-col gap-2.5 text-xs text-white/95">

@@ -7,12 +7,15 @@ import { useToast } from "@/components/ui/toast";
 import { findSiteByTemplateKey, getSiteTheme } from "@/lib/api";
 import {
   listCategories,
+  listEvents,
   listProducts,
   type CategoryOut,
+  type EventOut,
   type ProductOut,
 } from "@/lib/api/commerce";
 import type { Category as PickerCategory } from "@/components/categories/categories-data";
 import type { Product as PickerProduct } from "@/components/products/products-data";
+import type { PickerEvent } from "./entity-picker";
 import {
   getDraftMissingKeys,
   hasThemeDraft,
@@ -117,18 +120,21 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
   // state rather than a loading flicker, since this is typically instant).
   const [rawCategories, setRawCategories] = useState<CategoryOut[]>([]);
   const [rawProducts, setRawProducts] = useState<ProductOut[]>([]);
+  const [rawEvents, setRawEvents] = useState<EventOut[]>([]);
 
   useEffect(() => {
     if (!realSiteId) return;
     let cancelled = false;
     (async () => {
-      const [cats, prods] = await Promise.all([
+      const [cats, prods, evts] = await Promise.all([
         listCategories(realSiteId).catch(() => []),
         listProducts(realSiteId, { limit: 100 }).catch(() => ({ items: [], total: 0, limit: 100, offset: 0 })),
+        listEvents(realSiteId).catch(() => ({ items: [], total: 0, limit: 100, offset: 0 })),
       ]);
       if (cancelled) return;
       setRawCategories(cats);
       setRawProducts(prods.items);
+      setRawEvents(evts.items);
     })();
     return () => {
       cancelled = true;
@@ -167,6 +173,21 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
         updatedAt: "",
       })),
     [rawProducts, rawCategories],
+  );
+  // Only active events are ever meaningful to feature on the homepage —
+  // an inactive one wouldn't apply its discount at checkout, so featuring
+  // it would be misleading.
+  const catalogEvents = useMemo<PickerEvent[]>(
+    () =>
+      rawEvents
+        .filter((e) => e.is_active)
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          image: e.image_url ?? "",
+          discountPercent: e.discount_percent,
+        })),
+    [rawEvents],
   );
 
   useEffect(() => {
@@ -554,6 +575,7 @@ export function ThemeEditorView({ siteId, previewUrl }: ThemeEditorViewProps) {
             previewUrl={effectivePreviewUrl}
             categories={catalogCategories}
             products={catalogProducts}
+            events={catalogEvents}
             panel={panel}
             activePageId={activePage?.id ?? ""}
             dirty={dirty}

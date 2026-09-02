@@ -5,7 +5,6 @@ import { ONBOARDING_STEPS } from "./onboarding-steps";
 import { useOnboarding } from "./onboarding-context";
 import { StepNav } from "./step-nav";
 import { StepShopBasics } from "./steps/step-shop-basics";
-import { StepBrand } from "./steps/step-brand";
 import { StepCategories } from "./steps/step-categories";
 import { StepProducts } from "./steps/step-products";
 import { StepCourier } from "./steps/step-courier";
@@ -19,7 +18,6 @@ import type { OnboardingStepId } from "./onboarding-steps";
 
 const STEP_LOTTIE: Record<OnboardingStepId, string> = {
   shop: "/info.lottie",
-  brand: "/theme.lottie",
   categories: "/category.lottie",
   products: "/category.lottie",
   courier: "/delivery.lottie",
@@ -40,8 +38,6 @@ function StepBody() {
   switch (step.id) {
     case "shop":
       return <StepShopBasics />;
-    case "brand":
-      return <StepBrand />;
     case "categories":
       return <StepCategories />;
     case "products":

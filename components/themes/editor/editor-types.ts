@@ -45,6 +45,7 @@ export type SitePage = {
 export type SectionType =
   | "banner"
   | "hero"
+  | "events"
   | "categories"
   | "featureProducts"
   | "productShowcase"
@@ -118,6 +119,12 @@ export type SiteEditorSettings = {
   // 16:9 images when empty. More than one image in a set auto-slides.
   heroImages: string[];
   heroImagesSquare: string[];
+  // Events — up to 3 sale/promo campaigns featured on the homepage, right
+  // under Hero. No section heading (deliberately un-editable — the storefront
+  // renders no title for this section at all). Explicitly curated, no
+  // "empty selection = show all" fallback (unlike Categories below) — see
+  // EventPicker's own comment.
+  selectedEventIds: string[];
   // Categories — pick from dashboard categories by id
   categoriesTitle: string;
   selectedCategoryIds: string[];
@@ -190,6 +197,7 @@ export const sectionCatalog: {
 }[] = [
   { type: "banner", label: "Banner" },
   { type: "hero", label: "Hero" },
+  { type: "events", label: "Events" },
   { type: "categories", label: "Categories" },
   { type: "featureProducts", label: "Feature products" },
   { type: "productShowcase", label: "Product showcase" },
@@ -201,10 +209,23 @@ export const sectionCatalog: {
   { type: "footer", label: "Footer" },
 ];
 
+/** Section types a given theme's own SectionRenderer.tsx has no rendering
+ * for at all — a permanent no-op, not just an unfilled slot. "Add section"
+ * must never offer these: adding one would put a section in the merchant's
+ * list that visibly does nothing on the live site. Currently only bazaar's
+ * "banner" (its hero already owns that promo-strip role — see
+ * templates/bazaar/sections/SectionRenderer.tsx's own comment). Keyed by
+ * themes-data id (the same key defaultSiteSettingsByTheme uses), not the
+ * backend Template.key. */
+export const unsupportedSectionsByTheme: Record<string, SectionType[]> = {
+  bazaar: ["banner"],
+};
+
 /** Recommended top-to-bottom homepage section order */
 export const defaultSectionOrder: PageSection[] = [
   { id: "s1", type: "banner" },
   { id: "s2", type: "hero" },
+  { id: "s2b", type: "events" },
   { id: "s3", type: "categories" },
   { id: "s4", type: "featureProducts" },
   { id: "s5", type: "productShowcase" },

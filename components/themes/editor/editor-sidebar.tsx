@@ -27,13 +27,16 @@ import {
 } from "./editor-field";
 import {
   CategoryPicker,
+  EventPicker,
   ProductPicker,
   ProductSinglePicker,
+  type PickerEvent,
 } from "./entity-picker";
 import {
   pageSupportsContentEdit,
   pageSupportsSections,
   sectionCatalog,
+  unsupportedSectionsByTheme,
   sectionLabel,
   SIDEBAR_MAX,
   SIDEBAR_MIN,
@@ -82,6 +85,9 @@ type EditorSidebarProps = {
    * Showcase/Product Showcase pickers. Empty until siteId resolves. */
   categories: PickerCategory[];
   products: PickerProduct[];
+  /** Real backend events — feeds the homepage Events section's featured
+   * picker. Empty until siteId resolves. */
+  events: PickerEvent[];
   panel: EditorPanelId;
   activePageId: string;
   dirty: boolean;
@@ -110,6 +116,7 @@ export function EditorSidebar({
   previewUrl,
   categories,
   products,
+  events,
   panel,
   activePageId,
   dirty,
@@ -153,8 +160,11 @@ export function EditorSidebar({
       }))
     : [];
 
+  const unsupportedForTheme = unsupportedSectionsByTheme[themeId] ?? [];
   const availableToAdd = sectionCatalog.filter(
-    (c) => !settings.sections.some((s) => s.type === c.type),
+    (c) =>
+      !settings.sections.some((s) => s.type === c.type) &&
+      !unsupportedForTheme.includes(c.type),
   );
 
   const activeSection = settings.sections.find((s) => s.type === panel);
@@ -434,6 +444,7 @@ export function EditorSidebar({
                     previewUrl={previewUrl}
                     categories={categories}
                     products={products}
+                    events={events}
                     activePageId={activePageId}
                     onChange={onChange}
                     availableToAdd={availableToAdd}
@@ -585,6 +596,7 @@ function PanelFields({
   previewUrl,
   categories,
   products,
+  events,
   activePageId,
   onChange,
   availableToAdd,
@@ -605,6 +617,7 @@ function PanelFields({
   previewUrl?: string;
   categories: PickerCategory[];
   products: PickerProduct[];
+  events: PickerEvent[];
   activePageId: string;
   onChange: (p: Partial<SiteEditorSettings>) => void;
   availableToAdd: { type: SectionType; label: string }[];
@@ -727,6 +740,16 @@ function PanelFields({
     );
   }
 
+  if (panel === "events") {
+    return (
+      <EventPicker
+        selectedIds={settings.selectedEventIds}
+        options={events}
+        onChange={(ids) => onChange({ selectedEventIds: ids })}
+      />
+    );
+  }
+
   if (panel === "categories") {
     return (
       <>
@@ -740,6 +763,7 @@ function PanelFields({
           selectedIds={settings.selectedCategoryIds}
           options={categories}
           onChange={(ids) => onChange({ selectedCategoryIds: ids })}
+          autoFillFromCatalog
         />
       </>
     );
@@ -759,6 +783,7 @@ function PanelFields({
           options={products}
           onChange={(ids) => onChange({ selectedProductIds: ids })}
           label="Featured products"
+          autoFillFromCatalog
         />
       </>
     );
@@ -1056,6 +1081,7 @@ function PageContentFields({
           options={products}
           onChange={(ids) => onChange({ selectedProductIds: ids })}
           label="Products to preview"
+          autoFillFromCatalog
         />
       </>
     );
@@ -1086,6 +1112,7 @@ function PageContentFields({
           selectedIds={settings.selectedCategoryIds}
           options={categories}
           onChange={(ids) => onChange({ selectedCategoryIds: ids })}
+          autoFillFromCatalog
         />
       </>
     );
@@ -1098,6 +1125,7 @@ function PageContentFields({
         options={products}
         onChange={(ids) => onChange({ selectedProductIds: ids })}
         label="Sample cart products"
+        autoFillFromCatalog
       />
     );
   }

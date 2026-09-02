@@ -16,6 +16,7 @@ export const setupItem: NavItem = {
 export const menuItems: NavItem[] = [
   { label: "Dashboard", href: "/", icon: "/sidebar/dashboard.svg" },
   { label: "Categories", href: "/categories", icon: "/sidebar/categories.svg" },
+  { label: "Events", href: "/events", icon: "/sidebar/events.svg", tag: "New" },
   { label: "Products", href: "/products", icon: "/sidebar/products.svg" },
   { label: "Orders", href: "/orders", icon: "/sidebar/orders.svg" },
   { label: "Store Sale", href: "/pos", icon: "/sidebar/shop-bag.svg", tag: "New" },

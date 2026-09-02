@@ -1,6 +1,5 @@
 export type OnboardingStepId =
   | "shop"
-  | "brand"
   | "categories"
   | "products"
   | "courier"
@@ -22,13 +21,6 @@ export const ONBOARDING_STEPS: OnboardingStepDef[] = [
     id: "shop",
     title: "Shop basics",
     description: "Name, logo, tagline, and category for your store.",
-    required: true,
-    skippable: false,
-  },
-  {
-    id: "brand",
-    title: "Brand",
-    description: "Colors and fonts that define how your storefront looks.",
     required: true,
     skippable: false,
   },
