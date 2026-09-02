@@ -119,7 +119,7 @@ export function StepSeo() {
         onChange={(e) =>
           dispatch({ type: "setField", field: "seoKeywords", value: e.target.value })
         }
-        placeholder="e.g. clothing, fashion, dhaka, online shopping"
+        placeholder="Type your keywords, separated by commas"
       />
 
       <div className="grid grid-cols-1 gap-4 border-t border-border dark:border-transparent pt-4 sm:grid-cols-2">

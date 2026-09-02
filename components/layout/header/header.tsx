@@ -11,6 +11,7 @@ import { SearchBar } from "./search-bar";
 import { StorePill } from "./store-pill";
 import { SuperadminAccountPill } from "./superadmin-account-pill";
 import { SuperadminSearchBar } from "./superadmin-search-bar";
+import { TrialBadge } from "./trial-badge";
 
 type HeaderProps = {
   /** Opens the mobile nav drawer (< md). */
@@ -48,6 +49,7 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
       <div className="hidden md:contents">
         <ThemeToggle className="ml-5" />
       </div>
+      <TrialBadge className="ml-2 md:ml-3" />
 
       <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 md:gap-2 lg:gap-3">
         {isSuperadmin ? (

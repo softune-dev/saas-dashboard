@@ -12,6 +12,7 @@ import { formatNumber } from "@/lib/format";
 import { useSuperAdminStatsSWR } from "@/lib/api/superadmin";
 
 const PLAN_LABELS: Record<string, string> = {
+  trial: "Trial",
   demo: "Demo",
   starter: "Starter",
   growth: "Growth",

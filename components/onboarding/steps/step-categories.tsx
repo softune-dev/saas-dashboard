@@ -122,6 +122,18 @@ export function StepCategories() {
               </button>
             </li>
           ))}
+          {/* Empty slots up to 5, so the list reads as "a shop with room for
+              categories" instead of one lonely row after the first add. */}
+          {Array.from({ length: Math.max(0, 5 - state.categories.length) }).map((_, i) => (
+            <li
+              key={`skeleton-${i}`}
+              aria-hidden
+              className="flex items-center gap-4 rounded-md border border-dashed border-border px-3 py-2.5"
+            >
+              <span className="size-16 shrink-0 animate-pulse rounded-md bg-search-bg" />
+              <span className="h-4 w-28 animate-pulse rounded bg-search-bg" />
+            </li>
+          ))}
         </ul>
       )}
 

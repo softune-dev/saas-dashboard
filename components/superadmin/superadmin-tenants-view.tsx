@@ -1,17 +1,19 @@
 "use client";
 
-import { Building2, Pencil, Plus, Search } from "lucide-react";
+import { Ban, Building2, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { DataTable, TableSkeleton, type TableColumn } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { formatDisplayDate } from "@/lib/format";
+import { formatDisplayDate, trialDaysLeft } from "@/lib/format";
 import {
   createAccount,
+  deleteTenant,
   updateTenant,
   useTenantsSWR,
   type CreateAccountIn,
@@ -34,6 +36,11 @@ export function SuperAdminTenantsView() {
   const [createBusy, setCreateBusy] = useState(false);
   const [editing, setEditing] = useState<SuperAdminTenant | null>(null);
   const [editBusy, setEditBusy] = useState(false);
+  const [confirming, setConfirming] = useState<{
+    kind: "ban" | "delete";
+    tenant: SuperAdminTenant;
+  } | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
 
   useEffect(() => {
     setQuery(urlQuery);
@@ -99,6 +106,33 @@ export function SuperAdminTenantsView() {
     }
   }
 
+  async function handleConfirm() {
+    if (!confirming) return;
+    setConfirmBusy(true);
+    try {
+      if (confirming.kind === "ban") {
+        await updateTenant(confirming.tenant.id, { status: "suspended" });
+        toast({ title: "Tenant banned", variant: "success" });
+      } else {
+        await deleteTenant(confirming.tenant.id);
+        toast({ title: "Tenant deleted", variant: "success" });
+      }
+      await mutate();
+      setConfirming(null);
+    } catch (err) {
+      toast({
+        title:
+          confirming.kind === "ban"
+            ? "Couldn't ban tenant"
+            : "Couldn't delete tenant",
+        description: err instanceof Error ? err.message : undefined,
+        variant: "error",
+      });
+    } finally {
+      setConfirmBusy(false);
+    }
+  }
+
   const columns: TableColumn<SuperAdminTenant>[] = [
     {
       id: "name",
@@ -113,9 +147,26 @@ export function SuperAdminTenantsView() {
     {
       id: "plan",
       header: "Plan",
-      cell: (row) => (
-        <span className="capitalize text-muted">{row.plan}</span>
-      ),
+      cell: (row) => {
+        if (row.plan !== "trial") {
+          return <span className="capitalize text-muted">{row.plan}</span>;
+        }
+        const days = trialDaysLeft(row.trial_expires_at);
+        const countdown =
+          days <= 0
+            ? "last day"
+            : days === 1
+              ? "1 day left"
+              : `${days} days left`;
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className="capitalize text-muted">Trial</span>
+            <span className="inline-flex w-fit rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+              {countdown}
+            </span>
+          </div>
+        );
+      },
     },
     {
       id: "status",
@@ -179,14 +230,34 @@ export function SuperAdminTenantsView() {
       headerClassName: "text-right",
       className: "text-right",
       cell: (row) => (
-        <button
-          type="button"
-          aria-label={`Edit ${row.name}`}
-          onClick={() => setEditing(row)}
-          className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
-        >
-          <Pencil className="size-3.5" strokeWidth={1.75} />
-        </button>
+        <div className="inline-flex items-center justify-end gap-0.5">
+          <button
+            type="button"
+            aria-label={`Edit ${row.name}`}
+            onClick={() => setEditing(row)}
+            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
+          >
+            <Pencil className="size-3.5" strokeWidth={1.75} />
+          </button>
+          {row.status !== "suspended" ? (
+            <button
+              type="button"
+              aria-label={`Ban ${row.name}`}
+              onClick={() => setConfirming({ kind: "ban", tenant: row })}
+              className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-amber-500/10 hover:text-amber-700"
+            >
+              <Ban className="size-3.5" strokeWidth={1.75} />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            aria-label={`Delete ${row.name}`}
+            onClick={() => setConfirming({ kind: "delete", tenant: row })}
+            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-600"
+          >
+            <Trash2 className="size-3.5" strokeWidth={1.75} />
+          </button>
+        </div>
       ),
     },
   ];
@@ -259,6 +330,24 @@ export function SuperAdminTenantsView() {
         busy={editBusy}
         onClose={() => setEditing(null)}
         onSave={handleSave}
+      />
+      <ConfirmDialog
+        open={confirming !== null}
+        title={
+          confirming?.kind === "delete"
+            ? `Permanently delete ${confirming.tenant.name}?`
+            : `Ban ${confirming?.tenant.name}?`
+        }
+        description={
+          confirming?.kind === "delete"
+            ? "This is a hard, irreversible delete. The tenant, store, products, orders, and users will be erased and cannot be recovered."
+            : "They will be suspended and cannot log in. You can unsuspend them later from Edit."
+        }
+        confirmLabel={confirming?.kind === "delete" ? "Delete forever" : "Ban"}
+        destructive
+        busy={confirmBusy}
+        onConfirm={handleConfirm}
+        onCancel={() => setConfirming(null)}
       />
     </div>
   );

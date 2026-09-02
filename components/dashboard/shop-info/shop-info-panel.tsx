@@ -12,7 +12,7 @@ import {
   listTemplates,
   resolveSiteLogoUrl,
 } from "@/lib/api";
-import { formatBytes } from "@/lib/format";
+import { displayStorefrontHost, formatBytes } from "@/lib/format";
 
 type ShopInfoPanelProps = {
   productsCount: number;
@@ -201,16 +201,16 @@ export function ShopInfoPanel({
   const templateKey = templates?.find((t) => t.id === currentSite?.template_id)?.key;
   const theme = templateKey ? getThemeById(templateKey) : undefined;
   const host = currentSite?.custom_domain || currentSite?.subdomain;
+  const displayHost = displayStorefrontHost(currentSite);
   // A published site already has a real domain attached (custom_domain, or
   // {subdomain}.SITE_BASE_DOMAIN via the Vercel API automation on publish —
   // see app/api/sites.py's publish_site) — link there directly instead of
   // the shared template preview server. A draft has no real domain yet
   // (that's what publishing does), so it falls back to the same
   // preview-with-?__site= mechanism the theme editor uses.
-  const siteBaseDomain = process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com";
   const realShopUrl =
-    currentSite?.status === "published" && host
-      ? `https://${host.includes(".") ? host : `${host}.${siteBaseDomain}`}`
+    currentSite?.status === "published" && displayHost
+      ? `https://${displayHost}`
       : null;
   const shopUrl =
     realShopUrl ?? (theme?.previewUrl && host ? `${theme.previewUrl}?__site=${host}` : null);
@@ -251,7 +251,7 @@ export function ShopInfoPanel({
           <p className="truncate text-sm font-semibold text-foreground">
             {currentSite?.name ?? "Your site"}
           </p>
-          <p className="truncate text-xs text-muted">{host ?? "No domain yet"}</p>
+          <p className="truncate text-xs text-muted">{displayHost ?? "No domain yet"}</p>
         </div>
         {shopUrl ? (
           <a

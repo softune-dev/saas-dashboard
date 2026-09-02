@@ -49,13 +49,18 @@ export function ToastItemView({ item, onDismiss }: ToastItemProps) {
   const { iconWrap, icon, Icon, stroke } = variantStyles[variant];
   const duration = item.duration ?? 3200;
   const hasDescription = Boolean(item.description?.trim());
+  const uploading = item.progress !== undefined && item.progress < 100;
   const rootRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
 
   useEffect(() => {
+    // While progress is in flight there's no fixed "done" time to count
+    // down to — the timer only starts once progress reaches 100 (or the
+    // caller clears the field, converting it back to a normal toast).
+    if (uploading) return;
     const timer = window.setTimeout(() => onDismiss(item.id), duration);
     return () => window.clearTimeout(timer);
-  }, [duration, item.id, onDismiss]);
+  }, [duration, item.id, onDismiss, uploading]);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -84,8 +89,9 @@ export function ToastItemView({ item, onDismiss }: ToastItemProps) {
       role="status"
       className="pointer-events-auto relative w-[min(100vw-2rem,22rem)] rounded-lg bg-white shadow-[0_8px_30px_-8px_rgba(15,23,42,0.22)] dark:bg-[#32363a] dark:shadow-[0_12px_36px_-10px_rgba(0,0,0,0.55)]"
     >
-      {/* Full-box countdown border: track + depleting stroke (works for 3s or 10s undo). */}
-      {size.w > 0 ? (
+      {/* Full-box countdown border: track + depleting stroke (works for 3s or 10s undo).
+          Skipped while uploading — there's no fixed duration to count down to. */}
+      {size.w > 0 && !uploading ? (
         <svg
           className="pointer-events-none absolute inset-0"
           width={size.w}
@@ -146,6 +152,21 @@ export function ToastItemView({ item, onDismiss }: ToastItemProps) {
             <p className="mt-1 text-xs leading-relaxed text-muted dark:text-zinc-300">
               {item.description}
             </p>
+          ) : null}
+          {item.progress !== undefined ? (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+                <motion.div
+                  className="h-full rounded-full bg-primary"
+                  initial={false}
+                  animate={{ width: `${Math.min(100, Math.max(0, item.progress))}%` }}
+                  transition={{ duration: 0.2, ease: "linear" }}
+                />
+              </div>
+              <span className="shrink-0 text-[11px] font-medium tabular-nums text-muted-soft">
+                {Math.round(item.progress)}%
+              </span>
+            </div>
           ) : null}
         </div>
 

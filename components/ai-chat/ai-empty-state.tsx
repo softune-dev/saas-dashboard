@@ -2,7 +2,6 @@
 
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { ArrowUpRight } from "lucide-react";
-import { DEFAULT_SUGGESTIONS, THEME_EDITOR_SUGGESTIONS } from "./ai-chat-store";
 import { useSuggestedPromptsSWR } from "@/lib/api/ai";
 
 type AiEmptyStateProps = {
@@ -10,15 +9,13 @@ type AiEmptyStateProps = {
   isThemeEditor?: boolean;
 };
 
+const SKELETON_WIDTHS = ["88%", "72%", "80%", "64%"] as const;
+
 export function AiEmptyState({ onSelectSuggestion, isThemeEditor }: AiEmptyStateProps) {
-  // Real per-merchant suggestions (low stock, missing About/FAQs/SEO, no
-  // sales yet) — falls back to the generic hardcoded list while loading or
-  // if the lookup fails, so the sidebar's empty state is never blank.
-  const { data: realSuggestions } = useSuggestedPromptsSWR(
+  const { data: suggestions, isLoading } = useSuggestedPromptsSWR(
     isThemeEditor ? "theme_editor" : "default",
   );
-  const fallback = isThemeEditor ? THEME_EDITOR_SUGGESTIONS : DEFAULT_SUGGESTIONS;
-  const suggestions = realSuggestions && realSuggestions.length > 0 ? realSuggestions : fallback;
+  const showPrompts = Boolean(suggestions && suggestions.length > 0);
 
   return (
     <div className="flex flex-1 flex-col justify-center p-6 text-left">
@@ -39,28 +36,49 @@ export function AiEmptyState({ onSelectSuggestion, isThemeEditor }: AiEmptyState
           : "Tag store data using @ or drop files into the input below."}
       </p>
 
-      {/* Suggestion Cards with Sidebar Icons */}
-      <div className="mt-8 flex w-full flex-col gap-2.5">
-        <span className="text-left text-xs font-semibold tracking-wider text-muted uppercase">
-          {isThemeEditor ? "Theme Editor Prompts" : "Suggested Prompts"}
-        </span>
-        <div className="grid grid-cols-1 gap-2">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.text}
-              type="button"
-              onClick={() => onSelectSuggestion(suggestion.text)}
-              className="group flex items-center justify-between py-1.5 text-left text-sm font-medium text-muted transition-colors hover:text-primary"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <MaskIcon src={suggestion.icon} className="size-4 shrink-0" />
-                <span className="truncate text-foreground transition-colors group-hover:text-primary">{suggestion.text}</span>
-              </div>
-              <ArrowUpRight className="size-4 shrink-0 opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </button>
-          ))}
+      {isLoading || showPrompts ? (
+        <div className="mt-8 flex w-full flex-col gap-2.5">
+          <span className="text-left text-xs font-semibold tracking-wider text-muted uppercase">
+            {isThemeEditor ? "Theme Editor Prompts" : "Suggested Prompts"}
+          </span>
+          <div
+            className="grid grid-cols-1 gap-2"
+            aria-busy={isLoading}
+            aria-live="polite"
+          >
+            {isLoading
+              ? SKELETON_WIDTHS.map((width) => (
+                  <div
+                    key={width}
+                    className="flex items-center gap-2.5 py-1.5"
+                    aria-hidden
+                  >
+                    <div className="size-4 shrink-0 animate-pulse rounded bg-search-bg" />
+                    <div
+                      className="h-3.5 animate-pulse rounded-full bg-search-bg"
+                      style={{ width }}
+                    />
+                  </div>
+                ))
+              : (suggestions ?? []).map((suggestion) => (
+                  <button
+                    key={suggestion.text}
+                    type="button"
+                    onClick={() => onSelectSuggestion(suggestion.text)}
+                    className="group flex items-center justify-between py-1.5 text-left text-sm font-medium text-muted transition-colors hover:text-primary"
+                  >
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <MaskIcon src={suggestion.icon} className="size-4 shrink-0" />
+                      <span className="truncate text-foreground transition-colors group-hover:text-primary">
+                        {suggestion.text}
+                      </span>
+                    </div>
+                    <ArrowUpRight className="size-4 shrink-0 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100" />
+                  </button>
+                ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }

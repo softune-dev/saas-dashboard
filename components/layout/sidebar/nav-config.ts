@@ -41,6 +41,7 @@ export const superadminItems: NavItem[] = [
   { label: "Tenants", href: "/superadmin/tenants", icon: "/sidebar/customers.svg" },
   { label: "Users", href: "/superadmin/users", icon: "/sidebar/user.svg" },
   { label: "Leads", href: "/superadmin/leads", icon: "/sidebar/inbox.svg" },
+  { label: "Demos", href: "/superadmin/demo-requests", icon: "/sidebar/chat.svg" },
   { label: "Tickets", href: "/superadmin/tickets", icon: "/sidebar/help-desk.svg" },
 ];
 

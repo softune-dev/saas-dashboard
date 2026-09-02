@@ -26,18 +26,25 @@ export const themes: ThemeCard[] = [
   {
     id: "aurora",
     status: "active",
+    // Falls back to this whenever the tenant's own site.screenshot_url isn't
+    // ready yet (a worker job captures that ~90s after first publish — see
+    // app/worker.py's handle_capture_screenshot) — without it, a brand-new
+    // trial site's card renders with no image at all until then.
+    imageSrc: "/theme-aurora.webp",
     previewUrl: "https://saas-theme1.vercel.app",
   },
   {
     id: "sweets",
     status: "active",
     // Not deployed yet — still points at the local dev server. Update once
-    // Sweets has a real Vercel project like Aurora/Bazaar above.
+    // Sweets has a real Vercel project like Aurora/Bazaar above, and add a
+    // fallback imageSrc alongside them once one exists.
     previewUrl: "http://localhost:3051",
   },
   {
     id: "bazaar",
     status: "active",
+    imageSrc: "/theme-bazaar.webp",
     previewUrl: "https://saas-theme2.vercel.app",
   },
   {

@@ -172,6 +172,12 @@ export function StepProducts() {
                   } else {
                     setImageUrl(URL.createObjectURL(files[0]));
                   }
+                } catch (err) {
+                  toast({
+                    title: "Couldn't upload image",
+                    description: err instanceof Error ? err.message : "Something went wrong.",
+                    variant: "info",
+                  });
                 } finally {
                   setUploadingImage(false);
                 }

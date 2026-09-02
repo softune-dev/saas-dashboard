@@ -1,17 +1,9 @@
 "use client";
 
-import { Upload } from "lucide-react";
-import { useRef, useState, type DragEvent } from "react";
+import { Upload, X } from "lucide-react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import { SettingsModal } from "../ui/settings-modal";
 import { IMAGE_LIMITS_HINT } from "@/lib/constants/media-limits";
-import type { MediaCategory } from "@/lib/api";
-
-const CATEGORY_OPTIONS: { value: MediaCategory; label: string; hint: string }[] = [
-  { value: "hero", label: "Hero", hint: "Homepage hero slideshow" },
-  { value: "products", label: "Products", hint: "Product photos" },
-  { value: "categories", label: "Categories", hint: "Category thumbnails/banners" },
-  { value: "other", label: "Other", hint: "Logo, favicon, everything else" },
-];
 
 export type UploadTask = {
   id: string;
@@ -23,16 +15,16 @@ export type UploadTask = {
 type UploadMediaModalProps = {
   open: boolean;
   onClose: () => void;
-  onUpload: (files: File[], category: MediaCategory) => Promise<void>;
+  onUpload: (files: File[]) => Promise<void>;
 };
 
-/** Two-step: pick which of the site's four Cloudinary folders these go into
- * (see app/media.py), then drop/select as many files as needed. Uploading
- * standalone here (not through a product/category form) is what lets a
- * merchant stock the library ahead of time and reuse images later via
- * MediaSourceMenu's "Choose from Media" picker. */
+/** Drop/select as many files as needed — everything lands in the "other"
+ * Cloudinary folder (see app/media.py) rather than asking the merchant to
+ * guess a category up front. A product/category form's own MediaSourceMenu
+ * (uploadSiteMedia(..., "products") etc.) is where an image actually gets
+ * its real category, at the point it's genuinely used for that purpose;
+ * asking again here just for library storage was a needless extra step. */
 export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalProps) {
-  const [category, setCategory] = useState<MediaCategory>("products");
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -40,7 +32,6 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
 
   function reset() {
     setFiles([]);
-    setCategory("products");
     setUploading(false);
   }
 
@@ -69,7 +60,7 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
     if (files.length === 0) return;
     setUploading(true);
     try {
-      await onUpload(files, category);
+      await onUpload(files);
       reset();
       onClose();
     } finally {
@@ -80,34 +71,6 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
   return (
     <SettingsModal open={open} title="Upload media" onClose={handleClose}>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-medium text-foreground">Where does this go?</span>
-          <div className="grid grid-cols-2 gap-1.5">
-            {CATEGORY_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setCategory(opt.value)}
-                className={[
-                  "flex items-center justify-center rounded-lg border px-3 py-2 transition-colors",
-                  category === opt.value
-                    ? "border-primary bg-primary"
-                    : "border-border hover:bg-search-bg",
-                ].join(" ")}
-              >
-                <span
-                  className={[
-                    "text-xs font-semibold",
-                    category === opt.value ? "text-white" : "text-foreground",
-                  ].join(" ")}
-                >
-                  {opt.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -140,22 +103,14 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
         </div>
 
         {files.length > 0 ? (
-          <ul className="flex max-h-40 flex-col gap-1.5 overflow-y-auto">
+          <ul className="flex max-h-52 flex-col gap-1.5 overflow-y-auto">
             {files.map((file, i) => (
-              <li
+              <FilePreviewRow
                 key={`${file.name}-${i}`}
-                className="flex items-center justify-between gap-2 rounded-lg bg-search-bg px-3 py-1.5 text-xs"
-              >
-                <span className="min-w-0 truncate text-foreground">{file.name}</span>
-                <button
-                  type="button"
-                  onClick={() => removeFile(i)}
-                  disabled={uploading}
-                  className="shrink-0 text-muted-soft hover:text-red-500 disabled:opacity-50"
-                >
-                  Remove
-                </button>
-              </li>
+                file={file}
+                onRemove={() => removeFile(i)}
+                disabled={uploading}
+              />
             ))}
           </ul>
         ) : null}
@@ -182,5 +137,49 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
         </div>
       </div>
     </SettingsModal>
+  );
+}
+
+/** Owns its own object URL so each row can free it the moment it's removed
+ * or the modal closes, instead of leaking one per selected file. */
+function FilePreviewRow({
+  file,
+  onRemove,
+  disabled,
+}: {
+  file: File;
+  onRemove: () => void;
+  disabled: boolean;
+}) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  return (
+    <li className="flex items-center gap-2.5 rounded-lg bg-search-bg px-2.5 py-1.5 text-xs">
+      <span className="size-8 shrink-0 overflow-hidden rounded-md bg-border">
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewUrl} alt="" className="size-full object-cover" />
+        ) : null}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium text-foreground">{file.name}</p>
+        <p className="text-[10px] text-muted-soft">{(file.size / 1024).toFixed(0)} KB</p>
+      </div>
+      <button
+        type="button"
+        aria-label="Remove"
+        onClick={onRemove}
+        disabled={disabled}
+        className="shrink-0 rounded-md p-1 text-muted-soft transition-colors hover:bg-border hover:text-red-500 disabled:opacity-50"
+      >
+        <X className="size-3.5" strokeWidth={2} />
+      </button>
+    </li>
   );
 }

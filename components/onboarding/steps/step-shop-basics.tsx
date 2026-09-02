@@ -6,6 +6,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { SettingsInput, SettingsSelect } from "@/components/settings/site/ui/settings-field";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
+import { useToast } from "@/components/ui/toast";
 import { updateTenantBusiness, uploadSiteMedia } from "@/lib/api";
 import { getSiteSettings, saveSiteBusiness } from "@/lib/api/site-settings";
 import { useOnboarding } from "../onboarding-context";
@@ -19,6 +20,7 @@ function initials(name: string): string {
 export function StepShopBasics() {
   const { currentSite } = useSession();
   const { state, dispatch, registerSaveHandler } = useOnboarding();
+  const { toast } = useToast();
   const s = state.draftSettings;
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -64,6 +66,7 @@ export function StepShopBasics() {
       </div>
 
       {/* Rectangular Logo Upload */}
+      <p className="text-sm font-medium text-foreground">Shop logo</p>
       <MediaSourceMenu
         siteId={currentSite?.id ?? null}
         category="other"
@@ -84,6 +87,12 @@ export function StepShopBasics() {
                 patch: { logoImage: url, logoType: "image" },
               });
             }
+          } catch (err) {
+            toast({
+              title: "Couldn't upload logo",
+              description: err instanceof Error ? err.message : "Something went wrong.",
+              variant: "info",
+            });
           } finally {
             setUploadingLogo(false);
           }
@@ -129,7 +138,7 @@ export function StepShopBasics() {
               )}
             </button>
             <span className="text-[11px] font-medium text-muted">
-              {uploadingLogo ? "Uploading…" : "(click to upload)"}
+              {uploadingLogo ? "Uploading…" : "Click to upload your logo"}
             </span>
           </div>
         )}
@@ -141,7 +150,7 @@ export function StepShopBasics() {
         onChange={(e) =>
           dispatch({ type: "patchSettings", patch: { siteName: e.target.value } })
         }
-        placeholder="e.g. Acme Corporation"
+        placeholder="Type your shop name"
       />
 
       <SettingsSelect
@@ -157,6 +166,13 @@ export function StepShopBasics() {
           { value: "food", label: "Food & Grocery" },
           { value: "beauty", label: "Beauty & Personal Care" },
           { value: "home", label: "Home & Living" },
+          { value: "jewelry", label: "Jewelry & Accessories" },
+          { value: "sports", label: "Sports & Fitness" },
+          { value: "books", label: "Books & Stationery" },
+          { value: "toys", label: "Toys & Kids" },
+          { value: "automotive", label: "Automotive & Tools" },
+          { value: "health", label: "Health & Wellness" },
+          { value: "pets", label: "Pet Supplies" },
           { value: "services", label: "Services" },
           { value: "other", label: "Other" },
         ]}
@@ -183,7 +199,7 @@ export function StepShopBasics() {
           onChange={(e) =>
             dispatch({ type: "setField", field: "legalBusinessName", value: e.target.value })
           }
-          placeholder="e.g. Acme Holdings Ltd."
+          placeholder="Type your legal business name"
         />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -193,7 +209,7 @@ export function StepShopBasics() {
             onChange={(e) =>
               dispatch({ type: "setField", field: "tradeName", value: e.target.value })
             }
-            placeholder="e.g. Acme Store"
+            placeholder="Type your trade or brand name"
           />
           <SettingsInput
             label="TIN / VAT number"
@@ -201,7 +217,7 @@ export function StepShopBasics() {
             onChange={(e) =>
               dispatch({ type: "setField", field: "taxId", value: e.target.value })
             }
-            placeholder="e.g. 123456789"
+            placeholder="Type your TIN or VAT number"
           />
         </div>
 
@@ -211,7 +227,7 @@ export function StepShopBasics() {
           onChange={(e) =>
             dispatch({ type: "setField", field: "tradeLicenseNo", value: e.target.value })
           }
-          placeholder="e.g. TR-2023-XXXX"
+          placeholder="Type your trade license number"
         />
       </div>
     </div>

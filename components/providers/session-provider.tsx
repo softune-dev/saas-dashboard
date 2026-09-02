@@ -88,20 +88,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const loadSession = useCallback(async () => {
-    let [meData, sitesData] = await Promise.all([getMe(), listSites()]);
-
-    // First-ever load with no avatar set (new signup, or an existing
-    // account from before avatars existed) — assign one of the preset
-    // silhouettes automatically, same as Slack/Google do, so the header
-    // never shows a blank circle. Best-effort: a failed PATCH just means
-    // they see the fallback icon until they set one themselves.
-    if (!meData.user.avatar_url) {
-      try {
-        meData = await updateMe({ avatar_url: randomPresetAvatarUrl() });
-      } catch {
-        // Not fatal — see comment above.
-      }
-    }
+    const [meData, sitesData] = await Promise.all([getMe(), listSites()]);
 
     setMe(meData);
     setSites(sitesData);
@@ -109,6 +96,26 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem(CURRENT_SITE_KEY);
     const initial = sitesData.find((s) => s.id === stored) ?? sitesData[0] ?? null;
     setCurrentSiteIdState(initial?.id ?? null);
+
+    // First-ever load with no avatar set (new signup, or an existing
+    // account from before avatars existed) — assign one of the preset
+    // silhouettes automatically, same as Slack/Google do, so the header
+    // never shows a blank circle. Deliberately NOT awaited above: every
+    // brand-new signup has avatar_url=null, so blocking on this PATCH
+    // added a full extra round trip to the very first page load for
+    // exactly the users a "welcome" moment (StoreLiveModal) targets. Runs
+    // in the background and patches state again once it lands; the
+    // fallback initials cover the gap until then.
+    if (!meData.user.avatar_url) {
+      updateMe({ avatar_url: randomPresetAvatarUrl() })
+        .then((updated) => {
+          setMe(updated);
+          writeSessionCache(updated, sitesData);
+        })
+        .catch(() => {
+          // Not fatal — see comment above.
+        });
+    }
   }, []);
 
   useEffect(() => {

@@ -13,9 +13,11 @@ export type SuperAdminTenant = {
   id: string;
   slug: string;
   name: string;
-  plan: "demo" | "starter" | "growth" | "business";
+  plan: "trial" | "demo" | "starter" | "growth" | "business";
   status: "active" | "suspended" | "cancelled";
   created_at: string;
+  /** ISO timestamp when plan is "trial"; null otherwise. */
+  trial_expires_at: string | null;
   business: {
     legal_name?: string | null;
     trade_name?: string | null;
@@ -112,6 +114,11 @@ export async function updateTenant(
     method: "PATCH",
     body: JSON.stringify(data),
   });
+}
+
+/** Hard delete — 204, no body. Irreversible; every child row cascades. */
+export async function deleteTenant(id: string): Promise<void> {
+  await request<void>(`/superadmin/tenants/${id}`, { method: "DELETE" });
 }
 
 export type SuperAdminLead = {
@@ -317,5 +324,41 @@ export async function updateTicket(
   return request<SuperAdminTicket>(`/superadmin/tickets/${ticketId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
+  });
+}
+
+export type SuperAdminDemoAccess = {
+  id: string;
+  email: string;
+  ip: string | null;
+  request_count: number;
+  first_requested_at: string;
+  last_requested_at: string;
+};
+
+export async function listDemoRequests(
+  params: { q?: string; limit?: number; offset?: number } = {},
+): Promise<Page<SuperAdminDemoAccess>> {
+  const search = new URLSearchParams();
+  if (params.q) search.set("q", params.q);
+  search.set("limit", String(params.limit ?? 50));
+  search.set("offset", String(params.offset ?? 0));
+  return request<Page<SuperAdminDemoAccess>>(
+    `/superadmin/demo-requests?${search}`,
+  );
+}
+
+export function useDemoRequestsSWR(
+  params: { q?: string } = {},
+): SWRResponse<Page<SuperAdminDemoAccess>> {
+  return useSWR(["superadmin-demo-requests", params.q ?? ""], () =>
+    listDemoRequests(params),
+  );
+}
+
+/** Queues the fixed follow-up template. 204, no body. */
+export async function sendDemoMarketingEmail(id: string): Promise<void> {
+  await request<void>(`/superadmin/demo-requests/${id}/send-marketing-email`, {
+    method: "POST",
   });
 }

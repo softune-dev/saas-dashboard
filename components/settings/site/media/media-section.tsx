@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/toast";
 import {
   deleteSiteMedia,
   listAllSiteMedia,
-  uploadSiteMedia,
+  uploadSiteMediaWithProgress,
   type MediaCategory,
   type MediaImage,
 } from "@/lib/api";
@@ -39,7 +39,7 @@ const FILTERS: { value: MediaCategory | "all"; label: string }[] = [
  * computed server-side from what's currently referenced. */
 export function MediaSection() {
   const { currentSite } = useSession();
-  const { toast } = useToast();
+  const { toast, update: updateToast } = useToast();
   const siteId = currentSite?.id ?? null;
 
   const { data, isLoading, mutate } = useSWR(
@@ -109,38 +109,67 @@ export function MediaSection() {
 
   /** Uploads standalone, ahead of use in any product/category form — the
    * point is stocking the library so MediaSourceMenu's "Choose from Media"
-   * has real options later, not attaching to anything right now. Sequential,
-   * not Promise.all: a plan-storage-limit rejection partway through should
-   * stop cleanly (see app/api/media.py's _assert_storage_available) instead
-   * of firing every remaining request in parallel against an already-full
-   * quota. */
-  async function handleUpload(files: File[], category: MediaCategory) {
+   * has real options later, not attaching to anything right now. Always
+   * "other": asking the merchant to guess a category just to store a file
+   * was a needless step — a product/category form's own upload call
+   * (uploadSiteMedia(..., "products") etc.) is where an image gets its
+   * real category, at the point it's actually used for that purpose.
+   * Sequential, not Promise.all: a plan-storage-limit rejection partway
+   * through should stop cleanly (see app/api/media.py's
+   * _assert_storage_available) instead of firing every remaining request
+   * in parallel against an already-full quota.
+   *
+   * One toast per file, created up front so a multi-file upload shows every
+   * file immediately (queued ones just sit at 0% until their turn) instead
+   * of a single opaque "Uploading…" that gives no sense of progress or of
+   * which file is stuck if something goes wrong. */
+  async function handleUpload(files: File[]) {
     if (!siteId) return;
+    const category: MediaCategory = "other";
+    const toastIds = files.map((file) =>
+      toast({
+        title: file.name,
+        description: formatBytes(file.size),
+        progress: 0,
+        duration: 2200,
+      }),
+    );
+
     let uploaded = 0;
-    let firstError: string | null = null;
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]!;
+      const id = toastIds[i]!;
       try {
-        await uploadSiteMedia(siteId, file, category);
+        await uploadSiteMediaWithProgress(siteId, file, category, (fraction) =>
+          updateToast(id, { progress: Math.round(fraction * 100) }),
+        );
         uploaded += 1;
+        updateToast(id, {
+          progress: 100,
+          variant: "success",
+          description: `${formatBytes(file.size)} · Uploaded`,
+        });
       } catch (err) {
-        firstError = err instanceof Error ? err.message : "Something went wrong.";
+        updateToast(id, {
+          progress: 100,
+          variant: "info",
+          description: err instanceof Error ? err.message : "Something went wrong.",
+          duration: 5000,
+        });
+        // A plan-storage-limit rejection applies to every file after this
+        // one too — mark the rest as skipped instead of leaving them
+        // stuck at 0% forever.
+        for (let j = i + 1; j < files.length; j++) {
+          updateToast(toastIds[j]!, {
+            progress: 100,
+            variant: "info",
+            description: "Skipped — previous upload failed",
+          });
+        }
         break;
       }
     }
-    await mutate();
-    if (uploaded > 0) {
-      toast({
-        title: uploaded === 1 ? "Image uploaded" : `${uploaded} images uploaded`,
-        variant: "success",
-      });
-    }
-    if (firstError) {
-      toast({
-        title: uploaded > 0 ? "Stopped before finishing" : "Upload failed",
-        description: firstError,
-        variant: "info",
-      });
-    }
+    if (uploaded > 0) await mutate();
   }
 
   const selectedImages = images.filter((img) => selected.has(img.public_id));

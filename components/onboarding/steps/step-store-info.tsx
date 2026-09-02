@@ -126,7 +126,7 @@ export function StepStoreInfo() {
               value: e.target.value,
             })
           }
-          placeholder="e.g. Crafted with passion & heritage"
+          placeholder="Type your about heading"
         />
         <SettingsTextarea
           label="About story"

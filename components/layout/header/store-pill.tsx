@@ -25,6 +25,7 @@ import {
   switchToAccount,
   type LinkedAccount,
 } from "@/lib/linked-accounts";
+import { displayStorefrontHost } from "@/lib/format";
 import { AccountSwitchOverlay } from "./account-switch-overlay";
 import { AddAccountModal } from "./add-account-modal";
 import { SetupProgressRing } from "./setup-progress-ring";
@@ -92,11 +93,10 @@ export function StorePill() {
   )?.key;
   const theme = templateKey ? getThemeById(templateKey) : undefined;
   const host = currentSite?.custom_domain || currentSite?.subdomain;
-  const siteBaseDomain =
-    process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com";
+  const displayHost = displayStorefrontHost(currentSite);
   const realShopUrl =
-    currentSite?.status === "published" && host
-      ? `https://${host.includes(".") ? host : `${host}.${siteBaseDomain}`}`
+    currentSite?.status === "published" && displayHost
+      ? `https://${displayHost}`
       : null;
   const shopUrl =
     realShopUrl ??
@@ -290,7 +290,7 @@ export function StorePill() {
                   className="size-4 shrink-0 text-muted"
                 />
                 <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">
-                  {host ?? "No domain yet"}
+                  {displayHost ?? "No domain yet"}
                 </p>
                 {shopUrl ? (
                   <a

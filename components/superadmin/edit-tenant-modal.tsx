@@ -6,6 +6,7 @@ import { SettingsSelect } from "@/components/settings/site/ui/settings-field";
 import type { SuperAdminTenant } from "@/lib/api/superadmin";
 
 const PLAN_OPTIONS: { value: SuperAdminTenant["plan"]; label: string }[] = [
+  { value: "trial", label: "Trial" },
   { value: "starter", label: "Starter" },
   { value: "growth", label: "Growth" },
   { value: "business", label: "Business" },

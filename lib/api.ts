@@ -38,10 +38,24 @@ export function getRefreshToken(): string | null {
   return activeStorage().getItem(REFRESH_TOKEN_KEY);
 }
 
+/** True only in the tab that just consumed hash tokens on /onboarding —
+ * the first-arrival celebration. Not persisted; a refresh cannot replay it
+ * because the hash is already gone. */
+let pendingOnboardingCelebration = false;
+
+export function isOnboardingCelebrationPending(): boolean {
+  return pendingOnboardingCelebration;
+}
+
+export function clearOnboardingCelebration(): void {
+  pendingOnboardingCelebration = false;
+}
+
 /** Picks up tokens the landing funnel left in the URL hash after
- * POST /leads/demo-access — landing and dashboard are different origins,
- * so localStorage on softunebd.com cannot seed dashboard.softunebd.com.
- * Hash is stripped immediately so tokens never sit in history. */
+ * trial-complete / demo-access — landing and dashboard are different
+ * origins, so localStorage on softunebd.com cannot seed
+ * dashboard.softunebd.com. Hash is stripped immediately so tokens never
+ * sit in history. */
 export function ingestLeadDemoTokens(): boolean {
   if (typeof window === "undefined") return false;
   const raw = window.location.hash.replace(/^#/, "");
@@ -51,11 +65,22 @@ export function ingestLeadDemoTokens(): boolean {
   const refresh = params.get("softune_rt");
   if (!access || !refresh) return false;
   setTokens(access, refresh, true);
+  // Hash handoff is a new identity. Cached session / onboarding draft from
+  // the previous account on this browser would flash the wrong shop.
+  try {
+    localStorage.removeItem("softune.session.cache.v2");
+    localStorage.removeItem("softune.currentSiteId");
+    localStorage.removeItem("softune.onboarding.mock");
+  } catch {
+    // private mode
+  }
   history.replaceState(
     null,
     "",
     `${window.location.pathname}${window.location.search}`,
   );
+  const path = window.location.pathname.replace(/\/$/, "") || "/";
+  if (path === "/onboarding") pendingOnboardingCelebration = true;
   return true;
 }
 
@@ -317,6 +342,8 @@ export type TenantOut = {
   plan: string;
   status: string;
   business: TenantBusiness;
+  /** ISO timestamp when plan is "trial"; null for every other plan. */
+  trial_expires_at: string | null;
   created_at: string;
 };
 
@@ -369,7 +396,7 @@ export async function changePassword(data: {
   });
 }
 
-export type TemplateOut = { id: string; key: string };
+export type TemplateOut = { id: string; key: string; thumbnail_url: string | null };
 
 /** The template catalog — shared across tenants, never changes per session,
  * so one fetch is cached and reused for the rest of the tab's lifetime
@@ -400,6 +427,9 @@ export type SiteOut = {
   /** Mobile-viewport screenshot captured by the worker after each publish
    * (see app/screenshot.py) — null until the first publish's job completes. */
   screenshot_url?: string | null;
+  /** Set once, by completeOnboarding — the only reliable "did they finish
+   * Setup" signal (status alone doesn't work; see that function's docstring). */
+  onboarding_completed_at?: string | null;
 };
 
 /** Prefer theme brand image, then business.logo_url. Empty/missing → null
@@ -500,6 +530,15 @@ export async function publishSite(siteId: string): Promise<SiteOut> {
   return request<SiteOut>(`/sites/${siteId}/publish`, { method: "POST" });
 }
 
+/** POST /sites/{id}/complete-onboarding — marks the dashboard wizard done,
+ * once, so the "Getting Started" sidebar item can go away for good (see
+ * sites.onboarding_completed_at's own comment for why status can't be that
+ * signal). Called only by StepFinish's own publish flow, never by the
+ * theme editor's regular Publish button. Idempotent — safe to call again. */
+export async function completeOnboarding(siteId: string): Promise<SiteOut> {
+  return request<SiteOut>(`/sites/${siteId}/complete-onboarding`, { method: "POST" });
+}
+
 export type MediaCategory = "hero" | "products" | "categories" | "other";
 
 export type UploadedMedia = {
@@ -508,6 +547,20 @@ export type UploadedMedia = {
   width?: number;
   height?: number;
 };
+
+/** app/media.py deliberately surfaces Cloudinary's own error text instead of
+ * a generic 500 (see that file's docstring) — usually the right call, since
+ * "File size too large. Got 12MB. Maximum is 10MB." is already clear. But a
+ * couple of Cloudinary's own messages are cryptic to anyone who doesn't
+ * already know what a signed upload request is; this rewrites just those
+ * into something a merchant can actually act on, and leaves everything
+ * else exactly as the backend sent it. */
+function friendlyUploadError(message: string): string {
+  if (/stale request/i.test(message)) {
+    return "Upload failed because your device's clock is wrong. Check your computer's date & time settings, fix it, then try again.";
+  }
+  return message;
+}
 
 /** Upload one image to this site's own Cloudinary folder (see app/media.py).
  * Bypasses the shared `request()` helper on purpose — that one always sets
@@ -532,9 +585,58 @@ export async function uploadSiteMedia(
   );
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.detail || `Upload failed (${res.status})`);
+    throw new Error(
+      friendlyUploadError(data.detail || `Upload failed (${res.status})`),
+    );
   }
   return res.json() as Promise<UploadedMedia>;
+}
+
+/** Same request as uploadSiteMedia, but via XMLHttpRequest instead of
+ * fetch — fetch has no way to observe how much of the request body has
+ * actually gone out over the wire, so a real per-file progress bar (see
+ * media-section.tsx) needs `xhr.upload.onprogress`, which is the one thing
+ * fetch still can't do in any browser. */
+export function uploadSiteMediaWithProgress(
+  siteId: string,
+  file: File,
+  category: MediaCategory,
+  onProgress: (fraction: number) => void,
+): Promise<UploadedMedia> {
+  const token = getToken();
+  const body = new FormData();
+  body.append("file", file);
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_URL}/sites/${siteId}/media?category=${category}`);
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(e.loaded / e.total);
+    };
+    xhr.onerror = () => reject(new Error("Upload failed — check your connection."));
+    xhr.onload = () => {
+      let data: Record<string, unknown> = {};
+      try {
+        data = JSON.parse(xhr.responseText);
+      } catch {
+        // Non-JSON error body (e.g. a proxy/gateway page) — status check below still applies.
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(data as unknown as UploadedMedia);
+      } else {
+        reject(
+          new Error(
+            friendlyUploadError(
+              (data.detail as string) || `Upload failed (${xhr.status})`,
+            ),
+          ),
+        );
+      }
+    };
+    xhr.send(body);
+  });
 }
 
 /** Previously uploaded images for this site+category, so the picker can show

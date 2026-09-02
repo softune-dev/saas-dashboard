@@ -11,6 +11,11 @@ import { useSession } from "@/components/providers/session-provider";
  * scripts that create them), and "no site" would otherwise read as
  * "needs onboarding" forever — bouncing them off every /superadmin/*
  * page back into a wizard that can't run for an internal ops account.
+ *
+ * Trial tenants are also exempt: a self-serve trial site starts as
+ * draft (same as any newly provisioned site), but locking them out of
+ * the dashboard until they publish would make the 3-day trial unusable.
+ * /onboarding stays available as optional guidance.
  */
 export function useOnboardingGuard() {
   const { currentSite, sites, loading, me } = useSession();
@@ -18,9 +23,10 @@ export function useOnboardingGuard() {
   const router = useRouter();
   const onOnboarding = pathname.startsWith("/onboarding");
   const isSuperadmin = me?.user.is_superadmin === true;
+  const isTrial = me?.tenant.plan === "trial";
 
   useEffect(() => {
-    if (loading || isSuperadmin) return;
+    if (loading || isSuperadmin || isTrial) return;
 
     const site = currentSite ?? sites[0] ?? null;
     const needsOnboarding = !site || site.status !== "published";
@@ -32,5 +38,5 @@ export function useOnboardingGuard() {
     if (!needsOnboarding && onOnboarding) {
       router.replace("/");
     }
-  }, [loading, isSuperadmin, currentSite, sites, onOnboarding, router]);
+  }, [loading, isSuperadmin, isTrial, currentSite, sites, onOnboarding, router]);
 }

@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Default 'auto' evicts cached Turbopack data from memory under
+    // pressure, then reloads it from disk on the next request — cheap on a
+    // laptop, but on a dev machine with RAM to spare it just adds latency
+    // back in. 'false' keeps everything hot for the life of the process.
+    turbopackMemoryEviction: false,
+  },
   images: {
     remotePatterns: [
       {

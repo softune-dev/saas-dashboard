@@ -1,8 +1,11 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Check, ChevronRight, ExternalLink, Loader2, Rocket } from "lucide-react";
+import confetti from "canvas-confetti";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { completeOnboarding } from "@/lib/api";
 import { OutlineButton } from "@/components/ui/outline-button";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { MaskIcon } from "@/components/ui/mask-icon";
@@ -10,12 +13,75 @@ import { saveThemeDraft } from "@/components/themes/theme-store";
 import { usePublishTheme } from "@/components/themes/use-publish-theme";
 import { resolvePendingUploads } from "@/components/themes/editor/pending-uploads";
 import { useSession } from "@/components/providers/session-provider";
-import { ONBOARDING_STEPS } from "../onboarding-steps";
+import { ONBOARDING_STEPS, type OnboardingStepId } from "../onboarding-steps";
 import { useOnboarding } from "../onboarding-context";
+
+// Same icon each step already uses for its own header (step-shop-basics.tsx,
+// step-brand.tsx, etc.) — reused here instead of inventing a second set, so
+// a step reads as the same thing whether you're inside it or looking at
+// this summary of it.
+const STEP_ICONS: Record<OnboardingStepId, string> = {
+  shop: "/sidebar/shop-bag.svg",
+  brand: "/sidebar/color.svg",
+  categories: "/sidebar/categories.svg",
+  products: "/sidebar/products.svg",
+  courier: "/sidebar/delivery.svg",
+  payments: "/sidebar/wallet.svg",
+  seo: "/sidebar/domain.svg",
+  "store-info": "/sidebar/shop-bag.svg",
+  finish: "/sidebar/start.svg",
+};
+
+// Quick links into the parts of Site Settings most stores still need after
+// publishing — the optional steps (seo/store-info) this wizard let a
+// merchant skip, plus domains, which was never part of this wizard at all.
+const NEXT_UP = [
+  {
+    href: "/settings/site/domains",
+    icon: "/sidebar/domain.svg",
+    title: "Add a custom domain",
+    description: "Use your own domain instead of the free subdomain.",
+  },
+  {
+    href: "/settings/site/seo",
+    icon: "/sidebar/domain.svg",
+    title: "Boost your SEO",
+    description: "Title, description, and keywords for search engines.",
+  },
+  {
+    href: "/settings/site/about",
+    icon: "/sidebar/brand.svg",
+    title: "Tell your story",
+    description: "An About Us section builds trust with new shoppers.",
+  },
+  {
+    href: "/settings/site/faqs",
+    icon: "/sidebar/help-desk.svg",
+    title: "Answer common questions",
+    description: "FAQs cut down on repetitive support messages.",
+  },
+  {
+    href: "/settings/site/terms",
+    icon: "/sidebar/lock.svg",
+    title: "Add your policies",
+    description: "Terms and a privacy policy, expected by most shoppers.",
+  },
+];
+
+const CONFETTI_COLORS = ["#ff5a36", "#fbbf24", "#34d399", "#60a5fa"];
+
+function fireConfetti() {
+  const opts = { colors: CONFETTI_COLORS, disableForReducedMotion: true };
+  confetti({ ...opts, particleCount: 90, spread: 76, origin: { y: 0.55 } });
+  window.setTimeout(() => {
+    confetti({ ...opts, particleCount: 45, angle: 60, spread: 52, origin: { x: 0, y: 0.7 } });
+    confetti({ ...opts, particleCount: 45, angle: 120, spread: 52, origin: { x: 1, y: 0.7 } });
+  }, 180);
+}
 
 export function StepFinish() {
   const router = useRouter();
-  const { state, dispatch, reset } = useOnboarding();
+  const { state, dispatch } = useOnboarding();
   const { refetch, currentSite } = useSession();
   // usePublishTheme keys everything off the template key (see theme-store.ts's
   // "siteId here is the template key" comment) — same mechanism the real
@@ -23,8 +89,22 @@ export function StepFinish() {
   // second way to go live.
   const { publishing, publishNow } = usePublishTheme(state.templateKey);
   const [publishError, setPublishError] = useState<string | null>(null);
-  const liveUrl = `https://${state.subdomainPreview}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com"}`;
+  // The real subdomain, not state.subdomainPreview — that field only ever
+  // updates when the merchant retypes their shop name DURING this wizard
+  // (see onboarding-context.tsx's "patchSettings" reducer case), so a
+  // trial signup — where the name and subdomain were already set before
+  // this dashboard session even started — left it stuck on its literal
+  // default ("my-shop") forever. currentSite.subdomain is the one place
+  // that's always correct, since it's set once at site creation and never
+  // silently guessed.
+  const liveUrl = `https://${currentSite?.subdomain}.${process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com"}`;
   const done = !!state.finishedAt;
+
+  useEffect(() => {
+    if (!done) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    fireConfetti();
+  }, [done]);
 
   async function handleGoLive() {
     setPublishError(null);
@@ -57,6 +137,20 @@ export function StepFinish() {
       setPublishError("Publish failed — check your connection and try again.");
       return;
     }
+    // Marks the wizard done for good, so the sidebar's "Getting Started"
+    // item stops appearing — even for a trial tenant, whose site was
+    // already "published" before this session started (see that field's
+    // own comment on why status alone can't be the signal). Best-effort:
+    // worst case the merchant sees Setup once more next login and this
+    // simply retries then.
+    if (currentSite?.id) {
+      try {
+        await completeOnboarding(currentSite.id);
+      } catch {
+        // Non-fatal — the site is already live either way.
+      }
+    }
+
     // useOnboardingGuard reads site.status from useSession's cached sites —
     // still "draft" from before this publish. Refresh it now and await the
     // result, otherwise "Open dashboard" (or the guard's own effect) races
@@ -73,30 +167,72 @@ export function StepFinish() {
 
   if (done) {
     return (
-      <div className="flex flex-col items-center justify-center gap-5 py-8 text-center">
-        <MaskIcon src="/sidebar/start.svg" className="size-14 text-primary" />
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">You&apos;re live!</h2>
-          <p className="mt-2 text-sm text-muted">
-            Your store is fully set up and ready to accept customers.
-          </p>
+      <div className="flex flex-col gap-6 py-2">
+        {/* "Live" was already the celebration the merchant saw the moment
+            they first landed here (store-live-modal.tsx) — repeating it
+            verbatim on this screen too read as the same news twice. This
+            one is about what's next, not the launch itself. */}
+        <div className="flex flex-col items-center gap-4 text-center">
+          <span className="flex size-16 items-center justify-center rounded-full bg-primary text-white">
+            <Check className="size-8" strokeWidth={2.5} />
+          </span>
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              You&apos;re ready to sell! 🎉
+            </h2>
+            <p className="mt-2 text-sm text-muted">
+              Your store is fully set up and ready to accept customers.
+            </p>
+          </div>
+          <a
+            href={liveUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-search-bg px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:text-primary"
+          >
+            <span>{liveUrl}</span>
+            <ExternalLink className="size-3.5" strokeWidth={2.5} />
+          </a>
+          <div className="flex flex-wrap justify-center gap-2">
+            <PrimaryButton type="button" onClick={() => router.push("/")}>
+              Open dashboard
+            </PrimaryButton>
+            <OutlineButton
+              type="button"
+              onClick={() => router.push(`/themes/editor/${state.templateKey}`)}
+            >
+              Open editor
+            </OutlineButton>
+          </div>
         </div>
-        <a
-          href={liveUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-full bg-search-bg border border-border px-4 py-2 text-sm font-semibold text-foreground hover:text-primary transition-colors"
-        >
-          <span>{liveUrl}</span>
-          <MaskIcon src="/sidebar/domain.svg" className="size-4" />
-        </a>
-        <div className="flex flex-wrap justify-center gap-2">
-          <PrimaryButton type="button" onClick={() => router.push("/")}>
-            Open dashboard
-          </PrimaryButton>
-          <OutlineButton type="button" onClick={() => reset()}>
-            Reset wizard
-          </OutlineButton>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-semibold tracking-wide text-muted uppercase">
+            Worth doing next
+          </p>
+          <ul className="flex flex-col gap-1.5">
+            {NEXT_UP.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="flex items-center gap-3 rounded-md border border-border bg-search-bg px-3 py-2.5 transition-colors hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-surface">
+                    <MaskIcon src={item.icon} className="size-4 text-primary" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-foreground">
+                      {item.title}
+                    </span>
+                    <span className="block truncate text-xs text-muted">
+                      {item.description}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0 text-muted-soft" strokeWidth={2} />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     );
@@ -113,23 +249,39 @@ export function StepFinish() {
         Review your setup below, then publish your storefront live.
       </p>
 
-      <ul className="space-y-1.5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {ONBOARDING_STEPS.filter((s) => s.id !== "finish").map((s) => {
           const completed = state.completedSteps.includes(s.id);
           const skipped = state.skippedSteps.includes(s.id);
+          const status = completed ? "Done" : skipped ? "Skipped" : "Pending";
           return (
-            <li
+            <div
               key={s.id}
-              className="flex items-center justify-between rounded-md border border-border bg-search-bg px-3 py-2 text-sm"
+              className="flex flex-col gap-2 rounded-md border border-border bg-search-bg px-3 py-2.5"
             >
-              <span className="font-medium text-foreground">{s.title}</span>
-              <span className="text-xs font-semibold text-muted">
-                {completed ? "Done" : skipped ? "Skipped" : "Pending"}
+              <div className="flex items-center gap-2">
+                <MaskIcon src={STEP_ICONS[s.id]} className="size-3.5 shrink-0 text-primary" />
+                <span className="min-w-0 truncate text-sm font-medium text-foreground">
+                  {s.title}
+                </span>
+              </div>
+              <span
+                className={[
+                  "inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                  completed
+                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    : skipped
+                      ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                      : "bg-border text-muted",
+                ].join(" ")}
+              >
+                {completed ? <Check className="size-2.5" strokeWidth={3} /> : null}
+                {status}
               </span>
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
 
       <div className="rounded-md border border-border bg-search-bg px-3 py-3 text-sm">
         <p className="font-medium text-foreground">Storefront address</p>
@@ -151,7 +303,10 @@ export function StepFinish() {
             Publishing…
           </span>
         ) : (
-          "Publish and go live"
+          <span className="inline-flex items-center justify-center gap-1.5">
+            <Rocket className="size-4" strokeWidth={2.25} />
+            Publish and go live
+          </span>
         )}
       </PrimaryButton>
     </div>

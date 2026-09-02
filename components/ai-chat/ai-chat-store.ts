@@ -38,20 +38,6 @@ export type Conversation = {
 const STORAGE_KEY = "softune.ai.conversations";
 const ACTIVE_CONV_KEY = "softune.ai.active_id";
 
-export const DEFAULT_SUGGESTIONS = [
-  { text: "Analyze store sales & conversion rate", icon: "/sidebar/analytics.svg" },
-  { text: "Suggest modern theme styles for honey store", icon: "/sidebar/themes.svg" },
-  { text: "Write product description for organic tea", icon: "/sidebar/products.svg" },
-  { text: "Check low inventory products", icon: "/sidebar/categories.svg" },
-];
-
-export const THEME_EDITOR_SUGGESTIONS = [
-  { text: "Suggest a modern color palette for honey store", icon: "/sidebar/themes.svg" },
-  { text: "Write high-converting Hero title & headline", icon: "/sidebar/note.svg" },
-  { text: "Recommend best section order for organic store", icon: "/sidebar/categories.svg" },
-  { text: "Generate announcement banner text & offer", icon: "/sidebar/analytics.svg" },
-];
-
 export type AiModel = {
   id: string;
   name: string;

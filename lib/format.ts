@@ -1,3 +1,29 @@
+/** Public storefront host suffix — same fallback Site Settings uses. */
+export const SITE_BASE_DOMAIN =
+  process.env.NEXT_PUBLIC_SITE_BASE_DOMAIN || "softunebd.com";
+
+/** Hostname merchants see in Site Settings: custom domain if set, otherwise
+ * `{subdomain}.{SITE_BASE_DOMAIN}`. The `subdomain` column is only the slug. */
+export function displayStorefrontHost(
+  site:
+    | { subdomain: string; custom_domain: string | null }
+    | null
+    | undefined,
+): string | null {
+  if (!site) return null;
+  if (site.custom_domain) return site.custom_domain;
+  if (!site.subdomain) return null;
+  return `${site.subdomain}.${SITE_BASE_DOMAIN}`;
+}
+
+/** Whole days remaining until an ISO timestamp. Floors, never negative. */
+export function trialDaysLeft(iso: string | null | undefined): number {
+  if (!iso) return 0;
+  const ms = new Date(iso).getTime() - Date.now();
+  if (Number.isNaN(ms)) return 0;
+  return Math.max(0, Math.floor(ms / 86_400_000));
+}
+
 /** Format a Date as "Aug 10, 2026" */
 export function formatDisplayDate(date: Date): string {
   return date.toLocaleDateString("en-US", {

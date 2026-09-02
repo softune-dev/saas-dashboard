@@ -57,9 +57,14 @@ export function SidebarNavContent({
     (n) => n.type === "order_created" && !n.read_at,
   ).length;
   const { badgeLabel: setupBadge } = useOnboardingSidebarProgress();
-  const showSetup = currentSite
-    ? currentSite.status !== "published"
-    : true;
+  // onboarding_completed_at, not `status`: trial signup (app/api/trial.py)
+  // auto-publishes the site immediately so a new merchant sees a live store
+  // right away, before ever opening the wizard — `status` alone can't tell
+  // "still unpublished" apart from "trial site, wizard never finished".
+  // completed_at is set exactly once, by StepFinish's own publish action
+  // (see sites.onboarding_completed_at's own comment), so this stays hidden
+  // for good afterward — logout, new device, doesn't matter, it's on the row.
+  const showSetup = currentSite ? !currentSite.onboarding_completed_at : true;
 
   return (
     <>
