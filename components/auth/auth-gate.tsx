@@ -194,7 +194,7 @@ function LoginScreen({ onSuccess }: { onSuccess: () => void }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-icon.png"
-              alt="Softune"
+              alt="Softunebd"
               className="h-10 w-auto object-contain object-left sm:h-11"
             />
 

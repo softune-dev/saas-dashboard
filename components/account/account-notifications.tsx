@@ -25,7 +25,7 @@ const TOGGLES: { id: keyof TenantNotificationPrefs; label: string; description: 
   {
     id: "marketing",
     label: "Product tips",
-    description: "Occasional Softune product updates",
+    description: "Occasional Softunebd product updates",
   },
 ];
 

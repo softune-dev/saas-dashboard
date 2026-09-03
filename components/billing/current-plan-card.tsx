@@ -54,7 +54,7 @@ export function CurrentPlanCard() {
           {loading ? "…" : plan?.name ?? currentPlanId}
         </h2>
         <p className="mt-1 text-xs text-white/80">
-          {isDemo ? "Assigned by the Softune team" : "1 store"}
+          {isDemo ? "Assigned by the Softunebd team" : "1 store"}
         </p>
         {latestInvoiceNumber ? (
           <p className="mt-1 text-[11px] font-medium tracking-wide text-white/70">

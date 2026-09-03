@@ -73,7 +73,7 @@ export const DEMO_PLAN: Plan = {
   id: "demo",
   name: "Demo",
   priceMonthly: null,
-  description: "Internal trial access — assigned by the Softune team, not self-serve.",
+  description: "Internal trial access — assigned by the Softunebd team, not self-serve.",
   features: [
     "50 AI requests / day",
     "Full dashboard access",

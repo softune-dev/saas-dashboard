@@ -173,8 +173,8 @@ const previewNunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Softune Dashboard",
-  description: "Softune admin dashboard",
+  title: "Softunebd Dashboard",
+  description: "Softunebd admin dashboard",
   icons: {
     icon: [{ url: "/favicon.ico", sizes: "any" }],
   },

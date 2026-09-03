@@ -29,7 +29,7 @@ export function ContactSalesModal({
 
   const subject = encodeURIComponent(`Plan change request: ${targetPlan.name}`);
   const body = encodeURIComponent(
-    `Hi Softune team,\n\nI'd like to switch my store's plan from ${currentPlanName} to ${targetPlan.name} (${
+    `Hi Softunebd team,\n\nI'd like to switch my store's plan from ${currentPlanName} to ${targetPlan.name} (${
       targetPlan.priceMonthly != null ? `৳${targetPlan.priceMonthly.toLocaleString()}/mo` : "custom pricing"
     }).\n\nPlease let me know the next steps.\n\nThanks!`,
   );

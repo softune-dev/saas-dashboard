@@ -22,7 +22,7 @@ export const PRE_EDITOR_STEPS: TourStep[] = [
     id: "sidebar",
     selector: '[data-tour="sidebar"]',
     title: "Your main navigation",
-    body: "This sidebar is how you move around Softune — products, orders, themes, settings, and more. Everything for running your shop lives here.",
+    body: "This sidebar is how you move around Softunebd — products, orders, themes, settings, and more. Everything for running your shop lives here.",
     placement: "right",
   },
   {
@@ -205,7 +205,7 @@ export const POST_EDITOR_STEPS: TourStep[] = [
     id: "settings-billing",
     selector: '[data-tour="nav-settings-billing"]',
     title: "Billing",
-    body: "Your plan, AI credit usage, and payment history for your Softune subscription live here.",
+    body: "Your plan, AI credit usage, and payment history for your Softunebd subscription live here.",
     placement: "right",
   },
   {
@@ -219,7 +219,7 @@ export const POST_EDITOR_STEPS: TourStep[] = [
     id: "settings-help",
     selector: '[data-tour="nav-settings-help"]',
     title: "Help Desk",
-    body: "Questions or issues? Reach the Softune team from here without leaving the dashboard.",
+    body: "Questions or issues? Reach the Softunebd team from here without leaving the dashboard.",
     placement: "right",
   },
   {
@@ -233,14 +233,14 @@ export const POST_EDITOR_STEPS: TourStep[] = [
     id: "ai-chat",
     selector: '[data-tour="ai-chat"]',
     title: "AI Assistant",
-    body: "Ask Softune AI for help writing products, adjusting themes, looking up orders, and more — without leaving the dashboard.",
+    body: "Ask Softunebd AI for help writing products, adjusting themes, looking up orders, and more — without leaving the dashboard.",
     placement: "bottom",
   },
   {
     id: "finish",
     selector: '[data-tour="sidebar"]',
     title: "You’re ready to explore",
-    body: "That’s the Softune dashboard tour. Open Setup anytime for the launch checklist, or jump into Products and start selling.",
+    body: "That’s the Softunebd dashboard tour. Open Setup anytime for the launch checklist, or jump into Products and start selling.",
     placement: "right",
   },
 ];

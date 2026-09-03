@@ -13,7 +13,7 @@ export function LogoPill() {
     <Link
       href={homeHref}
       className="flex shrink-0 items-center transition-opacity hover:opacity-90"
-      aria-label="Softune home"
+      aria-label="Softunebd home"
     >
       <SoftuneLogo className="h-7 w-auto md:h-8" />
     </Link>
