@@ -29,6 +29,7 @@ import { displayStorefrontHost } from "@/lib/format";
 import { AccountSwitchOverlay } from "./account-switch-overlay";
 import { AddAccountModal } from "./add-account-modal";
 import { SetupProgressRing } from "./setup-progress-ring";
+import { TrialBadge } from "./trial-badge";
 
 /** Quick jumps in the user menu — same icons/hrefs as the sidebar. */
 const QUICK_LINKS: NavItem[] = [
@@ -307,6 +308,19 @@ export function StorePill() {
               </div>
             ) : null}
           </div>
+
+          {/* Trial countdown — the header itself hides this below md for
+              lack of room (see Header's own comment), so it shows here
+              instead on small screens. Redundant (and hidden) at md+,
+              where the header already has it. Gated on plan === "trial"
+              here too (not just inside TrialBadge) so this row's own
+              border/padding don't render as an empty strip for every
+              other plan. */}
+          {me?.tenant.plan === "trial" ? (
+            <div className="border-b border-border px-3.5 py-2.5 md:hidden dark:border-transparent">
+              <TrialBadge className="w-full justify-center" />
+            </div>
+          ) : null}
 
           {/* Account switcher — current account plus any others linked in
               this browser, and a "+" to add one. Switching never logs out;

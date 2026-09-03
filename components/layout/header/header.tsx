@@ -49,7 +49,15 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
       <div className="hidden md:contents">
         <ThemeToggle className="ml-5" />
       </div>
-      <TrialBadge className="ml-2 md:ml-3" />
+      {/* Header has no room for this on small screens — it moves into the
+          user menu instead (see StorePill's own TrialBadge, the exact
+          complementary "md:hidden" of this wrapper). A wrapping div, not a
+          className override, since TrialBadge's own root already hardcodes
+          "inline-flex" and fighting that with a passed-in "hidden" would
+          depend on Tailwind's internal utility ordering. */}
+      <div className="hidden md:block">
+        <TrialBadge className="ml-2 md:ml-3" />
+      </div>
 
       <div className="ml-auto flex min-w-0 shrink-0 items-center gap-1.5 md:gap-2 lg:gap-3">
         {isSuperadmin ? (

@@ -21,16 +21,16 @@ export const menuItems: NavItem[] = [
   { label: "Orders", href: "/orders", icon: "/sidebar/orders.svg" },
   { label: "Store Sale", href: "/pos", icon: "/sidebar/shop-bag.svg", tag: "New" },
   { label: "Analytics", href: "/analytics", icon: "/sidebar/analytics.svg" },
-  { label: "Themes", href: "/themes", icon: "/sidebar/themes.svg", tag: "New" },
+  { label: "Themes", href: "/themes", icon: "/sidebar/themes.svg" },
   { label: "Customers", href: "/customers", icon: "/sidebar/customers.svg" },
   { label: "Courier", href: "/courier", icon: "/sidebar/delivery.svg" },
-  { label: "Payments", href: "/payments", icon: "/sidebar/wallet.svg", tag: "New" },
-  { label: "Add-Ons", href: "/addons", icon: "/sidebar/add-on.svg", tag: "New" },
+  { label: "Payments", href: "/payments", icon: "/sidebar/wallet.svg" },
+  { label: "Add-Ons", href: "/addons", icon: "/sidebar/add-on.svg" },
 ];
 
 export const settingsItems: NavItem[] = [
   { label: "Site Settings", href: "/settings/site", icon: "/sidebar/settings.svg" },
-  { label: "Fraud Protection", href: "/settings/fraud", icon: "/sidebar/lock.svg", tag: "New" },
+  { label: "Fraud Protection", href: "/settings/fraud", icon: "/sidebar/lock.svg" },
   { label: "Billing", href: "/settings/billing", icon: "/sidebar/billing.svg" },
   { label: "Account", href: "/settings/account", icon: "/sidebar/account.svg" },
   { label: "Help Desk", href: "/settings/help", icon: "/sidebar/help-desk.svg" },
