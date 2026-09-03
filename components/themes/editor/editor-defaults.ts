@@ -7,8 +7,8 @@ import {
 
 /** Aurora / boutique home section order (historical editor default). */
 const auroraSections: PageSection[] = [
-  { id: "s1", type: "banner" },
   { id: "s2", type: "hero" },
+  { id: "s1", type: "banner" },
   { id: "s2b", type: "events" },
   { id: "s3", type: "categories" },
   { id: "s4", type: "featureProducts" },
