@@ -25,6 +25,7 @@ export const menuItems: NavItem[] = [
   { label: "Customers", href: "/customers", icon: "/sidebar/customers.svg" },
   { label: "Courier", href: "/courier", icon: "/sidebar/delivery.svg" },
   { label: "Payments", href: "/payments", icon: "/sidebar/wallet.svg" },
+  { label: "Dropship", href: "/dropship", icon: "/sidebar/delivery.svg", tag: "New" },
   { label: "Add-Ons", href: "/addons", icon: "/sidebar/add-on.svg" },
 ];
 
