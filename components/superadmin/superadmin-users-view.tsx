@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Pencil, Plus, Search, Users } from "lucide-react";
+import { Eye, MessageCircle, Pencil, Plus, Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
@@ -22,6 +22,7 @@ import { EditUserModal } from "./edit-user-modal";
 import { RowActionsMenu } from "./row-actions-menu";
 import { UserActiveBadge } from "./status-badge";
 import { UserDetailModal } from "./user-detail-modal";
+import { WhatsAppMessageModal } from "./whatsapp-message-modal";
 
 export function SuperAdminUsersView() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export function SuperAdminUsersView() {
   const [viewing, setViewing] = useState<SuperAdminUser | null>(null);
   const [editing, setEditing] = useState<SuperAdminUser | null>(null);
   const [editBusy, setEditBusy] = useState(false);
+  const [messaging, setMessaging] = useState<SuperAdminUser | null>(null);
 
   useEffect(() => {
     setQuery(urlQuery);
@@ -158,6 +160,7 @@ export function SuperAdminUsersView() {
           actions={[
             { label: "View details", icon: Eye, onClick: () => setViewing(row) },
             { label: "Edit", icon: Pencil, onClick: () => setEditing(row) },
+            { label: "Message on WhatsApp", icon: MessageCircle, onClick: () => setMessaging(row) },
           ]}
         />
       ),
@@ -246,6 +249,7 @@ export function SuperAdminUsersView() {
         onSave={handleSave}
       />
       <UserDetailModal user={viewing} onClose={() => setViewing(null)} />
+      <WhatsAppMessageModal user={messaging} onClose={() => setMessaging(null)} />
     </div>
   );
 }
