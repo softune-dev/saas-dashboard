@@ -19,6 +19,12 @@ export type SupplierListing = {
   supplierName: string;
   /** True only for rows this tenant itself supplies (shown in "My Listings"). */
   isMine?: boolean;
+  /** Store names currently reselling this listing — only meaningful (and
+   * only ever shown) on the supplier's own "My Listings" cards. A supplier
+   * should always be able to see who's using their product, not just find
+   * out when an order arrives — see the fulfillment-transparency design
+   * discussion this feature is built from. */
+  resellers?: string[];
 };
 
 export type ImportedProduct = {
@@ -105,6 +111,7 @@ export const MOCK_MY_LISTINGS: SupplierListing[] = [
     stock: 16,
     supplierName: "Your store",
     isMine: true,
+    resellers: ["Ananya Lifestyle", "Nokshi Boutique"],
   },
 ];
 

@@ -5,12 +5,11 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PrimaryButton } from "@/components/ui/primary-button";
-import { DataTable, type TableColumn } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { formatTaka } from "@/lib/format";
 import type { SupplierListing } from "@/lib/dropship-mock";
 import { AddListingModal } from "./add-listing-modal";
 import { useDropshipMock } from "./dropship-mock-context";
+import { DropshipProductCard } from "./dropship-product-card";
 import { DropshipShell } from "./dropship-shell";
 
 export function MyListingsView() {
@@ -32,44 +31,6 @@ export function MyListingsView() {
     toast({ title: "Listing removed", variant: "success" });
     setRemoving(null);
   }
-
-  const columns: TableColumn<SupplierListing>[] = [
-    {
-      id: "product",
-      header: "Product",
-      cell: (row) => <span className="font-medium text-foreground">{row.productName}</span>,
-    },
-    {
-      id: "wholesale",
-      header: "Wholesale price",
-      cell: (row) => (
-        <span className="tabular-nums text-foreground">
-          {formatTaka(row.wholesalePriceCents / 100)}
-        </span>
-      ),
-    },
-    {
-      id: "stock",
-      header: "Stock",
-      cell: (row) => <span className="tabular-nums text-muted">{row.stock}</span>,
-    },
-    {
-      id: "actions",
-      header: "",
-      headerClassName: "text-right",
-      className: "text-right",
-      cell: (row) => (
-        <button
-          type="button"
-          aria-label={`Remove ${row.productName}`}
-          onClick={() => setRemoving(row)}
-          className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-600"
-        >
-          <Trash2 className="size-3.5" strokeWidth={1.75} />
-        </button>
-      ),
-    },
-  ];
 
   return (
     <DropshipShell
@@ -123,13 +84,29 @@ export function MyListingsView() {
           description="List your first product to make it available for other stores to resell."
         />
       ) : (
-        <DataTable
-          columns={columns}
-          data={myListings}
-          rowKey={(row) => row.id}
-          emptyMessage="No listings match this search."
-          pageSize={10}
-        />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {myListings.map((listing) => (
+            <DropshipProductCard
+              key={listing.id}
+              image={listing.image}
+              title={listing.productName}
+              supplierName={`${listing.stock} in stock`}
+              priceLabel="Wholesale price"
+              priceCents={listing.wholesalePriceCents}
+              resellers={listing.resellers}
+              footer={
+                <button
+                  type="button"
+                  onClick={() => setRemoving(listing)}
+                  className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-border text-sm font-medium text-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-600 hover:border-rose-500/30"
+                >
+                  <Trash2 className="size-3.5" strokeWidth={1.75} />
+                  Remove listing
+                </button>
+              }
+            />
+          ))}
+        </div>
       )}
 
       <AddListingModal open={addOpen} onClose={() => setAddOpen(false)} onAdd={handleAdd} />
