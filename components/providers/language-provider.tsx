@@ -281,7 +281,6 @@ export const DICTIONARY: Record<Locale, Record<string, string>> = {
     "Uploading image…": "Uploading image…",
     "Create event": "Create event",
     "Add event image": "Add event image",
-    "auto-generated from name if left blank": "auto-generated from name if left blank",
     "A short line shown on the storefront card": "A short line shown on the storefront card",
     "Discount %": "Discount %",
     "Button label": "Button label",
@@ -449,7 +448,6 @@ export const DICTIONARY: Record<Locale, Record<string, string>> = {
 
     // Gallery / Media
     "Images": "Images",
-    Images: "Images",
     Media: "Media",
     "First image is primary. Click another to make it primary. Uploaded when you save.": "First image is primary. Click another to make it primary. Uploaded when you save.",
     "JPEG, PNG, WebP, or AVIF · up to 10MB.": "JPEG, PNG, WebP, or AVIF · up to 10MB.",
@@ -674,7 +672,6 @@ export const DICTIONARY: Record<Locale, Record<string, string>> = {
     "Stock": "স্টক",
     "No products match your search or filters": "খোঁজা তথ্যের সাথে কোনো প্রোডাক্ট মেলেনি",
     "Edit": "সম্পাদনা",
-    "Edit": "এডিটর",
     "Edit Product": "প্রোডাক্ট এডিট করুন",
     "Add Product": "প্রোডাক্ট যুক্ত করুন",
     "Save Product": "প্রোডাক্ট সেভ করুন",
@@ -736,7 +733,6 @@ export const DICTIONARY: Record<Locale, Record<string, string>> = {
     "No events match your search or filters": "খোঁজা তথ্যের সাথে কোনো ক্যাম্পেইন মেলেনি",
     "Add Event": "ক্যাম্পেইন যুক্ত করুন",
     "Add event image": "ক্যাম্পেইনের ছবি যুক্ত করুন",
-    "auto-generated from name if left blank": "ফাঁকা রাখলে নাম থেকে নিজে তৈরি হবে",
     "A short line shown on the storefront card": "স্টোরফ্রন্ট কার্ডে দেখানোর ছোট বিবরণ",
     "Discount %": "ছাড়ের শতাংশ (%)",
     "Button label": "বাটনের লেখা",
@@ -904,7 +900,6 @@ export const DICTIONARY: Record<Locale, Record<string, string>> = {
 
     // Gallery / Media
     "Images": "ছবিসমূহ",
-    Images: "ছবিসমূহ",
     Media: "মিডিয়া",
     "First image is primary. Click another to make it primary. Uploaded when you save.": "প্রথম ছবিটি মূল ছবি হিসেবে থাকবে। অন্য ছবিকে মূল করতে সেটিতে ক্লিক করুন। সেভ করার পর আপলোড হবে।",
     "JPEG, PNG, WebP, or AVIF · up to 10MB.": "JPEG, PNG, WebP, অথবা AVIF · ১০MB পর্যন্ত।",
