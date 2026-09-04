@@ -362,3 +362,40 @@ export async function sendDemoMarketingEmail(id: string): Promise<void> {
     method: "POST",
   });
 }
+
+// =============================================================================
+//  Vercel domain cleanup — mirrors app/vercel.py's orphaned_domains_report.
+//  "review" domains (custom domains, the real wildcard *.SITE_BASE_DOMAIN)
+//  are NEVER auto-detachable from this page — only shown for awareness.
+// =============================================================================
+
+export type SuperAdminVercelTemplateReport = {
+  project_id: string;
+  orphaned: string[];
+  review: string[];
+};
+
+export type SuperAdminVercelOrphans = {
+  templates: Record<string, SuperAdminVercelTemplateReport>;
+};
+
+export async function listOrphanedVercelDomains(): Promise<SuperAdminVercelOrphans> {
+  return request<SuperAdminVercelOrphans>("/superadmin/vercel/orphaned-domains");
+}
+
+export function useOrphanedVercelDomainsSWR(): SWRResponse<SuperAdminVercelOrphans> {
+  return useSWR("superadmin-vercel-orphaned-domains", listOrphanedVercelDomains);
+}
+
+export type SuperAdminVercelDetachResult = {
+  results: { domain: string; success: boolean }[];
+};
+
+export async function detachVercelDomains(
+  domains: { domain: string; project_id: string }[],
+): Promise<SuperAdminVercelDetachResult> {
+  return request<SuperAdminVercelDetachResult>(
+    `/superadmin/vercel/orphaned-domains/detach`,
+    { method: "POST", body: JSON.stringify({ domains }) },
+  );
+}

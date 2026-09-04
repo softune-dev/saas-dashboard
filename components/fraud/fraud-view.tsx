@@ -1,6 +1,6 @@
 "use client";
 
-import { Phone, Plus, Shield, Trash2 } from "lucide-react";
+import { Globe, Phone, Plus, Shield, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -10,19 +10,26 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
 import {
+  addIpToBlocklist,
   addToBlocklist,
   removeFromBlocklist,
+  removeIpFromBlocklist,
   useBlocklistSWR,
+  useIpBlocklistSWR,
+  useSuspiciousOrdersSWR,
   type FraudBlocklistEntry,
+  type FraudIpBlocklistEntry,
 } from "@/lib/api/fraud";
 import { saveSiteFraudRules, useSiteSettingsSWR } from "@/lib/api/site-settings";
 import { AddBlockModal, type AddBlockValues } from "./add-block-modal";
+import { AddIpBlockModal, type AddIpBlockValues } from "./add-ip-block-modal";
 import {
   defaultRuleState,
   FRAUD_RULES,
   type FraudRuleId,
   type FraudRuleState,
 } from "./fraud-data";
+import { SuspiciousOrdersTable } from "./suspicious-orders-table";
 
 /** Local-only row until Save (no server id yet). */
 type DraftBlockEntry = {
@@ -31,6 +38,14 @@ type DraftBlockEntry = {
   note: string;
   created_at: string;
   /** True until Save posts it to the API. */
+  isLocal?: boolean;
+};
+
+type DraftIpBlockEntry = {
+  id: string;
+  ip_address: string;
+  note: string;
+  created_at: string;
   isLocal?: boolean;
 };
 
@@ -55,6 +70,14 @@ function mergeRules(
       ...defaults.block_blocklist,
       ...stored?.block_blocklist,
     },
+    device_pending_lock: {
+      ...defaults.device_pending_lock,
+      ...stored?.device_pending_lock,
+    },
+    device_cooldown: {
+      ...defaults.device_cooldown,
+      ...stored?.device_cooldown,
+    },
   };
 }
 
@@ -73,18 +96,36 @@ export function FraudView() {
     mutate: mutateBlocklist,
   } = useBlocklistSWR(siteId);
   const {
+    data: serverIpBlocklist = [],
+    error: ipBlocklistError,
+    isLoading: ipBlocklistLoading,
+    mutate: mutateIpBlocklist,
+  } = useIpBlocklistSWR(siteId);
+  const {
     data: siteSettings,
     error: settingsError,
     isLoading: settingsLoading,
     mutate: mutateSettings,
   } = useSiteSettingsSWR(siteId);
+  const {
+    data: suspiciousOrders = [],
+    error: suspiciousError,
+    isLoading: suspiciousLoading,
+    mutate: mutateSuspicious,
+  } = useSuspiciousOrdersSWR(siteId);
+
+  const [tab, setTab] = useState<"rules" | "suspicious">("rules");
 
   const [draftRules, setDraftRules] = useState<Record<FraudRuleId, FraudRuleState>>(
     defaultRuleState,
   );
   const [draftBlocklist, setDraftBlocklist] = useState<DraftBlockEntry[]>([]);
-  /** Server snapshot used to compute blocklist add/remove on Save. */
+  const [draftIpBlocklist, setDraftIpBlocklist] = useState<DraftIpBlockEntry[]>([]);
+  /** Server snapshots used to compute add/remove diffs on Save. */
   const [baselineBlocklist, setBaselineBlocklist] = useState<FraudBlocklistEntry[]>(
+    [],
+  );
+  const [baselineIpBlocklist, setBaselineIpBlocklist] = useState<FraudIpBlocklistEntry[]>(
     [],
   );
   const [baselineRules, setBaselineRules] = useState<Record<
@@ -93,7 +134,9 @@ export function FraudView() {
   > | null>(null);
 
   const [addOpen, setAddOpen] = useState(false);
+  const [addIpOpen, setAddIpOpen] = useState(false);
   const [unblocking, setUnblocking] = useState<DraftBlockEntry | null>(null);
+  const [unblockingIp, setUnblockingIp] = useState<DraftIpBlockEntry | null>(null);
   const [saving, setSaving] = useState(false);
   /** Which siteId the draft was last filled for — avoids re-clobbering edits
    * on SWR revalidate, and avoids a second effect that cleared baseline on
@@ -103,7 +146,7 @@ export function FraudView() {
   // Hydrate draft once per site — don't clobber unsaved edits on revalidate.
   useEffect(() => {
     if (!siteId) return;
-    if (sessionLoading || blocklistLoading || settingsLoading) return;
+    if (sessionLoading || blocklistLoading || ipBlocklistLoading || settingsLoading) return;
     if (!siteSettings) return;
     if (hydratedForSite.current === siteId) return;
 
@@ -112,14 +155,18 @@ export function FraudView() {
     setBaselineRules(rules);
     setDraftBlocklist(serverBlocklist.map((e) => ({ ...e })));
     setBaselineBlocklist(serverBlocklist);
+    setDraftIpBlocklist(serverIpBlocklist.map((e) => ({ ...e })));
+    setBaselineIpBlocklist(serverIpBlocklist);
     hydratedForSite.current = siteId;
   }, [
     siteId,
     sessionLoading,
     blocklistLoading,
+    ipBlocklistLoading,
     settingsLoading,
     siteSettings,
     serverBlocklist,
+    serverIpBlocklist,
   ]);
 
   const dirty = useMemo(() => {
@@ -133,8 +180,24 @@ export function FraudView() {
       .map((e) => `${e.id}|${e.phone}|${e.note}`)
       .sort()
       .join(";");
-    return draftKey !== baseKey;
-  }, [draftRules, baselineRules, draftBlocklist, baselineBlocklist]);
+    if (draftKey !== baseKey) return true;
+    const draftIpKey = draftIpBlocklist
+      .map((e) => `${e.id}|${e.ip_address}|${e.note}`)
+      .sort()
+      .join(";");
+    const baseIpKey = baselineIpBlocklist
+      .map((e) => `${e.id}|${e.ip_address}|${e.note}`)
+      .sort()
+      .join(";");
+    return draftIpKey !== baseIpKey;
+  }, [
+    draftRules,
+    baselineRules,
+    draftBlocklist,
+    baselineBlocklist,
+    draftIpBlocklist,
+    baselineIpBlocklist,
+  ]);
 
   const activeRules = useMemo(
     () => Object.values(draftRules).filter((r) => r.enabled).length,
@@ -172,6 +235,34 @@ export function FraudView() {
     setUnblocking(null);
   }
 
+  function handleAddIp(values: AddIpBlockValues) {
+    if (draftIpBlocklist.some((e) => e.ip_address === values.ip_address)) {
+      toast({
+        title: "Already on the list",
+        description: "That IP address is already blocked.",
+        variant: "info",
+      });
+      return;
+    }
+    setDraftIpBlocklist((prev) => [
+      {
+        id: `local-${Date.now()}`,
+        ip_address: values.ip_address,
+        note: values.note,
+        created_at: new Date().toISOString(),
+        isLocal: true,
+      },
+      ...prev,
+    ]);
+    setAddIpOpen(false);
+  }
+
+  function confirmUnblockIp() {
+    if (!unblockingIp) return;
+    setDraftIpBlocklist((prev) => prev.filter((e) => e.id !== unblockingIp.id));
+    setUnblockingIp(null);
+  }
+
   function toggleRule(id: FraudRuleId) {
     setDraftRules((prev) => ({
       ...prev,
@@ -186,6 +277,13 @@ export function FraudView() {
     }));
   }
 
+  function handleOrderReviewed(orderId: string, _decision: "cleared" | "confirmed_fraud") {
+    mutateSuspicious(
+      (prev) => (prev ?? []).filter((o) => o.id !== orderId),
+      { revalidate: false },
+    );
+  }
+
   async function handleSave() {
     if (!siteId || !siteSettings || !dirty) return;
     setSaving(true);
@@ -197,7 +295,7 @@ export function FraudView() {
         { revalidate: false },
       );
 
-      // 2) Blocklist: remove missing server rows, add local-only rows
+      // 2) Phone blocklist: remove missing server rows, add local-only rows
       const draftServerIds = new Set(
         draftBlocklist.filter((e) => !isLocalId(e.id)).map((e) => e.id),
       );
@@ -216,6 +314,29 @@ export function FraudView() {
         });
         kept.unshift(created);
       }
+
+      // 3) IP blocklist: same diff pattern
+      const draftIpServerIds = new Set(
+        draftIpBlocklist.filter((e) => !isLocalId(e.id)).map((e) => e.id),
+      );
+      for (const row of baselineIpBlocklist) {
+        if (!draftIpServerIds.has(row.id)) {
+          await removeIpFromBlocklist(siteId, row.id);
+        }
+      }
+      const keptIp: DraftIpBlockEntry[] = draftIpBlocklist.filter(
+        (e) => !isLocalId(e.id),
+      );
+      for (const row of draftIpBlocklist.filter((e) => isLocalId(e.id))) {
+        const created = await addIpToBlocklist(siteId, {
+          ip_address: row.ip_address,
+          note: row.note || undefined,
+        });
+        keptIp.unshift(created);
+      }
+      await mutateIpBlocklist(keptIp as FraudIpBlocklistEntry[], false);
+      setDraftIpBlocklist(keptIp);
+      setBaselineIpBlocklist(keptIp as FraudIpBlocklistEntry[]);
 
       await mutateBlocklist(kept as FraudBlocklistEntry[], false);
       setDraftBlocklist(kept);
@@ -246,8 +367,8 @@ export function FraudView() {
     );
   }
 
-  if (blocklistError || settingsError) {
-    const err = settingsError || blocklistError;
+  if (blocklistError || ipBlocklistError || settingsError) {
+    const err = settingsError || blocklistError || ipBlocklistError;
     return (
       <div className="flex flex-col gap-4 pb-2">
         <PageHeading title="Fraud Protection" />
@@ -263,6 +384,7 @@ export function FraudView() {
   const stillLoading =
     sessionLoading ||
     blocklistLoading ||
+    ipBlocklistLoading ||
     settingsLoading ||
     // One frame after data arrives, hydrate effect sets baselineRules.
     (!!siteId && !!siteSettings && !baselineRules);
@@ -300,14 +422,73 @@ export function FraudView() {
       <PageHeading
         title="Fraud Protection"
         actions={
-          <PrimaryButton onClick={handleSave} disabled={!dirty || saving}>
-            <MaskIcon src="/sidebar/save.svg" className="size-4" />
-            {saving ? "Saving…" : "Save"}
-          </PrimaryButton>
+          tab === "rules" ? (
+            <PrimaryButton onClick={handleSave} disabled={!dirty || saving}>
+              <MaskIcon src="/sidebar/save.svg" className="size-4" />
+              {saving ? "Saving…" : "Save"}
+            </PrimaryButton>
+          ) : undefined
         }
       />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="inline-flex w-fit items-center gap-1 rounded-lg bg-surface p-1">
+        <button
+          type="button"
+          onClick={() => setTab("rules")}
+          className={[
+            "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            tab === "rules"
+              ? "bg-primary text-white"
+              : "text-muted hover:text-foreground",
+          ].join(" ")}
+        >
+          Protection rules
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("suspicious")}
+          className={[
+            "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+            tab === "suspicious"
+              ? "bg-primary text-white"
+              : "text-muted hover:text-foreground",
+          ].join(" ")}
+        >
+          Suspicious orders
+          {suspiciousOrders.length > 0 ? (
+            <span
+              className={[
+                "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold",
+                tab === "suspicious" ? "bg-white/25" : "bg-amber-500/15 text-amber-600 dark:text-amber-300",
+              ].join(" ")}
+            >
+              {suspiciousOrders.length}
+            </span>
+          ) : null}
+        </button>
+      </div>
+
+      {tab === "suspicious" ? (
+        suspiciousLoading ? (
+          <div className="h-56 animate-pulse rounded-md bg-surface" />
+        ) : suspiciousError ? (
+          <EmptyState
+            icon={Shield}
+            title="Couldn't load suspicious orders"
+            description={
+              suspiciousError instanceof Error ? suspiciousError.message : "Something went wrong."
+            }
+          />
+        ) : (
+          <SuspiciousOrdersTable
+            siteId={siteId as string}
+            orders={suspiciousOrders}
+            onReviewed={handleOrderReviewed}
+          />
+        )
+      ) : (
+      <>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <article className="relative flex min-h-[100px] flex-col justify-between rounded-md bg-surface p-4 pr-16">
           <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
             <MaskIcon src="/sidebar/lock.svg" className="size-5" />
@@ -315,6 +496,15 @@ export function FraudView() {
           <p className="text-sm font-medium text-muted">Numbers blocked</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
             {draftBlocklist.length}
+          </p>
+        </article>
+        <article className="relative flex min-h-[100px] flex-col justify-between rounded-md bg-surface p-4 pr-16">
+          <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
+            <Globe className="size-5" strokeWidth={1.75} />
+          </div>
+          <p className="text-sm font-medium text-muted">IPs blocked</p>
+          <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+            {draftIpBlocklist.length}
           </p>
         </article>
         <article className="relative flex min-h-[100px] flex-col justify-between rounded-md bg-surface p-4 pr-16">
@@ -520,10 +710,113 @@ export function FraudView() {
         )}
       </section>
 
+      <section className="rounded-md bg-surface">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border dark:border-transparent px-4 py-3.5 sm:px-5">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">
+              IP blocklist
+              {draftIpBlocklist.length > 0 ? (
+                <span className="ml-2 align-middle text-xs font-medium text-muted">
+                  {draftIpBlocklist.length}
+                </span>
+              ) : null}
+            </h2>
+            <p className="mt-0.5 text-xs text-muted">
+              Blocks browsing entirely, not just checkout — Save writes the list.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAddIpOpen(true)}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <Plus className="size-3.5" strokeWidth={2.25} />
+            Add IP
+          </button>
+        </div>
+
+        {draftIpBlocklist.length === 0 ? (
+          <div className="flex flex-col items-center px-4 py-10 text-center sm:px-5">
+            <span className="mb-3 flex size-10 items-center justify-center rounded-lg bg-search-bg text-muted">
+              <Globe className="size-4" strokeWidth={1.75} />
+            </span>
+            <p className="text-sm font-semibold text-foreground">
+              No IPs blocked
+            </p>
+            <p className="mt-0.5 max-w-xs text-xs leading-snug text-muted">
+              Block an address that's spamming or attacking your storefront —
+              it won't be able to load any page, not just checkout.
+            </p>
+            <button
+              type="button"
+              onClick={() => setAddIpOpen(true)}
+              className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-lg bg-search-bg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-border dark:hover:bg-white/10"
+            >
+              <Plus className="size-3.5" strokeWidth={2.25} />
+              Add first IP
+            </button>
+          </div>
+        ) : (
+          <div className="divide-y divide-border dark:divide-transparent">
+            {draftIpBlocklist.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center gap-3 px-4 py-3 sm:px-5"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-search-bg text-muted">
+                  <Globe className="size-3.5" strokeWidth={1.75} />
+                </span>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="font-mono text-sm font-semibold tracking-tight text-foreground">
+                      {entry.ip_address}
+                    </p>
+                    {isLocalId(entry.id) ? (
+                      <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
+                        Unsaved
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs leading-snug text-muted">
+                    {entry.note ? entry.note : "No note"}
+                    <span className="text-muted-soft">
+                      {" · "}
+                      {new Date(entry.created_at).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setUnblockingIp(entry)}
+                  aria-label={`Unblock ${entry.ip_address}`}
+                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300"
+                >
+                  <Trash2 className="size-3.5" strokeWidth={2} />
+                  <span className="hidden sm:inline">Unblock</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      </>
+      )}
+
       <AddBlockModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onAdd={handleAdd}
+      />
+      <AddIpBlockModal
+        open={addIpOpen}
+        onClose={() => setAddIpOpen(false)}
+        onAdd={handleAddIp}
       />
 
       <ConfirmDialog
@@ -538,6 +831,19 @@ export function FraudView() {
         destructive
         onConfirm={confirmUnblock}
         onCancel={() => setUnblocking(null)}
+      />
+      <ConfirmDialog
+        open={!!unblockingIp}
+        title="Remove from list?"
+        description={
+          unblockingIp
+            ? `${unblockingIp.ip_address} will be unblocked when you Save.`
+            : undefined
+        }
+        confirmLabel="Remove"
+        destructive
+        onConfirm={confirmUnblockIp}
+        onCancel={() => setUnblockingIp(null)}
       />
     </div>
   );

@@ -430,6 +430,18 @@ export type OrderOut = {
   items: OrderItemOut[];
   /** Older rows may omit this until backfilled — treat missing as storefront. */
   channel?: OrderChannel | null;
+  /** Client-generated token from the storefront's checkout — see
+   * templates/*\/lib/device.ts. Null for POS orders and any order placed
+   * before this shipped. See app/fraud.py for how it's used. */
+  device_id: string | null;
+  /** clear | flagged | cleared | confirmed_fraud — see
+   * dashboard/components/fraud/suspicious-orders-table.tsx. */
+  fraud_status: "clear" | "flagged" | "cleared" | "confirmed_fraud";
+  fraud_reason: string | null;
+  /** Requesting IP at checkout — the only place a merchant can discover
+   * which address to add to the fraud IP blocklist (Settings -> Fraud
+   * Protection). Null for POS orders and orders placed before this shipped. */
+  ip_address: string | null;
   created_at: string;
 };
 

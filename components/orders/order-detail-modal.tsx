@@ -1,9 +1,10 @@
 "use client";
 
-import { ImageOff, Package, Printer, X } from "lucide-react";
+import { ImageOff, Package, Printer, ShieldBan, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
+import { useToast } from "@/components/ui/toast";
 import { formatDisplayDate, formatTaka } from "@/lib/format";
 import {
   customerAddress,
@@ -18,6 +19,7 @@ import {
   type OrderStatus,
   type ProductOut,
 } from "@/lib/api/commerce";
+import { addIpToBlocklist } from "@/lib/api/fraud";
 import { OrderStatusBadge, ORDER_STATUS_OPTIONS } from "./order-status-badge";
 
 type OrderDetailModalProps = {
@@ -62,12 +64,37 @@ export function OrderDetailModal({
   onStatusChange,
 }: OrderDetailModalProps) {
   const { currentSite } = useSession();
+  const { toast } = useToast();
   const [localStatus, setLocalStatus] = useState<OrderStatus | null>(null);
   const [products, setProducts] = useState<ProductOut[]>([]);
+  const [blockingIp, setBlockingIp] = useState(false);
+  const [ipBlocked, setIpBlocked] = useState(false);
 
   useEffect(() => {
     setLocalStatus(null);
+    setIpBlocked(false);
   }, [order?.id]);
+
+  async function handleBlockIp() {
+    if (!currentSite || !order?.ip_address) return;
+    setBlockingIp(true);
+    try {
+      await addIpToBlocklist(currentSite.id, {
+        ip_address: order.ip_address,
+        note: `Blocked from order ${order.order_number}`,
+      });
+      setIpBlocked(true);
+      toast({ title: `${order.ip_address} blocked`, variant: "success" });
+    } catch (err) {
+      toast({
+        title: "Couldn't block this IP",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "info",
+      });
+    } finally {
+      setBlockingIp(false);
+    }
+  }
 
   useEffect(() => {
     if (!open || !currentSite) return;
@@ -199,6 +226,22 @@ export function OrderDetailModal({
                     <p className="mt-0.5 text-sm text-muted-soft">
                       No contact details
                     </p>
+                  ) : null}
+                  {order.ip_address ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 print:hidden">
+                      <span className="rounded-md bg-search-bg px-2 py-1 font-mono text-xs text-muted">
+                        {order.ip_address}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={blockingIp || ipBlocked}
+                        onClick={handleBlockIp}
+                        className="inline-flex h-6 items-center gap-1 rounded-md px-2 text-xs font-semibold text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 disabled:opacity-60 dark:hover:text-red-300"
+                      >
+                        <ShieldBan className="size-3" strokeWidth={2} />
+                        {ipBlocked ? "Blocked" : blockingIp ? "Blocking…" : "Block this IP"}
+                      </button>
+                    </div>
                   ) : null}
                 </div>
 

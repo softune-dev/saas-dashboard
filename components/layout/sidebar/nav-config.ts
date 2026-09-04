@@ -44,6 +44,7 @@ export const superadminItems: NavItem[] = [
   { label: "Leads", href: "/superadmin/leads", icon: "/sidebar/inbox.svg" },
   { label: "Demos", href: "/superadmin/demo-requests", icon: "/sidebar/chat.svg" },
   { label: "Tickets", href: "/superadmin/tickets", icon: "/sidebar/help-desk.svg" },
+  { label: "Vercel Cleanup", href: "/superadmin/vercel-cleanup", icon: "/sidebar/settings.svg" },
 ];
 
 export const tourItem: NavItem = {

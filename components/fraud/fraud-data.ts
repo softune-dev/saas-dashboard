@@ -2,7 +2,9 @@
 export type FraudRuleId =
   | "hold_first_high_value"
   | "flag_burst_orders"
-  | "block_blocklist";
+  | "block_blocklist"
+  | "device_pending_lock"
+  | "device_cooldown";
 
 export type FraudRuleDef = {
   id: FraudRuleId;
@@ -72,6 +74,28 @@ export const FRAUD_RULES: FraudRuleDef[] = [
       "Reject checkout from any phone on your blocklist below.",
     icon: "/sidebar/lock.svg",
   },
+  {
+    id: "device_pending_lock",
+    name: "One open order per device",
+    description:
+      "A device can't place a new order while it already has one in progress at your store.",
+    icon: "/sidebar/orders.svg",
+  },
+  {
+    id: "device_cooldown",
+    name: "Cooldown after a cancelled order",
+    description:
+      "After a cancelled or confirmed-fraud order, block new orders from that device for a while.",
+    icon: "/sidebar/lock.svg",
+    threshold: {
+      key: "windowMinutes",
+      label: "Cooldown for",
+      suffix: "min",
+      min: 5,
+      max: 10080,
+      defaultValue: 60,
+    },
+  },
 ];
 
 export function defaultRuleState(): Record<FraudRuleId, FraudRuleState> {
@@ -86,6 +110,13 @@ export function defaultRuleState(): Record<FraudRuleId, FraudRuleState> {
     },
     block_blocklist: {
       enabled: true,
+    },
+    device_pending_lock: {
+      enabled: false,
+    },
+    device_cooldown: {
+      enabled: false,
+      value: 60,
     },
   };
 }
