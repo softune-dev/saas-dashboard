@@ -1,5 +1,6 @@
 import { StatCard } from "@/components/dashboard/stats/stat-card";
 import type { StatCardData } from "@/components/dashboard/stats/stats-data";
+import { useLanguage } from "@/components/providers/language-provider";
 import { formatTaka } from "@/lib/format";
 import type { OrderOut } from "@/lib/api/commerce";
 import { bucketByCalendarMonth, monthOverMonth } from "@/lib/trends";
@@ -12,6 +13,7 @@ export function OrdersStats({
   /** Backend's Page.total — may exceed orders.length if more pages exist. */
   totalCount: number;
 }) {
+  const { t } = useLanguage();
   const pending = orders.filter((o) => o.status === "pending").length;
   const fulfilled = orders.filter((o) => o.status === "fulfilled").length;
   // Revenue over the fetched page only — honest about the limit rather than
@@ -36,26 +38,26 @@ export function OrdersStats({
   const stats: StatCardData[] = [
     {
       id: "total",
-      title: "Total Orders",
+      title: t("Total Orders"),
       value: String(totalCount),
       icon: "/sidebar/orders.svg",
       ...ordersTrend,
     },
     {
       id: "pending",
-      title: "Pending",
+      title: t("Pending"),
       value: String(pending),
       icon: "/sidebar/shop-bag2.svg",
     },
     {
       id: "fulfilled",
-      title: "Fulfilled",
+      title: t("Fulfilled"),
       value: String(fulfilled),
       icon: "/sidebar/shop-bag.svg",
     },
     {
       id: "revenue",
-      title: "Order Revenue",
+      title: t("Order Revenue"),
       value: formatTaka(revenueCents / 100),
       icon: "/sidebar/wallet.svg",
       ...revenueTrend,

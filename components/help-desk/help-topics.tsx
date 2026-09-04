@@ -1,4 +1,7 @@
+"use client";
+
 import { ChevronRight } from "lucide-react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { helpTopics } from "./help-data";
 
@@ -6,11 +9,12 @@ const LANDING_URL =
   process.env.NEXT_PUBLIC_LANDING_URL || "http://localhost:3060";
 
 export function HelpTopics() {
+  const { t } = useLanguage();
   return (
     <section className="flex h-full flex-col rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 shrink-0">
-        <h2 className="text-base font-semibold text-foreground">Quick help</h2>
-        <p className="mt-0.5 text-sm text-muted">Popular guides</p>
+        <h2 className="text-base font-semibold text-foreground">{t("Quick help")}</h2>
+        <p className="mt-0.5 text-sm text-muted">{t("Popular guides")}</p>
       </div>
 
       <ul className="grid flex-1 grid-cols-1 gap-2.5 content-stretch sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
@@ -28,10 +32,10 @@ export function HelpTopics() {
                 </span>
                 <div className="min-w-0 w-full">
                   <p className="text-sm font-semibold text-foreground">
-                    {topic.title}
+                    {t(topic.title)}
                   </p>
                   <p className="mt-1 line-clamp-2 text-xs leading-snug text-muted">
-                    {topic.description}
+                    {t(topic.description)}
                   </p>
                 </div>
               </div>

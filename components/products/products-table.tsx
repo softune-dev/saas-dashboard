@@ -3,6 +3,7 @@
 import { ImageOff, Pencil, Search } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { formatTaka } from "@/lib/format";
@@ -32,12 +33,13 @@ export function ProductsTable({
    * done client-side the way Categories' small unpaginated list can. */
   onSearch: (q: string) => void;
 }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
 
   const columns: TableColumn<ProductOut>[] = [
     {
       id: "details",
-      header: "Product",
+      header: t("Product"),
       cell: (row) => (
         <div className="flex items-center gap-3.5 py-0.5">
           <span className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-search-bg sm:size-[4.5rem]">
@@ -57,8 +59,8 @@ export function ProductsTable({
             <p className="truncate font-semibold text-foreground">{row.name}</p>
             <p className="truncate text-xs text-muted">
               {row.category_id
-                ? (categoryById.get(row.category_id)?.name ?? "Uncategorized")
-                : "Uncategorized"}
+                ? (categoryById.get(row.category_id)?.name ?? t("Uncategorized"))
+                : t("Uncategorized")}
             </p>
           </div>
         </div>
@@ -66,14 +68,16 @@ export function ProductsTable({
     },
     {
       id: "sku",
-      header: "SKU",
+      header: t("SKU"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="text-muted">{row.sku || "—"}</span>
       ),
     },
     {
       id: "price",
-      header: "Price",
+      header: t("Price"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold tabular-nums text-foreground">
@@ -89,7 +93,8 @@ export function ProductsTable({
     },
     {
       id: "stock",
-      header: "Stock",
+      header: t("Stock"),
+      className: "whitespace-nowrap",
       cell: (row) =>
         row.track_stock ? (
           <span
@@ -101,12 +106,13 @@ export function ProductsTable({
             {row.stock}
           </span>
         ) : (
-          <span className="text-muted">Unlimited</span>
+          <span className="text-muted">{t("Unlimited")}</span>
         ),
     },
     {
       id: "status",
-      header: "Status",
+      header: t("Status"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span
           className={[
@@ -116,15 +122,15 @@ export function ProductsTable({
               : "bg-search-bg text-muted",
           ].join(" ")}
         >
-          {row.is_active ? "Active" : "Inactive"}
+          {row.is_active ? t("Active") : t("Inactive")}
         </span>
       ),
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t("Actions"),
       headerClassName: "text-right",
-      className: "text-right",
+      className: "text-right whitespace-nowrap",
       cell: (row) => (
         <div className="inline-flex items-center justify-end gap-1">
           <button
@@ -152,7 +158,7 @@ export function ProductsTable({
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
-          All Products
+          {t("All Products")}
         </h2>
 
         <div className="flex items-center gap-2">
@@ -168,7 +174,7 @@ export function ProductsTable({
                 setQuery(e.target.value);
                 onSearch(e.target.value);
               }}
-              placeholder="Search products..."
+              placeholder={t("Search products...")}
               className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
@@ -184,7 +190,7 @@ export function ProductsTable({
         columns={columns}
         data={products}
         rowKey={(row) => row.id}
-        emptyMessage="No products match your search or filters"
+        emptyMessage={t("No products match your search or filters")}
       />
     </section>
   );

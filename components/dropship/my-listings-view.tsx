@@ -154,9 +154,12 @@ export function MyListingsView() {
               key={listing.id}
               image={listing.image}
               title={listing.productName}
-              supplierName={`${listing.stock} in stock`}
-              priceLabel="Wholesale price"
-              priceCents={listing.wholesalePriceCents}
+              supplierName={supplierProfile.businessName}
+              wholesalePriceCents={listing.wholesalePriceCents}
+              stock={listing.stock}
+              outOfStock={listing.stock === 0}
+              deliveryLocations={listing.deliveryLocations}
+              deliveryFeeCents={listing.deliveryFeeCents}
               resellers={listing.resellers}
               onClick={() => setViewing(listing)}
               footer={

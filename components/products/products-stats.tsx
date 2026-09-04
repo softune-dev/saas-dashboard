@@ -1,5 +1,6 @@
 import { StatCard } from "@/components/dashboard/stats/stat-card";
 import type { StatCardData } from "@/components/dashboard/stats/stats-data";
+import { useLanguage } from "@/components/providers/language-provider";
 import { formatTaka } from "@/lib/format";
 import type { ProductOut } from "@/lib/api/commerce";
 import {
@@ -16,6 +17,7 @@ export function ProductsStats({
    * pages than were fetched. */
   totalCount: number;
 }) {
+  const { t } = useLanguage();
   const active = products.filter((p) => p.is_active).length;
   const outOfStock = products.filter((p) => p.track_stock && p.stock <= 0).length;
   const inventoryValue = products.reduce(
@@ -31,26 +33,26 @@ export function ProductsStats({
   const stats: StatCardData[] = [
     {
       id: "total",
-      title: "Total Products",
+      title: t("Total Products"),
       value: String(totalCount),
       icon: "/sidebar/products.svg",
       ...totalTrend,
     },
     {
       id: "active",
-      title: "Active",
+      title: t("Active"),
       value: String(active),
       icon: "/sidebar/shop-bag.svg",
     },
     {
       id: "out-of-stock",
-      title: "Out of Stock",
+      title: t("Out of Stock"),
       value: String(outOfStock),
       icon: "/sidebar/orders.svg",
     },
     {
       id: "inventory-value",
-      title: "Inventory Value",
+      title: t("Inventory Value"),
       value: formatTaka(inventoryValue / 100),
       icon: "/sidebar/wallet.svg",
     },

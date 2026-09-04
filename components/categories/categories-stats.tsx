@@ -1,5 +1,6 @@
 import { StatCard } from "@/components/dashboard/stats/stat-card";
 import type { StatCardData } from "@/components/dashboard/stats/stats-data";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { CategoryOut } from "@/lib/api/commerce";
 import {
   countAsOfEndOfLastMonth,
@@ -16,6 +17,7 @@ export function CategoriesStats({
    * products fetch the parent already has to make. */
   productCounts: number;
 }) {
+  const { t } = useLanguage();
   const active = categories.filter((c) => c.is_active).length;
   const inactive = categories.length - active;
 
@@ -28,26 +30,26 @@ export function CategoriesStats({
   const stats: StatCardData[] = [
     {
       id: "total",
-      title: "Total Categories",
+      title: t("Total Categories"),
       value: String(categories.length),
       icon: "/sidebar/categories.svg",
       ...totalTrend,
     },
     {
       id: "active",
-      title: "Active",
+      title: t("Active"),
       value: String(active),
       icon: "/sidebar/products.svg",
     },
     {
       id: "inactive",
-      title: "Inactive",
+      title: t("Inactive"),
       value: String(inactive),
       icon: "/sidebar/orders.svg",
     },
     {
       id: "products",
-      title: "Listed Products",
+      title: t("Listed Products"),
       value: String(productCounts),
       icon: "/sidebar/shop-bag.svg",
     },

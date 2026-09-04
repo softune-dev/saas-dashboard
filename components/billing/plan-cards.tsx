@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { Check } from "lucide-react";
 import { useSession } from "@/components/providers/session-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { SWITCHABLE_PLANS, planById, type Plan } from "./billing-data";
 import { ContactSalesModal } from "./contact-sales-modal";
 
 export function PlanCards() {
   const { me } = useSession();
+  const { t } = useLanguage();
   const currentPlanId = me?.tenant.plan ?? "demo";
   const currentPlan = planById(currentPlanId);
   const [target, setTarget] = useState<Plan | null>(null);
@@ -15,7 +17,7 @@ export function PlanCards() {
   return (
     <section className="h-full rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4">
-        <h2 className="text-base font-semibold text-foreground">Plans</h2>
+        <h2 className="text-base font-semibold text-foreground">{t("Plans")}</h2>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -40,7 +42,7 @@ export function PlanCards() {
                 </div>
                 {plan.popular ? (
                   <span className="shrink-0 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-white">
-                    Popular
+                    {t("Popular")}
                   </span>
                 ) : null}
               </div>
@@ -48,7 +50,7 @@ export function PlanCards() {
               <p className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
                 ৳{plan.priceMonthly?.toLocaleString()}
                 <span className="ml-1 text-sm font-medium text-muted">
-                  / month
+                  {t("/ month")}
                 </span>
               </p>
 
@@ -62,7 +64,7 @@ export function PlanCards() {
                       className="mt-0.5 size-3.5 shrink-0 text-primary"
                       strokeWidth={2.25}
                     />
-                    <span>{feature}</span>
+                    <span>{t(feature)}</span>
                   </li>
                 ))}
               </ul>
@@ -81,7 +83,7 @@ export function PlanCards() {
                     : "bg-primary text-white hover:opacity-90",
                 ].join(" ")}
               >
-                {isCurrent ? "Current plan" : `Switch to ${plan.name}`}
+                {isCurrent ? t("Current plan") : `${t("Switch to")} ${plan.name}`}
               </button>
             </article>
           );

@@ -3,6 +3,7 @@
 import { Upload, X } from "lucide-react";
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { SettingsModal } from "../ui/settings-modal";
+import { useLanguage } from "@/components/providers/language-provider";
 import { IMAGE_LIMITS_HINT } from "@/lib/constants/media-limits";
 
 export type UploadTask = {
@@ -18,13 +19,8 @@ type UploadMediaModalProps = {
   onUpload: (files: File[]) => Promise<void>;
 };
 
-/** Drop/select as many files as needed — everything lands in the "other"
- * Cloudinary folder (see app/media.py) rather than asking the merchant to
- * guess a category up front. A product/category form's own MediaSourceMenu
- * (uploadSiteMedia(..., "products") etc.) is where an image actually gets
- * its real category, at the point it's genuinely used for that purpose;
- * asking again here just for library storage was a needless extra step. */
 export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalProps) {
+  const { t } = useLanguage();
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -69,7 +65,7 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
   }
 
   return (
-    <SettingsModal open={open} title="Upload media" onClose={handleClose}>
+    <SettingsModal open={open} title={t("Upload media")} onClose={handleClose}>
       <div className="flex flex-col gap-4">
         <div
           onDragOver={(e) => {
@@ -86,7 +82,7 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
         >
           <Upload className="size-5 text-muted-soft" strokeWidth={1.75} />
           <p className="text-xs font-medium text-foreground">
-            Drop images here or click to browse
+            {t("Drop images here or click to browse")}
           </p>
           <p className="text-[10px] text-muted-soft">{IMAGE_LIMITS_HINT} · multiple files ok</p>
           <input
@@ -122,7 +118,7 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
             disabled={uploading}
             className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-search-bg text-sm font-medium text-foreground transition-colors hover:bg-border disabled:opacity-50"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="button"
@@ -132,7 +128,7 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
           >
             {uploading
               ? "Uploading…"
-              : `Upload ${files.length > 0 ? files.length : ""} image${files.length === 1 ? "" : "s"}`}
+              : `${t("Upload")} ${files.length > 0 ? files.length : ""} image${files.length === 1 ? "" : "s"}`}
           </button>
         </div>
       </div>

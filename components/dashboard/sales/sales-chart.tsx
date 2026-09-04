@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { formatNumber } from "@/lib/format";
 
 /** Rounds a max value up to a "nice" number for axis ticks — e.g. 18,430 →
@@ -24,6 +25,7 @@ type SalesChartProps = {
 };
 
 export function SalesChart({ bars }: SalesChartProps) {
+  const { t } = useLanguage();
   const [hovered, setHovered] = useState<number | null>(null);
 
   const maxAmount = niceMax(Math.max(...bars.map((b) => b.amount), 0));
@@ -122,7 +124,7 @@ export function SalesChart({ bars }: SalesChartProps) {
               key={bar.label + i}
               className="min-w-0 flex-1 text-center text-[10px] leading-none font-medium text-muted"
             >
-              {bar.label}
+              {t(bar.label)}
             </div>
           ))}
         </div>

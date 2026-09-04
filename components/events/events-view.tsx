@@ -2,6 +2,7 @@
 
 import { Percent, Plus } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -25,6 +26,7 @@ import { EventsTable, emptyEventFilters, type EventFilters } from "./events-tabl
 import { EventFormModal } from "./event-form-modal";
 
 export function EventsView() {
+  const { t } = useLanguage();
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
   const { deleteWithUndo } = useUndoableDelete();
@@ -50,7 +52,7 @@ export function EventsView() {
   const error = eventsError
     ? eventsError instanceof Error
       ? eventsError.message
-      : "Failed to load events"
+      : t("Failed to load events")
     : null;
 
   const [formOpen, setFormOpen] = useState(false);
@@ -65,7 +67,7 @@ export function EventsView() {
         prev ? { ...prev, items: [...prev.items, created], total: prev.total + 1 } : prev,
       { revalidate: false },
     );
-    toast({ title: "Event created", variant: "success" });
+    toast({ title: t("Event created"), variant: "success" });
   }
 
   async function handleUpdate(id: string, data: EventUpdate) {
@@ -76,7 +78,7 @@ export function EventsView() {
         prev ? { ...prev, items: prev.items.map((e) => (e.id === id ? updated : e)) } : prev,
       { revalidate: false },
     );
-    toast({ title: "Event updated", variant: "success" });
+    toast({ title: t("Event updated"), variant: "success" });
   }
 
   function handleDelete() {
@@ -105,7 +107,7 @@ export function EventsView() {
       commitDelete: () => deleteEvent(site.id, event.id),
       onError: (err) =>
         toast({
-          title: "Couldn't delete event",
+          title: t("Couldn't delete event"),
           description: err instanceof Error ? err.message : "Something went wrong.",
           variant: "info",
         }),
@@ -117,7 +119,7 @@ export function EventsView() {
   return (
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
-        title="Events"
+        title={t("Events")}
         actionsInline
         actions={
           <PrimaryButton
@@ -128,7 +130,7 @@ export function EventsView() {
             disabled={!currentSite}
           >
             <Plus className="size-4" strokeWidth={2} />
-            Add Event
+            {t("Add Event")}
           </PrimaryButton>
         }
       />
@@ -136,8 +138,8 @@ export function EventsView() {
       {!sessionLoading && !currentSite ? (
         <EmptyState
           icon={Percent}
-          title="No site yet"
-          description="Create a site from a template in Themes before adding events."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes before adding events.")}
         />
       ) : showSkeleton ? (
         <>
@@ -149,12 +151,12 @@ export function EventsView() {
           <TableSkeleton columns={4} />
         </>
       ) : error ? (
-        <EmptyState icon={Percent} title="Couldn't load events" description={error} />
+        <EmptyState icon={Percent} title={t("Couldn't load events")} description={error} />
       ) : events.length === 0 ? (
         <EmptyState
           icon={Percent}
-          title="No events yet"
-          description="Run a themed sale — New Arrival, Summer Sale — with a real discount on the products you pick."
+          title={t("No events yet")}
+          description={t("Run a themed sale — New Arrival, Summer Sale — with a real discount on the products you pick.")}
           action={
             <PrimaryButton
               onClick={() => {
@@ -163,7 +165,7 @@ export function EventsView() {
               }}
             >
               <Plus className="size-4" strokeWidth={2} />
-              Add Event
+              {t("Add Event")}
             </PrimaryButton>
           }
         />
@@ -195,9 +197,9 @@ export function EventsView() {
 
       <ConfirmDialog
         open={!!deleting}
-        title={`Delete "${deleting?.name}"?`}
-        description="You'll have 10 seconds to undo from the toast after this."
-        confirmLabel="Delete"
+        title={`${t("Delete")} "${deleting?.name}"?`}
+        description={t("You'll have 10 seconds to undo from the toast after this.")}
+        confirmLabel={t("Delete")}
         destructive
         onConfirm={handleDelete}
         onCancel={() => setDeleting(null)}

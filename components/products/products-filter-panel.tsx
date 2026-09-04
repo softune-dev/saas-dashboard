@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import type { CategoryOut } from "@/lib/api/commerce";
 import {
@@ -22,6 +23,7 @@ export function ProductsFilterPanel({
   value,
   onChange,
 }: ProductsFilterPanelProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const activeCount = countActiveFilters(value);
@@ -49,7 +51,7 @@ export function ProductsFilterPanel({
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        aria-label="Filter products"
+        aria-label={t("Filter products")}
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((v) => !v)}
@@ -71,25 +73,25 @@ export function ProductsFilterPanel({
       {open ? (
         <div
           role="dialog"
-          aria-label="Product filters"
+          aria-label={t("Product filters")}
           className="absolute top-full right-0 z-30 mt-2 w-72 rounded-xl bg-surface p-4 shadow-lg ring-1 ring-slate-200/80"
         >
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold text-foreground">Filters</p>
+            <p className="text-sm font-semibold text-foreground">{t("Product filters")}</p>
             {activeCount > 0 ? (
               <button
                 type="button"
                 onClick={() => onChange(emptyProductFilters)}
                 className="text-xs font-medium text-primary hover:opacity-80"
               >
-                Clear all
+                {t("Clear all")}
               </button>
             ) : null}
           </div>
 
           <div className="flex flex-col gap-3">
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium text-muted">Category</span>
+              <span className="text-xs font-medium text-muted">{t("Category")}</span>
               <select
                 value={value.categoryId}
                 onChange={(e) =>
@@ -97,8 +99,8 @@ export function ProductsFilterPanel({
                 }
                 className={selectClass}
               >
-                <option value="">All categories</option>
-                <option value="uncategorized">Uncategorized</option>
+                <option value="">{t("All categories")}</option>
+                <option value="uncategorized">{t("Uncategorized")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -108,7 +110,7 @@ export function ProductsFilterPanel({
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium text-muted">Status</span>
+              <span className="text-xs font-medium text-muted">{t("Status")}</span>
               <select
                 value={value.status}
                 onChange={(e) =>
@@ -119,14 +121,14 @@ export function ProductsFilterPanel({
                 }
                 className={selectClass}
               >
-                <option value="">All statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">{t("All statuses")}</option>
+                <option value="active">{t("Active")}</option>
+                <option value="inactive">{t("Inactive")}</option>
               </select>
             </label>
 
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium text-muted">Stock</span>
+              <span className="text-xs font-medium text-muted">{t("Stock")}</span>
               <select
                 value={value.stock}
                 onChange={(e) =>
@@ -137,9 +139,9 @@ export function ProductsFilterPanel({
                 }
                 className={selectClass}
               >
-                <option value="">All stock levels</option>
-                <option value="in_stock">In stock</option>
-                <option value="out_of_stock">Out of stock</option>
+                <option value="">{t("All stock levels")}</option>
+                <option value="in_stock">{t("In stock")}</option>
+                <option value="out_of_stock">{t("Out of Stock")}</option>
               </select>
             </label>
           </div>

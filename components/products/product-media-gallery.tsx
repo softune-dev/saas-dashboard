@@ -1,7 +1,7 @@
 "use client";
 
 import { ImagePlus, Star, X } from "lucide-react";
-import { IMAGE_LIMITS_HINT } from "@/lib/constants/media-limits";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import type { GalleryImage } from "./product-form-types";
@@ -36,6 +36,7 @@ export function ProductMediaGallery({
   onAddFromLibrary,
   onRemove,
 }: ProductMediaGalleryProps) {
+  const { t } = useLanguage();
   function setPrimary(index: number) {
     if (index <= 0) return;
     const next = [...images];
@@ -48,15 +49,15 @@ export function ProductMediaGallery({
     <section className="rounded-2xl bg-surface p-5">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-[15px] font-semibold text-foreground">Media</h2>
+          <h2 className="text-[15px] font-semibold text-foreground">{t("Media")}</h2>
           <p className="mt-0.5 text-xs text-muted">
-            First image is primary. Click another to make it primary. Uploaded
-            when you save. {IMAGE_LIMITS_HINT}.
+            {t("First image is primary. Click another to make it primary. Uploaded when you save.")}{" "}
+            {t("JPEG, PNG, WebP, or AVIF · up to 10MB.")}
           </p>
         </div>
         {images.length > 0 ? (
           <span className="rounded-full bg-search-bg px-2.5 py-1 text-xs font-medium text-muted">
-            {images.length} {images.length === 1 ? "image" : "images"}
+            {images.length} {images.length === 1 ? t("image") : t("images")}
           </span>
         ) : null}
       </div>
@@ -84,7 +85,7 @@ export function ProductMediaGallery({
             {index === 0 ? (
               <span className="pointer-events-none absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-black/65 px-2 py-0.5 text-[10px] font-medium text-white">
                 <Star className="size-2.5 fill-white" strokeWidth={0} />
-                Primary
+                {t("Primary")}
               </span>
             ) : null}
             <button
@@ -111,10 +112,10 @@ export function ProductMediaGallery({
             <button
               type="button"
               onClick={open}
-              className={`${tileClass} flex cursor-pointer flex-col items-center justify-center gap-1.5 text-muted ring-1 ring-dashed ring-slate-300 transition-colors hover:bg-search-bg hover:text-foreground`}
+              className={`${tileClass} flex cursor-pointer flex-col items-center justify-center gap-1.5 text-muted ring-1 ring-dashed ring-border dark:ring-white/15 transition-colors hover:bg-search-bg hover:text-foreground`}
             >
               <ImagePlus className="size-5" strokeWidth={1.5} />
-              <span className="text-xs font-medium">Add image</span>
+              <span className="text-xs font-medium">{t("Add image")}</span>
             </button>
           )}
         </MediaSourceMenu>

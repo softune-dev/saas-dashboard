@@ -28,7 +28,7 @@ import {
   Underline as UnderlineIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { EditorLabel } from "@/components/themes/editor/editor-field";
+import { useLanguage } from "@/components/providers/language-provider";
 
 const SWATCHES = [
   "#171717",
@@ -360,6 +360,7 @@ export function ProductDescriptionEditor({
   onUploadImage,
   headerRight,
 }: ProductDescriptionEditorProps) {
+  const { t } = useLanguage();
   const [imageUploading, setImageUploading] = useState(false);
 
   // Always call the latest parent handlers without putting them in useEditor's
@@ -439,7 +440,7 @@ export function ProductDescriptionEditor({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between gap-2">
-        <EditorLabel>Description</EditorLabel>
+        <label className="text-sm font-medium text-muted">{t("Description")}</label>
         {headerRight}
       </div>
       {/* Placeholder needs the empty-paragraph ::before rule TipTap documents;

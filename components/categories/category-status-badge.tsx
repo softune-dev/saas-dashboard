@@ -1,3 +1,4 @@
+import { useLanguage } from "@/components/providers/language-provider";
 import type { CategoryStatus } from "./categories-data";
 
 const styles: Record<CategoryStatus, string> = {
@@ -10,6 +11,7 @@ type CategoryStatusBadgeProps = {
 };
 
 export function CategoryStatusBadge({ status }: CategoryStatusBadgeProps) {
+  const { t } = useLanguage();
   return (
     <span
       className={[
@@ -17,7 +19,7 @@ export function CategoryStatusBadge({ status }: CategoryStatusBadgeProps) {
         styles[status],
       ].join(" ")}
     >
-      {status}
+      {t(status)}
     </span>
   );
 }

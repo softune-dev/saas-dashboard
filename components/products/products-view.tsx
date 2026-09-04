@@ -3,6 +3,7 @@
 import { Package, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -47,6 +48,7 @@ function applyClientFilters(
 
 export function ProductsView() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
   const { deleteWithUndo } = useUndoableDelete();
@@ -87,7 +89,7 @@ export function ProductsView() {
   const error = productsError
     ? productsError instanceof Error
       ? productsError.message
-      : "Failed to load products"
+      : t("Failed to load products")
     : null;
 
   const searchDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -136,7 +138,7 @@ export function ProductsView() {
       commitDelete: () => deleteProduct(site.id, product.id),
       onError: (err) =>
         toast({
-          title: "Couldn't delete product",
+          title: t("Couldn't delete product"),
           description: err instanceof Error ? err.message : "Something went wrong.",
           variant: "info",
         }),
@@ -150,7 +152,7 @@ export function ProductsView() {
   return (
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
-        title="Products"
+        title={t("Products")}
         actionsInline
         actions={
           <PrimaryButton
@@ -158,7 +160,7 @@ export function ProductsView() {
             disabled={!currentSite}
           >
             <Plus className="size-4" strokeWidth={2} />
-            Add Product
+            {t("Add Product")}
           </PrimaryButton>
         }
       />
@@ -166,8 +168,8 @@ export function ProductsView() {
       {!sessionLoading && !currentSite ? (
         <EmptyState
           icon={Package}
-          title="No site yet"
-          description="Create a site from a template in Themes before adding products."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes before adding products.")}
         />
       ) : showSkeleton ? (
         <>
@@ -179,16 +181,16 @@ export function ProductsView() {
           <TableSkeleton columns={6} />
         </>
       ) : error ? (
-        <EmptyState icon={Package} title="Couldn't load products" description={error} />
+        <EmptyState icon={Package} title={t("Couldn't load products")} description={error} />
       ) : products.length === 0 && !hasFilters ? (
         <EmptyState
           icon={Package}
-          title="No products yet"
-          description="Add your first product to start selling."
+          title={t("No products yet")}
+          description={t("Add your first product to start selling.")}
           action={
             <PrimaryButton onClick={() => router.push("/products/new")}>
               <Plus className="size-4" strokeWidth={2} />
-              Add Product
+              {t("Add Product")}
             </PrimaryButton>
           }
         />
@@ -210,9 +212,9 @@ export function ProductsView() {
 
       <ConfirmDialog
         open={!!deleting}
-        title={`Delete "${deleting?.name}"?`}
-        description="You'll have 10 seconds to undo from the toast after this."
-        confirmLabel="Delete"
+        title={`${t("Delete")} "${deleting?.name}"?`}
+        description={t("You'll have 10 seconds to undo from the toast after this.")}
+        confirmLabel={t("Delete")}
         destructive
         onConfirm={handleDelete}
         onCancel={() => setDeleting(null)}

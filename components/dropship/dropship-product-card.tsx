@@ -1,17 +1,27 @@
-import { ImageOff, Users } from "lucide-react";
+import { ImageOff, Truck, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { formatTaka } from "@/lib/format";
+import type { DeliveryLocation } from "@/lib/dropship-mock";
+
+const SHORT_LOCATION: Record<DeliveryLocation, string> = {
+  "Inside Dhaka": "Dhaka",
+  "Outside Dhaka": "Outside",
+};
+
+/** Same 60% suggested markup the Import modal defaults to — shown here so
+ * a reseller can gauge margin while still browsing, not only after opening
+ * Import. */
+const SUGGESTED_MARKUP = 1.6;
 
 type DropshipProductCardProps = {
   image: string | null;
   title: string;
   supplierName: string;
-  /** Main price shown large — wholesale on Browse/My Listings, retail on
-   * Imported Products (each view passes what matters most to it). */
-  priceLabel: string;
-  priceCents: number;
-  /** Smaller secondary line under the price, e.g. stock count or margin. */
-  meta?: ReactNode;
+  wholesalePriceCents: number;
+  stock: number;
+  deliveryLocations?: DeliveryLocation[];
+  deliveryFeeCents?: Partial<Record<DeliveryLocation, number>>;
+  outOfStock?: boolean;
   /** Store names currently reselling this — supplier-facing only, see
    * SupplierListing.resellers' own comment. */
   resellers?: string[];
@@ -22,22 +32,28 @@ type DropshipProductCardProps = {
   onClick?: () => void;
 };
 
-/** Shared card shape for every dropship product grid (Browse Suppliers, My
- * Listings, Imported Products) — image on top like a real product card,
- * price and supplier info below, matching how a merchant already scans a
- * storefront rather than a spreadsheet-style table. */
+/** Shared card shape for every dropship product grid (Browse Products, My
+ * Listings, Supplier profile) — image on top, then wholesale price against
+ * a suggested resell price, stock against margin, and delivery coverage —
+ * the numbers a reseller actually needs to decide whether this is worth
+ * importing, not just a single price. */
 export function DropshipProductCard({
   image,
   title,
   supplierName,
-  priceLabel,
-  priceCents,
-  meta,
+  wholesalePriceCents,
+  stock,
+  deliveryLocations,
+  deliveryFeeCents,
+  outOfStock,
   resellers,
   footer,
   badge,
   onClick,
 }: DropshipProductCardProps) {
+  const suggestedResellCents = Math.round(wholesalePriceCents * SUGGESTED_MARKUP);
+  const marginCents = suggestedResellCents - wholesalePriceCents;
+
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
       <button
@@ -61,19 +77,53 @@ export function DropshipProductCard({
           {badge ? <div className="absolute top-2.5 right-2.5">{badge}</div> : null}
         </div>
 
-        <div className="flex flex-col gap-3 p-4 pb-0">
+        <div className="flex flex-col gap-2.5 p-4 pb-0">
           <div className="min-w-0">
             <h3 className="truncate text-sm font-semibold text-foreground">{title}</h3>
             <p className="mt-0.5 truncate text-xs text-muted">{supplierName}</p>
           </div>
 
-          <div>
-            <p className="text-[11px] font-medium text-muted-soft">{priceLabel}</p>
-            <p className="text-base font-semibold tabular-nums text-foreground">
-              {formatTaka(priceCents / 100)}
-            </p>
-            {meta ? <div className="mt-0.5 text-xs">{meta}</div> : null}
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-[11px] font-medium text-muted-soft">Wholesale price</p>
+              <p className="text-base font-semibold tabular-nums text-foreground">
+                {formatTaka(wholesalePriceCents / 100)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[11px] font-medium text-muted-soft">Suggested resell</p>
+              <p className="text-base font-semibold tabular-nums text-foreground">
+                {formatTaka(suggestedResellCents / 100)}
+              </p>
+            </div>
           </div>
+
+          <div className="flex items-center justify-between gap-2 text-xs">
+            {outOfStock ? (
+              <span className="font-medium text-rose-600">Out of stock</span>
+            ) : (
+              <span className="text-muted">{stock} in stock</span>
+            )}
+            <span className="font-medium text-emerald-600">
+              +{formatTaka(marginCents / 100)} margin
+            </span>
+          </div>
+
+          {deliveryLocations && deliveryLocations.length > 0 ? (
+            <div className="flex items-center gap-1.5 text-xs text-muted">
+              <Truck className="size-3.5 shrink-0" strokeWidth={1.75} />
+              <span className="truncate">
+                {deliveryLocations
+                  .map((loc) => {
+                    const fee = deliveryFeeCents?.[loc];
+                    return fee != null
+                      ? `${SHORT_LOCATION[loc]} ৳${Math.round(fee / 100)}`
+                      : SHORT_LOCATION[loc];
+                  })
+                  .join(" · ")}
+              </span>
+            </div>
+          ) : null}
 
           {resellers && resellers.length > 0 ? (
             <div className="flex items-start gap-1.5 rounded-md bg-search-bg px-2.5 py-2 text-xs text-muted">

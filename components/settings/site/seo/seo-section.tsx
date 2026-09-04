@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { saveSiteSeo, useSiteSettingsSWR, type SiteSeo } from "@/lib/api/site-settings";
@@ -45,6 +46,7 @@ const emptyForm: SiteSeo = {
 export function SeoSection() {
   const { currentSite } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
   const { data, isLoading, mutate } = useSiteSettingsSWR(siteId);
 
@@ -94,10 +96,10 @@ export function SeoSection() {
     try {
       const updated = await saveSiteSeo(siteId, form);
       await mutate({ ...data!, seo: updated.seo }, { revalidate: false });
-      toast({ title: "SEO settings saved", variant: "success" });
+      toast({ title: t("SEO settings saved"), variant: "success" });
     } catch (err) {
       toast({
-        title: "Couldn't save SEO settings",
+        title: t("Couldn't save SEO settings"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -166,13 +168,13 @@ export function SeoSection() {
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SettingsInput
-          label="Site title"
+          label={t("Site title")}
           value={data?.name ?? ""}
           disabled
           hint="Set from your site's name — edit that in Domains."
         />
         <SettingsInput
-          label="Title suffix"
+          label={t("Title suffix")}
           value={form.title_suffix ?? ""}
           onChange={(e) => setField("title_suffix", e.target.value)}
           placeholder='Shown after every page title, e.g. "| Store Name"'
@@ -180,7 +182,7 @@ export function SeoSection() {
       </div>
 
       <SettingsTextarea
-        label="Meta description"
+        label={t("Meta description")}
         value={form.meta_description ?? ""}
         onChange={(e) => setField("meta_description", e.target.value)}
         className="!min-h-[88px]"
@@ -201,7 +203,7 @@ export function SeoSection() {
       />
 
       <SettingsInput
-        label="Keywords"
+        label={t("Keywords")}
         value={form.keywords ?? ""}
         onChange={(e) => setField("keywords", e.target.value)}
         placeholder="comma, separated, keywords"
@@ -209,12 +211,12 @@ export function SeoSection() {
 
       <div className="grid grid-cols-1 gap-4 border-t border-border dark:border-transparent pt-5 sm:grid-cols-2">
         <SettingsInput
-          label="OG title"
+          label={t("OG title")}
           value={form.og_title ?? ""}
           onChange={(e) => setField("og_title", e.target.value)}
         />
         <ImageUploadField
-          label="OG image"
+          label={t("OG image")}
           siteId={siteId}
           value={form.og_image ?? ""}
           uploading={uploadingImage === "og_image"}
@@ -225,7 +227,7 @@ export function SeoSection() {
       </div>
 
       <SettingsTextarea
-        label="OG description"
+        label={t("OG description")}
         value={form.og_description ?? ""}
         onChange={(e) => setField("og_description", e.target.value)}
         className="!min-h-[72px]"
@@ -247,55 +249,55 @@ export function SeoSection() {
 
       <div className="grid grid-cols-1 gap-4 border-t border-border dark:border-transparent pt-5 sm:grid-cols-2">
         <SettingsSelect
-          label="Indexing"
+          label={t("Indexing")}
           value={form.noindex ? "noindex" : "index"}
           options={[
-            { value: "index", label: "Allow" },
-            { value: "noindex", label: "Hide" },
+            { value: "index", label: t("Allow") },
+            { value: "noindex", label: t("Hide") },
           ]}
           onChange={(e) => setField("noindex", e.target.value === "noindex")}
         />
         <SettingsSelect
-          label="Sitemap"
+          label={t("Sitemap")}
           value={form.sitemap_enabled === false ? "no" : "yes"}
           options={[
-            { value: "yes", label: "On" },
-            { value: "no", label: "Off" },
+            { value: "yes", label: t("On") },
+            { value: "no", label: t("Off") },
           ]}
           onChange={(e) => setField("sitemap_enabled", e.target.value === "yes")}
         />
         <SettingsInput
-          label="Google Analytics"
+          label={t("Google Analytics")}
           value={form.google_analytics ?? ""}
           onChange={(e) => setField("google_analytics", e.target.value)}
           placeholder="G-XXXXXXXX"
         />
         <SettingsInput
-          label="Search Console"
+          label={t("Search Console")}
           value={form.google_search_console ?? ""}
           onChange={(e) => setField("google_search_console", e.target.value)}
           placeholder="Verification code"
         />
         <SettingsInput
-          label="Facebook Pixel"
+          label={t("Facebook Pixel")}
           value={form.facebook_pixel ?? ""}
           onChange={(e) => setField("facebook_pixel", e.target.value)}
           placeholder="Pixel ID"
         />
         <SettingsInput
-          label="TikTok Pixel"
+          label={t("TikTok Pixel")}
           value={form.tiktok_pixel ?? ""}
           onChange={(e) => setField("tiktok_pixel", e.target.value)}
           placeholder="Pixel Code"
         />
         <SettingsInput
-          label="Google Tag Manager"
+          label={t("Google Tag Manager")}
           value={form.gtm_container_id ?? ""}
           onChange={(e) => setField("gtm_container_id", e.target.value)}
           placeholder="GTM-XXXXXXX"
         />
         <ImageUploadField
-          label="Favicon"
+          label={t("Favicon")}
           siteId={siteId}
           value={form.favicon ?? ""}
           uploading={uploadingImage === "favicon"}
@@ -306,7 +308,7 @@ export function SeoSection() {
       </div>
 
       <div className="flex flex-col gap-2 border-t border-border dark:border-transparent pt-5">
-        <span className="text-sm font-medium text-muted">Meta Conversions API</span>
+        <span className="text-sm font-medium text-muted">{t("Meta Conversions API")}</span>
         <p className="text-xs leading-relaxed text-muted">
           Sends Purchase events from our server, not the customer's browser — survives ad
           blockers and iOS tracking prevention that strip the Facebook Pixel. Uses the same
@@ -355,7 +357,7 @@ export function SeoSection() {
         </p>
       </div>
 
-      <SettingsActions saveLabel={saving ? "Saving…" : "Save SEO"} onSave={handleSave} />
+      <SettingsActions saveLabel={saving ? "Saving…" : t("Save SEO")} onSave={handleSave} />
     </div>
   );
 }

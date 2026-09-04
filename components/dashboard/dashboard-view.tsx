@@ -21,8 +21,10 @@ import type { StatCardData } from "./stats/stats-data";
 import { StatsGrid } from "./stats/stats-grid";
 
 import { ShopInfoPanel } from "./shop-info/shop-info-panel";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function DashboardView() {
+  const { t } = useLanguage();
   const router = useRouter();
   const { currentSite, me, loading: sessionLoading } = useSession();
   const siteId = currentSite?.id ?? null;
@@ -141,13 +143,13 @@ export function DashboardView() {
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title="Dashboard" />
+      <PageHeading title={t("Dashboard")} />
 
       {!sessionLoading && !currentSite ? (
         <EmptyState
           icon={LayoutDashboard}
-          title="No site yet"
-          description="Create a site from a template in Themes to see store overview stats."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes to see store overview stats.")}
         />
       ) : showSkeleton ? (
         <>
@@ -161,7 +163,7 @@ export function DashboardView() {
       ) : error ? (
         <EmptyState
           icon={LayoutDashboard}
-          title="Couldn't load dashboard"
+          title={t("Couldn't load dashboard")}
           description={error}
         />
       ) : (
@@ -186,8 +188,8 @@ export function DashboardView() {
           {recentOrders.length === 0 ? (
             <EmptyState
               icon={LayoutDashboard}
-              title="No orders yet"
-              description="Recent storefront orders will appear here once customers start buying."
+              title={t("No orders yet")}
+              description={t("Recent storefront orders will appear here once customers start buying.")}
             />
           ) : (
             <RecentOrders orders={recentOrders} />

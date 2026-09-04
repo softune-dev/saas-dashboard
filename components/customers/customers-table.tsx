@@ -2,6 +2,7 @@
 
 import { Eye, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import {
   TableFilterPanel,
@@ -19,18 +20,6 @@ export const emptyCustomerFilters: CustomerFilters = {
   contact: "",
 };
 
-const CUSTOMER_FILTER_FIELDS: TableFilterField[] = [
-  {
-    key: "contact",
-    label: "Contact",
-    options: [
-      { value: "", label: "Any contact info" },
-      { value: "email", label: "Has email" },
-      { value: "no-email", label: "Phone only" },
-    ],
-  },
-];
-
 export function CustomersTable({
   customers,
   filters,
@@ -45,7 +34,23 @@ export function CustomersTable({
   /** Prefill from header search deep-link (?q=). */
   initialQuery?: string;
 }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState(initialQuery);
+
+  const filterFields: TableFilterField[] = useMemo(
+    () => [
+      {
+        key: "contact",
+        label: t("Contact"),
+        options: [
+          { value: "", label: t("Any contact info") },
+          { value: "email", label: t("Has email") },
+          { value: "no-email", label: t("Phone Only") },
+        ],
+      },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     setQuery(initialQuery);
@@ -68,7 +73,7 @@ export function CustomersTable({
   const columns: TableColumn<CustomerOut>[] = [
     {
       id: "details",
-      header: "Customer",
+      header: t("Customer"),
       cell: (row) => (
         <div className="min-w-0">
           <p className="truncate font-semibold text-foreground">
@@ -82,12 +87,14 @@ export function CustomersTable({
     },
     {
       id: "phone",
-      header: "Phone",
+      header: t("Phone"),
+      className: "whitespace-nowrap",
       cell: (row) => <span className="text-muted">{row.phone}</span>,
     },
     {
       id: "since",
-      header: "Customer Since",
+      header: t("Customer Since"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="text-muted">
           {formatDisplayDate(new Date(row.created_at))}
@@ -96,9 +103,9 @@ export function CustomersTable({
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t("Actions"),
       headerClassName: "text-right",
-      className: "text-right",
+      className: "text-right whitespace-nowrap",
       cell: (row) => (
         <button
           type="button"
@@ -116,7 +123,7 @@ export function CustomersTable({
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
-          All Customers
+          {t("All Customers")}
         </h2>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -129,13 +136,13 @@ export function CustomersTable({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search customers..."
+              placeholder={t("Search customers...")}
               className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <TableFilterPanel
-            ariaLabel="Filter customers"
-            fields={CUSTOMER_FILTER_FIELDS}
+            ariaLabel={t("Filter customers")}
+            fields={filterFields}
             value={filters as unknown as Record<string, string>}
             empty={emptyCustomerFilters as unknown as Record<string, string>}
             onChange={(next) =>
@@ -151,7 +158,7 @@ export function CustomersTable({
         columns={columns}
         data={filtered}
         rowKey={(row) => row.id}
-        emptyMessage="No customers match your search or filters"
+        emptyMessage={t("No customers match your search or filters")}
       />
     </section>
   );

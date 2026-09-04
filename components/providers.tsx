@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { SWRConfig } from "swr";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { OnboardingGuard } from "@/components/onboarding/onboarding-guard";
+import { LanguageProvider } from "@/components/providers/language-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { ToastProvider } from "@/components/ui/toast";
@@ -29,23 +30,25 @@ import { localStorageProvider } from "@/lib/swr-persist";
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <SWRConfig
-        value={{
-          provider: localStorageProvider,
-          revalidateOnFocus: false,
-          revalidateOnReconnect: true,
-          dedupingInterval: 4000,
-          keepPreviousData: true,
-        }}
-      >
-        <ToastProvider>
-          <AuthGate>
-            <SessionProvider>
-              <OnboardingGuard>{children}</OnboardingGuard>
-            </SessionProvider>
-          </AuthGate>
-        </ToastProvider>
-      </SWRConfig>
+      <LanguageProvider>
+        <SWRConfig
+          value={{
+            provider: localStorageProvider,
+            revalidateOnFocus: false,
+            revalidateOnReconnect: true,
+            dedupingInterval: 4000,
+            keepPreviousData: true,
+          }}
+        >
+          <ToastProvider>
+            <AuthGate>
+              <SessionProvider>
+                <OnboardingGuard>{children}</OnboardingGuard>
+              </SessionProvider>
+            </AuthGate>
+          </ToastProvider>
+        </SWRConfig>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

@@ -1,3 +1,4 @@
+import { useLanguage } from "@/components/providers/language-provider";
 import type { CategoryShare } from "@/lib/api/analytics";
 
 const SIZE = 168;
@@ -10,6 +11,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const PALETTE = ["#FF5A36", "#3B82F6", "#22C55E", "#F59E0B", "#8B5CF6", "#EC4899", "#14B8A6", "#64748B"];
 
 export function CategoryPieChart({ shares }: { shares: CategoryShare[] }) {
+  const { t } = useLanguage();
   let offset = 0;
   const segments = shares.map((item, i) => {
     const portion = item.percent / 100;
@@ -64,7 +66,7 @@ export function CategoryPieChart({ shares }: { shares: CategoryShare[] }) {
 
       <ul className="flex min-w-0 flex-1 flex-col gap-2.5">
         {shares.length === 0 ? (
-          <li className="text-sm text-muted">No sales in this period yet.</li>
+          <li className="text-sm text-muted">{t("No sales in this period yet.")}</li>
         ) : null}
         {segments.map((item) => (
           <li

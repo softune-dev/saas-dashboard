@@ -1,8 +1,10 @@
 import { StatCard } from "@/components/dashboard/stats/stat-card";
+import { useLanguage } from "@/components/providers/language-provider";
 import { formatTaka } from "@/lib/format";
 import type { AnalyticsOut } from "@/lib/api/analytics";
 
 export function AnalyticsStats({ data }: { data: AnalyticsOut }) {
+  const { t } = useLanguage();
   const stats = [
     {
       id: "revenue",
@@ -64,8 +66,9 @@ export function AnalyticsStats({ data }: { data: AnalyticsOut }) {
       </div>
       {data.cost_data_coverage_percent < 100 ? (
         <p className="text-xs text-muted">
-          Profit is based on {data.cost_data_coverage_percent.toFixed(0)}% of this period's
-          revenue — set a Cost Price on more products for a fuller number.
+          {t(
+            "Profit is based on {pct}% of this period's revenue — set a Cost Price on more products for a fuller number.",
+          ).replace("{pct}", data.cost_data_coverage_percent.toFixed(0))}
         </p>
       ) : null}
     </div>

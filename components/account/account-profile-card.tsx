@@ -3,6 +3,7 @@
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useToast } from "@/components/ui/toast";
 import { updateMe } from "@/lib/api";
 import { AvatarPickerModal } from "./avatar-picker-modal";
@@ -15,11 +16,12 @@ function initials(name: string): string {
 
 export function AccountProfileCard() {
   const { me, currentSite, loading, refetch } = useSession();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [pickerOpen, setPickerOpen] = useState(false);
   const user = me?.user;
   const tenant = me?.tenant;
-  const name = user?.full_name || user?.email || "Account";
+  const name = user?.full_name || user?.email || t("Account");
 
   async function handleAvatarSelect(url: string) {
     await updateMe({ avatar_url: url });
@@ -31,7 +33,7 @@ export function AccountProfileCard() {
     return (
       <section className="flex h-full flex-col rounded-md bg-primary p-4 text-white">
         <p className="text-[11px] font-semibold tracking-wide text-white/80 uppercase">
-          Account
+          {t("Account")}
         </p>
         <div className="mt-4 flex flex-col items-center gap-2.5">
           <div className="size-20 animate-pulse rounded-full bg-white/15" />
@@ -50,14 +52,14 @@ export function AccountProfileCard() {
   return (
     <section className="flex h-full flex-col rounded-md bg-primary p-4 text-white">
       <p className="text-[11px] font-semibold tracking-wide text-white/80 uppercase">
-        Account
+        {t("Account")}
       </p>
 
       <div className="mt-4 flex flex-col items-center gap-2.5 text-center">
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          aria-label="Change profile picture"
+          aria-label={t("Change profile picture")}
           className="group relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white/10 bg-white/20 text-xl font-semibold shadow-sm"
         >
           {user?.avatar_url ? (
@@ -78,17 +80,17 @@ export function AccountProfileCard() {
 
       <dl className="mt-5 flex flex-col gap-2.5 text-[13px]">
         <div className="flex items-center gap-2">
-          <dt className="text-white/70 whitespace-nowrap">Role</dt>
+          <dt className="text-white/70 whitespace-nowrap">{t("Role")}</dt>
           <div className="flex-1 border-b border-dashed border-white/30" />
           <dd className="font-medium whitespace-nowrap capitalize">{user?.role ?? "—"}</dd>
         </div>
         <div className="flex items-center gap-2">
-          <dt className="text-white/70 whitespace-nowrap">Store</dt>
+          <dt className="text-white/70 whitespace-nowrap">{t("Store")}</dt>
           <div className="flex-1 border-b border-dashed border-white/30" />
           <dd className="truncate font-medium whitespace-nowrap">{tenant?.name ?? "—"}</dd>
         </div>
         <div className="flex items-center gap-2">
-          <dt className="text-white/70 whitespace-nowrap">Joined</dt>
+          <dt className="text-white/70 whitespace-nowrap">{t("Joined")}</dt>
           <div className="flex-1 border-b border-dashed border-white/30" />
           <dd className="font-medium whitespace-nowrap">
             {user ? new Date(user.created_at).toLocaleDateString() : "—"}

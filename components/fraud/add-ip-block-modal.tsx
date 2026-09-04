@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { FormModal } from "@/components/ui/form-modal";
 import { SettingsInput } from "@/components/settings/site/ui/settings-field";
 
@@ -16,6 +17,7 @@ type AddIpBlockModalProps = {
 };
 
 export function AddIpBlockModal({ open, onClose, onAdd }: AddIpBlockModalProps) {
+  const { t } = useLanguage();
   const [ip, setIp] = useState("");
   const [note, setNote] = useState("");
 
@@ -36,8 +38,8 @@ export function AddIpBlockModal({ open, onClose, onAdd }: AddIpBlockModalProps) 
   return (
     <FormModal
       open={open}
-      title="Block an IP address"
-      submitLabel="Add"
+      title={t("Block an IP address")}
+      submitLabel={t("Add")}
       headerBorder={false}
       compact
       onSubmit={handleSubmit}
@@ -45,7 +47,7 @@ export function AddIpBlockModal({ open, onClose, onAdd }: AddIpBlockModalProps) 
     >
       <div className="flex flex-col gap-3">
         <SettingsInput
-          label="IP address"
+          label={t("IP address")}
           required
           value={ip}
           onChange={(e) => setIp(e.target.value)}
@@ -53,13 +55,13 @@ export function AddIpBlockModal({ open, onClose, onAdd }: AddIpBlockModalProps) 
           autoComplete="off"
         />
         <p className="-mt-1 text-xs text-muted">
-          Exact address only — ranges (CIDR) aren't supported.
+          {t("Exact address only — ranges (CIDR) aren't supported.")}
         </p>
         <SettingsInput
-          label="Note"
+          label={t("Note")}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Optional — why blocked"
+          placeholder={t("Optional — why blocked")}
         />
       </div>
     </FormModal>

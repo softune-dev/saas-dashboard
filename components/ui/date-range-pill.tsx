@@ -2,6 +2,7 @@
 
 import { Calendar, ChevronDown } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import {
   formatDisplayDate,
   fromInputDate,
@@ -19,6 +20,7 @@ type DateRangePillProps = {
 };
 
 export function DateRangePill({ value, onChange }: DateRangePillProps) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const fromId = useId();
@@ -78,7 +80,7 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
         >
           <div className="flex flex-col gap-1.5">
             <label htmlFor={fromId} className="text-xs font-medium text-muted">
-              From
+              {t("From")}
             </label>
             <input
               id={fromId}
@@ -96,7 +98,7 @@ export function DateRangePill({ value, onChange }: DateRangePillProps) {
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor={toId} className="text-xs font-medium text-muted">
-              To
+              {t("To")}
             </label>
             <input
               id={toId}

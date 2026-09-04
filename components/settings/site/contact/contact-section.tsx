@@ -6,6 +6,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import {
   saveSiteBusiness,
   useSiteSettingsSWR,
@@ -57,6 +58,7 @@ function formatHours(hours: BusinessHour[]): string[] {
 export function ContactSection() {
   const { currentSite } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
   const { data, isLoading, mutate } = useSiteSettingsSWR(siteId);
 
@@ -147,10 +149,10 @@ export function ContactSection() {
         logo_url: data?.business.logo_url,
       });
       await mutate({ ...data!, business: updated.business }, { revalidate: false });
-      toast({ title: "Contact info saved", variant: "success" });
+      toast({ title: t("Contact info saved"), variant: "success" });
     } catch (err) {
       toast({
-        title: "Couldn't save contact info",
+        title: t("Couldn't save contact info"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -180,31 +182,31 @@ export function ContactSection() {
       <p className="text-sm text-muted">
         Public storefront contact details shown on your site. Legal business
         details live under{" "}
-        <span className="font-medium text-foreground">Account</span>.
+        <span className="font-medium text-foreground">{t("Account")}</span>.
       </p>
 
       {/* Storefront contact */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-base font-semibold text-foreground">Store contact</h2>
+        <h2 className="text-base font-semibold text-foreground">{t("Store contact")}</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SettingsInput
-            label="Store display name"
+            label={t("Store display name")}
             value={form.storeName}
             onChange={(e) => setField("storeName", e.target.value)}
           />
           <SettingsInput
-            label="Support email"
+            label={t("Support email")}
             type="email"
             value={form.supportEmail}
             onChange={(e) => setField("supportEmail", e.target.value)}
           />
           <SettingsInput
-            label="Phone"
+            label={t("Phone")}
             value={form.phone}
             onChange={(e) => setField("phone", e.target.value)}
           />
           <SettingsInput
-            label="WhatsApp"
+            label={t("WhatsApp")}
             value={form.whatsapp}
             onChange={(e) => setField("whatsapp", e.target.value)}
           />
@@ -214,39 +216,39 @@ export function ContactSection() {
       {/* Public address */}
       <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
         <h2 className="text-base font-semibold text-foreground">
-          Public store address
+          {t("Public store address")}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SettingsSelect
-            label="Country"
+            label={t("Country")}
             value={form.country}
             options={countryOptions}
             onChange={(e) => setField("country", e.target.value)}
           />
           <SettingsInput
-            label="City"
+            label={t("City")}
             value={form.city}
             onChange={(e) => setField("city", e.target.value)}
           />
           <SettingsInput
-            label="Area / Thana"
+            label={t("Area / Thana")}
             value={form.area}
             onChange={(e) => setField("area", e.target.value)}
           />
           <SettingsInput
-            label="Postal code"
+            label={t("Postal code")}
             value={form.postalCode}
             onChange={(e) => setField("postalCode", e.target.value)}
           />
         </div>
         <SettingsTextarea
-          label="Street address"
+          label={t("Street address")}
           value={form.address}
           onChange={(e) => setField("address", e.target.value)}
           className="!min-h-[88px]"
         />
         <SettingsInput
-          label="Map link (optional)"
+          label={t("Map link (optional)")}
           value={form.mapUrl}
           onChange={(e) => setField("mapUrl", e.target.value)}
           placeholder="https://maps.google.com/..."
@@ -257,7 +259,7 @@ export function ContactSection() {
       <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-foreground">Business hours</h2>
+            <h2 className="text-base font-semibold text-foreground">{t("Business hours")}</h2>
             <p className="mt-0.5 text-xs text-muted-soft">
               Add days and set open / close times
             </p>
@@ -268,7 +270,7 @@ export function ContactSection() {
             className="!h-9 !px-3 text-xs"
           >
             <Plus className="size-3.5" strokeWidth={2} />
-            Add hours
+            {t("Add hours")}
           </PrimaryButton>
         </div>
 
@@ -284,14 +286,14 @@ export function ContactSection() {
                 className="grid grid-cols-1 items-end gap-3 rounded-xl bg-search-bg p-3 sm:grid-cols-[1fr_1fr_1fr_auto_auto]"
               >
                 <SettingsSelect
-                  label="Day"
+                  label={t("Day")}
                   name={`day-${index}`}
                   value={row.day}
                   options={dayPresets.map((d) => ({ value: d, label: d }))}
                   onChange={(e) => updateHour(index, { day: e.target.value })}
                 />
                 <SettingsSelect
-                  label="Opens"
+                  label={t("Opens")}
                   name={`open-${index}`}
                   value={row.open}
                   options={timeOptions}
@@ -300,7 +302,7 @@ export function ContactSection() {
                   className={row.closed ? "opacity-40" : ""}
                 />
                 <SettingsSelect
-                  label="Closes"
+                  label={t("Closes")}
                   name={`close-${index}`}
                   value={row.close}
                   options={timeOptions}
@@ -315,7 +317,7 @@ export function ContactSection() {
                     onChange={(e) => updateHour(index, { closed: e.target.checked })}
                     className="size-3.5 accent-[var(--primary)]"
                   />
-                  Closed
+                  {t("Closed")}
                 </label>
                 <button
                   type="button"
@@ -335,7 +337,7 @@ export function ContactSection() {
       <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-foreground">Social media</h2>
+            <h2 className="text-base font-semibold text-foreground">{t("Social media")}</h2>
             <p className="mt-0.5 text-xs text-muted-soft">
               Links shown on your storefront footer and contact page
             </p>
@@ -346,7 +348,7 @@ export function ContactSection() {
             className="!h-9 !px-3 text-xs"
           >
             <Plus className="size-3.5" strokeWidth={2} />
-            Add link
+            {t("Add link")}
           </PrimaryButton>
         </div>
 
@@ -404,7 +406,7 @@ export function ContactSection() {
       {/* Support note for site */}
       <div className="flex flex-col gap-4 border-t border-border dark:border-transparent pt-5">
         <SettingsTextarea
-          label="Support note (shown on contact page)"
+          label={t("Support note (shown on contact page)")}
           value={form.supportNote}
           onChange={(e) => setField("supportNote", e.target.value)}
           className="!min-h-[88px]"
@@ -412,7 +414,7 @@ export function ContactSection() {
       </div>
 
       <SettingsActions
-        saveLabel={saving ? "Saving…" : "Save contact info"}
+        saveLabel={saving ? "Saving…" : t("Save contact info")}
         onSave={handleSave}
       />
     </div>

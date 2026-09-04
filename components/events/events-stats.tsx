@@ -1,9 +1,11 @@
 import { StatCard } from "@/components/dashboard/stats/stat-card";
 import type { StatCardData } from "@/components/dashboard/stats/stats-data";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { EventOut } from "@/lib/api/commerce";
 import { countAsOfEndOfLastMonth, monthOverMonth } from "@/lib/trends";
 
 export function EventsStats({ events }: { events: EventOut[] }) {
+  const { t } = useLanguage();
   const active = events.filter((e) => e.is_active).length;
   const inactive = events.length - active;
   const boundProducts = events.reduce((sum, e) => sum + e.product_count, 0);
@@ -14,26 +16,26 @@ export function EventsStats({ events }: { events: EventOut[] }) {
   const stats: StatCardData[] = [
     {
       id: "total",
-      title: "Total Events",
+      title: t("Total Events"),
       value: String(events.length),
       icon: "/sidebar/events.svg",
       ...totalTrend,
     },
     {
       id: "active",
-      title: "Active",
+      title: t("Active"),
       value: String(active),
       icon: "/sidebar/products.svg",
     },
     {
       id: "inactive",
-      title: "Inactive",
+      title: t("Inactive"),
       value: String(inactive),
       icon: "/sidebar/orders.svg",
     },
     {
       id: "products",
-      title: "Products in Events",
+      title: t("Products in Events"),
       value: String(boundProducts),
       icon: "/sidebar/shop-bag.svg",
     },

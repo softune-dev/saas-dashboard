@@ -3,6 +3,7 @@
 import { ImageOff, Pencil, Search } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import { TableFilterPanel, type TableFilterField } from "@/components/ui/table-filter-panel";
 import { MaskIcon } from "@/components/ui/mask-icon";
@@ -14,19 +15,8 @@ export type EventFilters = {
 
 export const emptyEventFilters: EventFilters = { status: "" };
 
-const EVENT_FILTER_FIELDS: TableFilterField[] = [
-  {
-    key: "status",
-    label: "Status",
-    options: [
-      { value: "", label: "All statuses" },
-      { value: "active", label: "Active" },
-      { value: "inactive", label: "Inactive" },
-    ],
-  },
-];
-
 function EventStatusBadge({ active }: { active: boolean }) {
+  const { t } = useLanguage();
   return (
     <span
       className={[
@@ -34,7 +24,7 @@ function EventStatusBadge({ active }: { active: boolean }) {
         active ? "bg-primary/10 text-primary" : "bg-search-bg text-muted",
       ].join(" ")}
     >
-      {active ? "Active" : "Inactive"}
+      {active ? t("Active") : t("Inactive")}
     </span>
   );
 }
@@ -52,7 +42,23 @@ export function EventsTable({
   onEdit: (event: EventOut) => void;
   onDelete: (event: EventOut) => void;
 }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
+
+  const filterFields: TableFilterField[] = useMemo(
+    () => [
+      {
+        key: "status",
+        label: t("Status"),
+        options: [
+          { value: "", label: t("All statuses") },
+          { value: "active", label: t("Active") },
+          { value: "inactive", label: t("Inactive") },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -67,7 +73,7 @@ export function EventsTable({
   const columns: TableColumn<EventOut>[] = [
     {
       id: "name",
-      header: "Event",
+      header: t("Event"),
       cell: (row) => (
         <div className="flex items-center gap-3.5 py-0.5">
           <span className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-search-bg sm:size-[4.5rem]">
@@ -86,26 +92,29 @@ export function EventsTable({
     },
     {
       id: "discount",
-      header: "Discount",
+      header: t("Discount"),
+      className: "whitespace-nowrap",
       cell: (row) => (
-        <span className="font-medium text-foreground">{row.discount_percent}% off</span>
+        <span className="font-medium text-foreground">{row.discount_percent}% {t("off")}</span>
       ),
     },
     {
       id: "products",
-      header: "Products",
+      header: t("Products"),
+      className: "whitespace-nowrap",
       cell: (row) => <span className="font-medium text-foreground">{row.product_count}</span>,
     },
     {
       id: "status",
-      header: "Status",
+      header: t("Status"),
+      className: "whitespace-nowrap",
       cell: (row) => <EventStatusBadge active={row.is_active} />,
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t("Actions"),
       headerClassName: "text-right",
-      className: "text-right",
+      className: "text-right whitespace-nowrap",
       cell: (row) => (
         <div className="inline-flex items-center justify-end gap-1">
           <button
@@ -132,7 +141,7 @@ export function EventsTable({
   return (
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-foreground">All Events</h2>
+        <h2 className="text-base font-semibold text-foreground">{t("All Events")}</h2>
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
@@ -144,13 +153,13 @@ export function EventsTable({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search events..."
+              placeholder={t("Search events...")}
               className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <TableFilterPanel
-            ariaLabel="Filter events"
-            fields={EVENT_FILTER_FIELDS}
+            ariaLabel={t("Filter events")}
+            fields={filterFields}
             value={filters as unknown as Record<string, string>}
             empty={emptyEventFilters as unknown as Record<string, string>}
             onChange={(next) =>
@@ -164,7 +173,7 @@ export function EventsTable({
         columns={columns}
         data={filtered}
         rowKey={(row) => row.id}
-        emptyMessage="No events match your search or filters"
+        emptyMessage={t("No events match your search or filters")}
       />
     </section>
   );

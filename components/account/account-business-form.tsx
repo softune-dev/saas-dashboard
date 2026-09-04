@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { updateTenantBusiness } from "@/lib/api";
 import { useSession } from "@/components/providers/session-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { SettingsActions } from "@/components/settings/site/ui/settings-actions";
 import {
   SettingsInput,
@@ -18,6 +19,7 @@ import { businessTypeOptions } from "./account-data";
  */
 export function AccountBusinessForm() {
   const { me, loading, refetch } = useSession();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [legalName, setLegalName] = useState("");
   const [tradeName, setTradeName] = useState("");
@@ -26,6 +28,11 @@ export function AccountBusinessForm() {
   const [tin, setTin] = useState("");
   const [billingEmail, setBillingEmail] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const localizedBusinessOptions = businessTypeOptions.map((opt) => ({
+    ...opt,
+    label: t(opt.label),
+  }));
 
   useEffect(() => {
     const business = me?.tenant.business;
@@ -41,7 +48,7 @@ export function AccountBusinessForm() {
     return (
       <section className="rounded-md bg-surface p-4 sm:p-5">
         <h2 className="mb-5 text-base font-semibold text-foreground">
-          Business details
+          {t("Business details")}
         </h2>
         <SettingsRowSkeleton />
       </section>
@@ -77,46 +84,46 @@ export function AccountBusinessForm() {
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-5">
         <h2 className="text-base font-semibold text-foreground">
-          Business details
+          {t("Business details")}
         </h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SettingsInput
-          label="Legal business name"
+          label={t("Legal business name")}
           value={legalName}
           onChange={(e) => setLegalName(e.target.value)}
           disabled={!me}
         />
         <SettingsInput
-          label="Trade / brand name"
+          label={t("Trade / brand name")}
           value={tradeName}
           onChange={(e) => setTradeName(e.target.value)}
           disabled={!me}
         />
         <SettingsSelect
-          label="Business type"
+          label={t("Business type")}
           value={businessType}
-          options={businessTypeOptions}
+          options={localizedBusinessOptions}
           onChange={(e) => setBusinessType(e.target.value)}
           disabled={!me}
         />
         <SettingsInput
-          label="Trade license no."
+          label={t("Trade license no.")}
           value={tradeLicense}
           onChange={(e) => setTradeLicense(e.target.value)}
           placeholder="Optional"
           disabled={!me}
         />
         <SettingsInput
-          label="TIN / VAT"
+          label={t("TIN / VAT")}
           value={tin}
           onChange={(e) => setTin(e.target.value)}
           placeholder="Optional"
           disabled={!me}
         />
         <SettingsInput
-          label="Billing email"
+          label={t("Billing email")}
           type="email"
           value={billingEmail}
           onChange={(e) => setBillingEmail(e.target.value)}
@@ -125,7 +132,7 @@ export function AccountBusinessForm() {
       </div>
 
       <SettingsActions
-        saveLabel={busy ? "Saving…" : "Save business details"}
+        saveLabel={busy ? "Saving…" : t("Save business details")}
         onSave={handleSave}
       />
     </section>

@@ -7,6 +7,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import {
   deleteSiteMedia,
   listAllSiteMedia,
@@ -17,7 +18,7 @@ import {
 import { formatBytes, formatNumber } from "@/lib/format";
 import { UploadMediaModal } from "./upload-media-modal";
 
-const CATEGORY_LABELS: Record<MediaCategory, string> = {
+const CATEGORY_KEYS: Record<MediaCategory, string> = {
   hero: "Hero",
   products: "Products",
   categories: "Categories",
@@ -25,13 +26,13 @@ const CATEGORY_LABELS: Record<MediaCategory, string> = {
   other: "Other",
 };
 
-const FILTERS: { value: MediaCategory | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "hero", label: "Hero" },
-  { value: "products", label: "Products" },
-  { value: "categories", label: "Categories" },
-  { value: "events", label: "Events" },
-  { value: "other", label: "Other" },
+const FILTERS: { value: MediaCategory | "all"; labelKey: string }[] = [
+  { value: "all", labelKey: "All" },
+  { value: "hero", labelKey: "Hero" },
+  { value: "products", labelKey: "Products" },
+  { value: "categories", labelKey: "Categories" },
+  { value: "events", labelKey: "Events" },
+  { value: "other", labelKey: "Other" },
 ];
 
 /** Real gallery of everything uploaded to this site's Cloudinary folders —
@@ -42,6 +43,7 @@ const FILTERS: { value: MediaCategory | "all"; label: string }[] = [
 export function MediaSection() {
   const { currentSite } = useSession();
   const { toast, update: updateToast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
 
   const { data, isLoading, mutate } = useSWR(
@@ -109,22 +111,6 @@ export function MediaSection() {
     }
   }
 
-  /** Uploads standalone, ahead of use in any product/category form — the
-   * point is stocking the library so MediaSourceMenu's "Choose from Media"
-   * has real options later, not attaching to anything right now. Always
-   * "other": asking the merchant to guess a category just to store a file
-   * was a needless step — a product/category form's own upload call
-   * (uploadSiteMedia(..., "products") etc.) is where an image gets its
-   * real category, at the point it's actually used for that purpose.
-   * Sequential, not Promise.all: a plan-storage-limit rejection partway
-   * through should stop cleanly (see app/api/media.py's
-   * _assert_storage_available) instead of firing every remaining request
-   * in parallel against an already-full quota.
-   *
-   * One toast per file, created up front so a multi-file upload shows every
-   * file immediately (queued ones just sit at 0% until their turn) instead
-   * of a single opaque "Uploading…" that gives no sense of progress or of
-   * which file is stuck if something goes wrong. */
   async function handleUpload(files: File[]) {
     if (!siteId) return;
     const category: MediaCategory = "other";
@@ -158,9 +144,6 @@ export function MediaSection() {
           description: err instanceof Error ? err.message : "Something went wrong.",
           duration: 5000,
         });
-        // A plan-storage-limit rejection applies to every file after this
-        // one too — mark the rest as skipped instead of leaving them
-        // stuck at 0% forever.
         for (let j = i + 1; j < files.length; j++) {
           updateToast(toastIds[j]!, {
             progress: 100,
@@ -195,7 +178,7 @@ export function MediaSection() {
     <div className="flex flex-col gap-5">
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Images" value={formatNumber(data?.total_count ?? 0)} />
+        <StatTile label={t("Images")} value={formatNumber(data?.total_count ?? 0)} />
         <StorageStatTile
           usedBytes={data?.total_bytes ?? 0}
           limitBytes={data?.limit_bytes ?? 0}
@@ -205,15 +188,13 @@ export function MediaSection() {
         {(["products", "categories"] as MediaCategory[]).map((cat) => (
           <StatTile
             key={cat}
-            label={CATEGORY_LABELS[cat]}
+            label={t(CATEGORY_KEYS[cat])}
             value={formatNumber(data?.by_category?.[cat]?.count ?? 0)}
           />
         ))}
       </div>
 
-      {/* Filters & Actions — Upload sits above the chips on small screens
-       * (full width) so the category tabs can stay a single swipeable row
-       * instead of wrapping under a squeezed button. */}
+      {/* Filters & Actions */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
@@ -222,7 +203,7 @@ export function MediaSection() {
           className="inline-flex h-9 w-full shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-4 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:order-2 sm:w-auto"
         >
           <Upload className="size-3.5" strokeWidth={2} />
-          Upload
+          {t("Upload")}
         </button>
         <div
           role="group"
@@ -241,7 +222,7 @@ export function MediaSection() {
                   : "bg-search-bg text-muted hover:text-foreground",
               ].join(" ")}
             >
-              {f.label}
+              {t(f.labelKey)}
             </button>
           ))}
         </div>
@@ -250,7 +231,7 @@ export function MediaSection() {
       {selectedImages.length > 0 ? (
         <div className="flex items-center justify-between gap-3 rounded-xl bg-primary/10 px-4 py-2.5">
           <p className="text-xs font-medium text-primary">
-            {selectedImages.length} selected
+            {selectedImages.length} {t("selected")}
           </p>
           <div className="flex items-center gap-3">
             <button
@@ -258,14 +239,14 @@ export function MediaSection() {
               onClick={() => setSelected(new Set())}
               className="text-xs font-medium text-muted hover:text-foreground"
             >
-              Clear
+              {t("Clear all")}
             </button>
             <button
               type="button"
               onClick={() => requestDelete(selectedImages)}
               className="rounded-full bg-red-600 px-3.5 py-1.5 text-xs font-semibold text-white hover:opacity-90"
             >
-              Delete selected
+              {t("Delete selected")}
             </button>
           </div>
         </div>
@@ -277,7 +258,7 @@ export function MediaSection() {
           <p className="text-sm font-medium text-foreground">
             {filter === "all"
               ? "No images uploaded yet."
-              : `No images in ${CATEGORY_LABELS[filter as MediaCategory]} yet.`}
+              : `No images in ${t(CATEGORY_KEYS[filter as MediaCategory])} yet.`}
           </p>
           <button
             type="button"
@@ -288,10 +269,6 @@ export function MediaSection() {
           </button>
         </div>
       ) : (
-        // Masonry via CSS columns, not grid — a grid row stretches every
-        // tile in it to match its tallest neighbor, which with real (not
-        // cropped) aspect ratios left tall gaps under anything shorter.
-        // Columns let each tile keep its own real height and just flow.
         <div className="columns-2 gap-3 sm:columns-3 md:columns-4">
           {images.map((img) => (
             <ImageTile
@@ -317,7 +294,7 @@ export function MediaSection() {
             ? "This image is currently used somewhere on your site. Removing it will just leave that spot empty — the product, category, or section it's on will keep working, it just won't show this image anymore."
             : "This isn't used anywhere on your site right now. This can't be undone."
         }
-        confirmLabel={deleting ? "Removing…" : "Delete"}
+        confirmLabel={deleting ? "Removing…" : t("Delete")}
         destructive
         busy={deleting}
         onConfirm={confirmDelete}
@@ -342,9 +319,6 @@ function StatTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Same ring language as the dashboard's My Shop panel
- * (StorageProgressRing in shop-info-panel.tsx) — real used/limit from
- * app/media.py's PLAN_STORAGE_LIMIT_BYTES, not a decorative estimate. */
 function StorageStatTile({
   usedBytes,
   limitBytes,
@@ -356,6 +330,7 @@ function StorageStatTile({
   plan: string | undefined;
   pct: number;
 }) {
+  const { t } = useLanguage();
   const size = 34;
   const stroke = 4.5;
   const r = (size - stroke) / 2;
@@ -398,7 +373,7 @@ function StorageStatTile({
           {formatBytes(usedBytes)}
         </p>
         <p className="truncate text-xs text-muted">
-          of {formatBytes(limitBytes)}
+          {t("of")} {formatBytes(limitBytes)}
         </p>
       </div>
     </div>
@@ -416,6 +391,7 @@ function ImageTile({
   onToggleSelect: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useLanguage();
   const ratio = image.width && image.height ? `${image.width} / ${image.height}` : "1 / 1";
 
   return (
@@ -464,7 +440,7 @@ function ImageTile({
           className="inline-flex items-center gap-1 text-[11px] font-medium text-primary transition-opacity hover:opacity-80"
         >
           <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
-          Delete
+          {t("Delete")}
         </button>
       </div>
     </div>

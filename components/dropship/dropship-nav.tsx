@@ -3,12 +3,14 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
 import { dropshipNav } from "./dropship-nav-config";
 
 /** Same shell/behavior as components/settings/site/site-settings-nav.tsx —
  * horizontally-scrolled tab bar on mobile, sticky sidebar on desktop, active
  * tab kept in view on route change. */
 export function DropshipNav() {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const activeRef = useRef<HTMLAnchorElement | null>(null);
 
@@ -27,7 +29,7 @@ export function DropshipNav() {
         className="flex flex-row overflow-x-auto scrollbar-none gap-1 bg-surface p-1 rounded-lg sm:flex-col sm:gap-0.5 sm:p-2 sm:rounded-md"
       >
         <p className="hidden sm:block px-3 py-2 text-[11px] font-semibold tracking-wider text-muted-soft uppercase">
-          Sections
+          {t("Sections")}
         </p>
         {dropshipNav.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -44,7 +46,7 @@ export function DropshipNav() {
               ].join(" ")}
             >
               <Icon className="size-4 shrink-0" strokeWidth={1.75} />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </Link>
           );
         })}

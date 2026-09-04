@@ -11,7 +11,7 @@ import { useNotificationsSWR } from "@/lib/api/notifications";
 import { useAutoHideScrollbar } from "@/lib/hooks/use-auto-hide-scrollbar";
 import {
   logoutItem,
-  menuItems,
+  menuCategories,
   settingsItems,
   setupItem,
   superadminItems,
@@ -25,6 +25,17 @@ function isActivePath(pathname: string, href: string) {
   // Exact match for roots so /superadmin/tenants doesn't light up Overview.
   if (href === "/" || href === "/superadmin") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** True if the active route lives anywhere in this category — including a
+ * grandchild route nested under an expandable item like Dropship — so the
+ * category never renders collapsed with its active page hidden inside it. */
+function categoryHasActiveRoute(pathname: string, items: import("./nav-config").NavItem[]): boolean {
+  return items.some(
+    (item) =>
+      isActivePath(pathname, item.href) ||
+      (item.children?.some((child) => isActivePath(pathname, child.href)) ?? false),
+  );
 }
 
 type SidebarNavContentProps = {
@@ -80,7 +91,7 @@ export function SidebarNavContent({
           .join(" ")}
       >
         {isSuperadmin ? (
-          <SidebarSection title="Super Admin">
+          <SidebarSection id="superadmin" title="Super Admin">
             {superadminItems.map((item) => (
               <SidebarNavItem
                 key={item.href}
@@ -95,7 +106,7 @@ export function SidebarNavContent({
           <>
             {showSetup ? (
               <div data-tour="nav-setup">
-                <SidebarSection title="Getting Started">
+                <SidebarSection id="getting-started" title="Getting Started">
                   <SidebarNavItem
                     item={setupItem}
                     active={isActivePath(pathname, setupItem.href)}
@@ -107,20 +118,31 @@ export function SidebarNavContent({
               </div>
             ) : null}
 
-            <SidebarSection title="Menu">
-              {menuItems.map((item) => (
-                <SidebarNavItem
-                  key={item.href}
-                  item={item}
-                  active={isActivePath(pathname, item.href)}
-                  badge={item.href === "/orders" ? unreadOrderCount : undefined}
-                  tourId={tourIdForHref(item.href)}
-                  onNavigate={onNavigate}
-                />
-              ))}
-            </SidebarSection>
+            {menuCategories.map((category) => (
+              <SidebarSection
+                key={category.id}
+                id={category.id}
+                title={category.label}
+                forceOpen={categoryHasActiveRoute(pathname, category.items)}
+              >
+                {category.items.map((item) => (
+                  <SidebarNavItem
+                    key={item.href}
+                    item={item}
+                    active={isActivePath(pathname, item.href)}
+                    badge={item.href === "/orders" ? unreadOrderCount : undefined}
+                    tourId={tourIdForHref(item.href)}
+                    onNavigate={onNavigate}
+                  />
+                ))}
+              </SidebarSection>
+            ))}
 
-            <SidebarSection title="Settings">
+            <SidebarSection
+              id="settings"
+              title="Settings"
+              forceOpen={categoryHasActiveRoute(pathname, settingsItems)}
+            >
               {settingsItems.map((item) => (
                 <SidebarNavItem
                   key={item.href}

@@ -4,11 +4,13 @@ import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MaskIcon } from "@/components/ui/mask-icon";
+import { useLanguage } from "@/components/providers/language-provider";
 import { siteSettingsNav } from "./site-nav-config";
 
 export function SiteSettingsNav() {
   const pathname = usePathname();
   const activeRef = useRef<HTMLAnchorElement | null>(null);
+  const { t } = useLanguage();
 
   // The mobile bar is a horizontally-scrolled <nav> and each tab is a real
   // route change, so the browser has no memory of scroll position across
@@ -31,7 +33,7 @@ export function SiteSettingsNav() {
         className="flex flex-row overflow-x-auto scrollbar-none gap-1 bg-surface p-1 rounded-lg sm:flex-col sm:gap-0.5 sm:p-2 sm:rounded-md"
       >
         <p className="hidden sm:block px-3 py-2 text-[11px] font-semibold tracking-wider text-muted-soft uppercase">
-          Sections
+          {t("Sections")}
         </p>
         {siteSettingsNav.map((item) => {
           const active =
@@ -55,7 +57,7 @@ export function SiteSettingsNav() {
               ) : item.iconSrc ? (
                 <MaskIcon src={item.iconSrc} className="size-4" />
               ) : null}
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </Link>
           );
         })}

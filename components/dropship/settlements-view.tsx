@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, Building2, Check, Landmark } from "lucide-react";
+import { ArrowDownCircle, ArrowLeftRight, ArrowUpCircle, Building2, Check, Landmark } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { TablePagination } from "@/components/ui/table";
@@ -72,21 +72,31 @@ export function SettlementsView() {
       </p>
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="rounded-md border border-rose-500/20 bg-rose-500/5 px-4 py-3">
-          <p className="text-xs font-medium text-rose-700 dark:text-rose-400">
-            You need to pay
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-rose-600">
-            {formatTaka(totalToPay / 100)}
-          </p>
+        <div className="flex items-center gap-3 rounded-md border border-rose-500/20 bg-rose-500/5 px-4 py-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-rose-500/10 text-rose-600">
+            <ArrowUpCircle className="size-5" strokeWidth={1.75} />
+          </span>
+          <div>
+            <p className="text-xs font-medium text-rose-700 dark:text-rose-400">
+              You need to pay
+            </p>
+            <p className="mt-0.5 text-xl font-semibold tabular-nums text-rose-600">
+              {formatTaka(totalToPay / 100)}
+            </p>
+          </div>
         </div>
-        <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
-          <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-            You need to collect
-          </p>
-          <p className="mt-1 text-xl font-semibold tabular-nums text-emerald-600">
-            {formatTaka(totalToCollect / 100)}
-          </p>
+        <div className="flex items-center gap-3 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-4 py-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+            <ArrowDownCircle className="size-5" strokeWidth={1.75} />
+          </span>
+          <div>
+            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+              You need to collect
+            </p>
+            <p className="mt-0.5 text-xl font-semibold tabular-nums text-emerald-600">
+              {formatTaka(totalToCollect / 100)}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -149,15 +159,33 @@ export function SettlementsView() {
                         onClick={() => setExpanded(isExpanded ? null : entry.id)}
                         className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left"
                       >
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-foreground">
-                            {isPay ? "Pay" : "Collect from"}{" "}
-                            <span className="font-semibold">{entry.counterpartyName}</span>
-                          </p>
-                          <p className="text-xs text-muted">
-                            {entry.periodLabel} · {entry.orderCount} order
-                            {entry.orderCount === 1 ? "" : "s"}
-                          </p>
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span
+                            className={[
+                              "flex size-9 shrink-0 items-center justify-center rounded-full",
+                              entry.settled
+                                ? "bg-search-bg text-muted-soft"
+                                : isPay
+                                  ? "bg-rose-500/10 text-rose-600"
+                                  : "bg-emerald-500/10 text-emerald-600",
+                            ].join(" ")}
+                          >
+                            {isPay ? (
+                              <ArrowUpCircle className="size-4.5" strokeWidth={1.75} />
+                            ) : (
+                              <ArrowDownCircle className="size-4.5" strokeWidth={1.75} />
+                            )}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-foreground">
+                              {isPay ? "Pay" : "Collect from"}{" "}
+                              <span className="font-semibold">{entry.counterpartyName}</span>
+                            </p>
+                            <p className="text-xs text-muted">
+                              {entry.periodLabel} · {entry.orderCount} order
+                              {entry.orderCount === 1 ? "" : "s"}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-3">
                           <span

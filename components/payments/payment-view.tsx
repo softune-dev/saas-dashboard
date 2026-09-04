@@ -2,6 +2,7 @@
 
 import { Wallet } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -51,6 +52,7 @@ function toDisplayConnection(out: PaymentConnectionOut): PaymentConnection {
 export function PaymentView() {
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
 
   const {
@@ -269,7 +271,7 @@ export function PaymentView() {
   if (!sessionLoading && !currentSite) {
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Payments" />
+        <PageHeading title={t("Payments")} />
         <EmptyState
           icon={Wallet}
           title="No site yet"
@@ -286,7 +288,7 @@ export function PaymentView() {
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title="Payments" />
+      <PageHeading title={t("Payments")} />
 
       {showSkeleton ? (
         <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

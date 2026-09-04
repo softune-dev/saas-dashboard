@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Download, Receipt } from "lucide-react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { listInvoices, type InvoiceOut } from "@/lib/api";
 import { formatDisplayDate, formatTaka } from "@/lib/format";
 import { planById } from "./billing-data";
@@ -10,6 +11,7 @@ import { planById } from "./billing-data";
  * the team) — not a recurring billing cycle, since there's no subscription
  * gateway wired up yet. See app/api/billing.py. */
 export function BillingHistory() {
+  const { t } = useLanguage();
   const [invoices, setInvoices] = useState<InvoiceOut[] | null>(null);
 
   useEffect(() => {
@@ -30,10 +32,10 @@ export function BillingHistory() {
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4">
         <h2 className="text-base font-semibold text-foreground">
-          Billing history
+          {t("Billing history")}
         </h2>
         <p className="mt-0.5 text-sm text-muted">
-          Invoices and past subscription charges
+          {t("Invoices and past subscription charges")}
         </p>
       </div>
 
@@ -48,9 +50,9 @@ export function BillingHistory() {
           <span className="flex size-9 items-center justify-center rounded-full bg-search-bg text-muted-soft">
             <Receipt className="size-4" strokeWidth={1.75} />
           </span>
-          <p className="text-sm font-medium text-foreground">No invoices yet</p>
+          <p className="text-sm font-medium text-foreground">{t("No invoices yet")}</p>
           <p className="max-w-xs text-xs text-muted">
-            An invoice shows up here once your trial starts or your plan changes.
+            {t("An invoice shows up here once your trial starts or your plan changes.")}
           </p>
         </div>
       ) : (

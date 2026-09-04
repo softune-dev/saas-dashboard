@@ -123,15 +123,11 @@ export function SupplierProfileModal({ supplier, onClose }: SupplierProfileModal
                         image={listing.image}
                         title={listing.productName}
                         supplierName={supplier.name}
-                        priceLabel="Wholesale price"
-                        priceCents={listing.wholesalePriceCents}
-                        meta={
-                          outOfStock ? (
-                            <span className="text-rose-600">Out of stock</span>
-                          ) : (
-                            <span className="text-muted">{listing.stock} in stock</span>
-                          )
-                        }
+                        wholesalePriceCents={listing.wholesalePriceCents}
+                        stock={listing.stock}
+                        outOfStock={outOfStock}
+                        deliveryLocations={listing.deliveryLocations}
+                        deliveryFeeCents={listing.deliveryFeeCents}
                         onClick={() => setViewing(listing)}
                         footer={
                           already ? (

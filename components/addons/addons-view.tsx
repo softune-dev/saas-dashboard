@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -20,6 +21,7 @@ import { CustomAddonModal } from "./custom-addon-modal";
 export function AddonsView() {
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [learnEntry, setLearnEntry] = useState<AddonCatalogEntry | null>(null);
   const [customOpen, setCustomOpen] = useState(false);
 
@@ -33,7 +35,7 @@ export function AddonsView() {
   if (!sessionLoading && !currentSite) {
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Add-Ons" />
+        <PageHeading title={t("Add-Ons")} />
         <EmptyState
           icon={Puzzle}
           title="No site yet"
@@ -46,7 +48,7 @@ export function AddonsView() {
   if (sessionLoading) {
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Add-Ons" />
+        <PageHeading title={t("Add-Ons")} />
         <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-52 animate-pulse rounded-2xl bg-surface" />
@@ -58,7 +60,7 @@ export function AddonsView() {
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title="Add-Ons" />
+      <PageHeading title={t("Add-Ons")} />
 
       <div className="flex flex-col gap-8">
         {byCategory.map(({ category, items }, index) => {

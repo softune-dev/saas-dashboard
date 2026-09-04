@@ -3,15 +3,12 @@
 import { useEffect, useState } from "react";
 import { updateMe } from "@/lib/api";
 import { useSession } from "@/components/providers/session-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { SettingsActions } from "@/components/settings/site/ui/settings-actions";
 import { SettingsInput, SettingsSelect } from "@/components/settings/site/ui/settings-field";
 import { SettingsRowSkeleton } from "@/components/settings/site/ui/settings-skeleton";
 import { useToast } from "@/components/ui/toast";
 
-// Personal account timezone — distinct from Site Settings' business info.
-// Used to render order timestamps and notification digests in the
-// merchant's own local time instead of raw UTC. Bangladesh first since
-// that's this platform's primary market, then other common zones.
 const TIMEZONE_OPTIONS = [
   { value: "", label: "Not set" },
   { value: "Asia/Dhaka", label: "Dhaka (GMT+6)" },
@@ -23,11 +20,9 @@ const TIMEZONE_OPTIONS = [
   { value: "America/Los_Angeles", label: "Los Angeles (GMT-8/-7)" },
 ];
 
-/** full_name, phone, and timezone are all real, saved fields on the User
- * model. Email is shown but not editable here — changing a login email
- * needs a re-verification flow this doesn't have. */
 export function AccountProfileForm() {
   const { me, loading, refetch } = useSession();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -44,7 +39,7 @@ export function AccountProfileForm() {
     return (
       <section className="rounded-md bg-surface p-4 sm:p-5">
         <h2 className="mb-5 text-base font-semibold text-foreground">
-          Profile details
+          {t("Profile details")}
         </h2>
         <SettingsRowSkeleton />
       </section>
@@ -76,26 +71,26 @@ export function AccountProfileForm() {
   return (
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <h2 className="mb-5 text-base font-semibold text-foreground">
-        Profile details
+        {t("Profile details")}
       </h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SettingsInput
-          label="Full name"
+          label={t("Full name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={!me}
         />
         <SettingsInput
-          label="Email"
+          label={t("Email")}
           type="email"
           value={me?.user.email ?? ""}
           disabled
-          hint="Contact support to change your login email."
+          hint={t("Contact support to change your login email.")}
           onChange={() => {}}
         />
         <SettingsInput
-          label="Phone number"
+          label={t("Phone number")}
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -103,7 +98,7 @@ export function AccountProfileForm() {
           placeholder="+8801XXXXXXXXX"
         />
         <SettingsSelect
-          label="Timezone"
+          label={t("Timezone")}
           value={timezone}
           options={TIMEZONE_OPTIONS}
           onChange={(e) => setTimezone(e.target.value)}
@@ -111,7 +106,7 @@ export function AccountProfileForm() {
         />
       </div>
 
-      <SettingsActions saveLabel={busy ? "Saving…" : "Save profile"} onSave={handleSave} />
+      <SettingsActions saveLabel={busy ? "Saving…" : t("Save profile")} onSave={handleSave} />
     </section>
   );
 }

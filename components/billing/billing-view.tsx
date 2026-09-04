@@ -1,13 +1,17 @@
+"use client";
+
+import { useLanguage } from "@/components/providers/language-provider";
 import { PageHeading } from "@/components/ui/page-heading";
 import { BillingHistory } from "./billing-history";
 import { CurrentPlanCard } from "./current-plan-card";
 import { PlanCards } from "./plan-cards";
 
 export function BillingView() {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col gap-4 pb-2">
       <div className="flex flex-col gap-1">
-        <PageHeading title="Billing" />
+        <PageHeading title={t("Billing")} />
       </div>
 
       {/* Current plan (compact, left) + plan cards (right) */}

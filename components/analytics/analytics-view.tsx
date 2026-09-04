@@ -2,6 +2,7 @@
 
 import { BarChart3, Download } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { DateRangePill, type DateRange } from "@/components/ui/date-range-pill";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -36,6 +37,7 @@ function weeksFromRange(range: DateRange): number {
 }
 
 export function AnalyticsView() {
+  const { t } = useLanguage();
   const { currentSite, loading: sessionLoading } = useSession();
   const [range, setRange] = useState<DateRange>(defaultRange);
   const siteId = currentSite?.id ?? null;
@@ -51,7 +53,7 @@ export function AnalyticsView() {
   return (
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
-        title="Analytics"
+        title={t("Analytics")}
         actions={
           <div className="flex w-full min-w-0 max-w-full flex-nowrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
             <DateRangePill value={range} onChange={setRange} />
@@ -59,7 +61,7 @@ export function AnalyticsView() {
               <ExportMenu
                 data={data}
                 siteName={currentSite?.name ?? "store"}
-                periodLabel={`Last ${weeksFromRange(range)} weeks`}
+                periodLabel={`${t("Last")} ${weeksFromRange(range)} ${t("weeks")}`}
               />
             ) : null}
           </div>
@@ -69,8 +71,8 @@ export function AnalyticsView() {
       {!sessionLoading && !currentSite ? (
         <EmptyState
           icon={BarChart3}
-          title="No site yet"
-          description="Create a site from a template in Themes to see analytics."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes to see analytics.")}
         />
       ) : loading ? (
         <>
@@ -85,7 +87,7 @@ export function AnalyticsView() {
           </div>
         </>
       ) : errorMessage ? (
-        <EmptyState icon={BarChart3} title="Couldn't load analytics" description={errorMessage} />
+        <EmptyState icon={BarChart3} title={t("Couldn't load analytics")} description={errorMessage} />
       ) : data ? (
         <>
           <AnalyticsStats data={data} />
@@ -96,13 +98,13 @@ export function AnalyticsView() {
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold text-foreground">
-                    Revenue Trend
+                    {t("Revenue Trend")}
                   </h2>
                   <p className="mt-0.5 text-xs text-muted">
-                    Weekly sales performance curve
+                    {t("Weekly sales performance curve")}
                   </p>
                 </div>
-                <PeriodPill label={`Last ${weeksFromRange(range)} Weeks`} />
+                <PeriodPill label={`${t("Last")} ${weeksFromRange(range)} ${t("Weeks")}`} />
               </div>
               <RevenueCurveChart curve={data.revenue_curve} />
             </section>
@@ -110,7 +112,7 @@ export function AnalyticsView() {
             <section className="flex flex-col rounded-md bg-surface p-4 sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-foreground">
-                  Best Selling Categories
+                  {t("Best Selling Categories")}
                 </h2>
                 <PeriodPill />
               </div>
@@ -125,7 +127,7 @@ export function AnalyticsView() {
             <section className="rounded-md bg-surface p-4 sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-foreground">
-                  Best Selling Products
+                  {t("Best Selling Products")}
                 </h2>
                 <PeriodPill />
               </div>
@@ -136,10 +138,10 @@ export function AnalyticsView() {
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-semibold text-foreground">
-                    Sales Report
+                    {t("Sales Report")}
                   </h2>
                   <p className="mt-0.5 text-xs text-muted">
-                    Weekly breakdown with net sales
+                    {t("Weekly breakdown with net sales")}
                   </p>
                 </div>
                 <PrimaryButton
@@ -162,7 +164,7 @@ export function AnalyticsView() {
                   }
                 >
                   <Download className="size-3.5" strokeWidth={2} />
-                  Export CSV
+                  {t("Export CSV")}
                 </PrimaryButton>
               </div>
               <SalesReportTable rows={data.sales_report} />

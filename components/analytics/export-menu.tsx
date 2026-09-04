@@ -3,6 +3,7 @@
 import { ChevronDown, Download } from "lucide-react";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { downloadCsv, downloadJson, exportAsPdf } from "@/lib/export";
 import { formatTaka } from "@/lib/format";
@@ -20,6 +21,7 @@ export function ExportMenu({
   siteName: string;
   periodLabel: string;
 }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -122,10 +124,10 @@ export function ExportMenu({
       <PrimaryButton
         onClick={() => setOpen((v) => !v)}
         className="px-2.5 sm:px-4"
-        aria-label="Export"
+        aria-label={t("Export")}
       >
         <Download className="size-4" strokeWidth={2} />
-        <span className="hidden sm:inline">Export</span>
+        <span className="hidden sm:inline">{t("Export")}</span>
         <ChevronDown
           className={[
             "size-3.5 transition-transform",
@@ -143,7 +145,7 @@ export function ExportMenu({
             className="group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
           >
             <MaskIcon src="/sidebar/note.svg" className="size-4 text-muted-soft transition-colors group-hover:text-primary" />
-            CSV (Excel)
+            {t("CSV (Excel)")}
           </button>
           <button
             type="button"
@@ -151,7 +153,7 @@ export function ExportMenu({
             className="group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
           >
             <MaskIcon src="/sidebar/note.svg" className="size-4 text-muted-soft transition-colors group-hover:text-primary" />
-            PDF
+            {t("PDF")}
           </button>
           <button
             type="button"
@@ -159,7 +161,7 @@ export function ExportMenu({
             className="group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
           >
             <MaskIcon src="/sidebar/note.svg" className="size-4 text-muted-soft transition-colors group-hover:text-primary" />
-            JSON
+            {t("JSON")}
           </button>
         </div>
       ) : null}

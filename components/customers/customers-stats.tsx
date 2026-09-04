@@ -1,5 +1,6 @@
 import { StatCard } from "@/components/dashboard/stats/stat-card";
 import type { StatCardData } from "@/components/dashboard/stats/stats-data";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { CustomerOut } from "@/lib/api/customers";
 
 /** Real counts from the customers list page — no order totals here (those
@@ -12,25 +13,26 @@ export function CustomersStats({
   customers: CustomerOut[];
   total: number;
 }) {
+  const { t } = useLanguage();
   const withEmail = customers.filter((c) => c.email).length;
   const withoutEmail = customers.length - withEmail;
 
   const stats: StatCardData[] = [
     {
       id: "total",
-      title: "Total Customers",
+      title: t("Total Customers"),
       value: String(total),
       icon: "/sidebar/customers.svg",
     },
     {
       id: "with-email",
-      title: "With Email",
+      title: t("With Email"),
       value: String(withEmail),
       icon: "/sidebar/account.svg",
     },
     {
       id: "phone-only",
-      title: "Phone Only",
+      title: t("Phone Only"),
       value: String(withoutEmail),
       icon: "/sidebar/wallet.svg",
     },

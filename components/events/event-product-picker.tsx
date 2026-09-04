@@ -2,6 +2,7 @@
 
 import { Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import type { ProductOut } from "@/lib/api/commerce";
 
@@ -40,6 +41,7 @@ export function EventProductPicker({
   options: ProductOut[];
   onChange: (ids: string[]) => void;
 }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -67,13 +69,13 @@ export function EventProductPicker({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium text-muted">Products in this event</span>
-        <span className="text-[11px] font-medium text-slate-400">{selected.length} selected</span>
+        <span className="text-[11px] font-medium text-muted">{t("Products in this event")}</span>
+        <span className="text-[11px] font-medium text-slate-400">{selected.length} {t("selected")}</span>
       </div>
 
       {selected.length === 0 ? (
         <p className="rounded-xl bg-search-bg px-3 py-4 text-center text-xs text-muted">
-          No products yet — add from your catalog
+          {t("No products yet — add from your catalog")}
         </p>
       ) : (
         <ul className="flex flex-col gap-1.5">
@@ -110,7 +112,7 @@ export function EventProductPicker({
           className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-border text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5 disabled:opacity-40"
         >
           <Plus className="size-3.5" strokeWidth={2} />
-          Add product
+          {t("Add product")}
         </button>
 
         {open && available.length > 0 ? (
@@ -125,14 +127,14 @@ export function EventProductPicker({
                 autoFocus
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search products..."
+                placeholder={t("Search products...")}
                 className="h-8 w-full rounded-lg bg-search-bg pr-2.5 pl-8 text-xs text-foreground outline-none placeholder:text-muted-soft"
               />
             </div>
             <ul className="scrollbar-thin max-h-48 overflow-y-auto p-1.5">
               {filteredAvailable.length === 0 ? (
                 <li className="px-2 py-3 text-center text-xs text-muted-soft">
-                  No products match &ldquo;{query}&rdquo;
+                  {t("No products match")} &ldquo;{query}&rdquo;
                 </li>
               ) : (
                 filteredAvailable.map((product) => (

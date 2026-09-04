@@ -2,6 +2,7 @@
 
 import { X, Mail } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { Plan } from "./billing-data";
 
 const SALES_EMAIL = "support@softunebd.com";
@@ -25,6 +26,7 @@ export function ContactSalesModal({
   currentPlanName,
   onClose,
 }: ContactSalesModalProps) {
+  const { t } = useLanguage();
   if (!targetPlan) return null;
 
   const subject = encodeURIComponent(`Plan change request: ${targetPlan.name}`);
@@ -60,7 +62,7 @@ export function ContactSalesModal({
           >
             <div className="flex shrink-0 items-center justify-between border-b border-border dark:border-transparent px-5 py-4">
               <h3 id="contact-sales-title" className="text-[15px] font-semibold text-foreground">
-                Switch to {targetPlan.name}
+                {t("Switch to")} {targetPlan.name}
               </h3>
               <button
                 type="button"
@@ -94,7 +96,7 @@ export function ContactSalesModal({
                 onClick={onClose}
                 className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-search-bg text-sm font-medium text-foreground transition-colors hover:bg-border"
               >
-                Cancel
+                {t("Cancel")}
               </button>
               <a
                 href={mailtoHref}
@@ -102,7 +104,7 @@ export function ContactSalesModal({
                 className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-primary text-sm font-medium text-white transition-opacity hover:opacity-90"
               >
                 <Mail className="size-3.5" strokeWidth={2} />
-                Email sales
+                {t("Email sales")}
               </a>
             </div>
           </motion.div>

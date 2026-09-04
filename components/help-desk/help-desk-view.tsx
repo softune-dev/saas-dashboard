@@ -1,3 +1,6 @@
+"use client";
+
+import { useLanguage } from "@/components/providers/language-provider";
 import { PageHeading } from "@/components/ui/page-heading";
 import { HelpStats } from "./help-stats";
 import { HelpTopics } from "./help-topics";
@@ -5,9 +8,10 @@ import { NewTicketForm } from "./new-ticket-form";
 import { TicketsTable } from "./tickets-table";
 
 export function HelpDeskView() {
+  const { t } = useLanguage();
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title="Help Desk" />
+      <PageHeading title={t("Help Desk")} />
 
       <HelpStats />
 

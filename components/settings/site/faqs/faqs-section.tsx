@@ -6,6 +6,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import { saveSiteFaqs, useSiteSettingsSWR, type SiteFaq } from "@/lib/api/site-settings";
 import { SettingsActions } from "../ui/settings-actions";
 import { SettingsInput, SettingsTextarea } from "../ui/settings-field";
@@ -14,6 +15,7 @@ import { SettingsListRowSkeleton } from "../ui/settings-skeleton";
 export function FaqsSection() {
   const { currentSite } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
   const { data, isLoading, mutate } = useSiteSettingsSWR(siteId);
 
@@ -44,10 +46,10 @@ export function FaqsSection() {
       const updated = await saveSiteFaqs(siteId, cleaned);
       setFaqs(updated.faqs);
       await mutate({ ...data!, faqs: updated.faqs }, { revalidate: false });
-      toast({ title: "FAQs saved", variant: "success" });
+      toast({ title: t("FAQs saved"), variant: "success" });
     } catch (err) {
       toast({
-        title: "Couldn't save FAQs",
+        title: t("Couldn't save FAQs"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -68,14 +70,14 @@ export function FaqsSection() {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-medium text-muted">Questions</p>
+        <p className="text-sm font-medium text-muted">{t("Questions")}</p>
         <PrimaryButton
           type="button"
           onClick={addFaq}
           className="!h-9 !px-3 text-xs"
         >
           <Plus className="size-3.5" strokeWidth={2} />
-          Add FAQ
+          {t("Add FAQ")}
         </PrimaryButton>
       </div>
 
@@ -87,7 +89,7 @@ export function FaqsSection() {
           >
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-semibold tracking-wide text-muted-soft uppercase">
-                FAQ {index + 1}
+                {t("FAQs")} {index + 1}
               </span>
               <button
                 type="button"
@@ -100,13 +102,13 @@ export function FaqsSection() {
             </div>
 
             <SettingsInput
-              label="Question"
+              label={t("Question")}
               value={faq.question}
               onChange={(e) => updateFaq(faq.id, { question: e.target.value })}
               placeholder="e.g. How do I track my order?"
             />
             <SettingsTextarea
-              label="Answer"
+              label={t("Answer")}
               value={faq.answer}
               onChange={(e) => updateFaq(faq.id, { answer: e.target.value })}
               placeholder="Write a clear, short answer…"
@@ -118,11 +120,11 @@ export function FaqsSection() {
 
       {faqs.length === 0 ? (
         <p className="rounded-md bg-search-bg px-4 py-8 text-center text-sm text-muted">
-          No FAQs yet. Click "Add FAQ" to create one.
+          {t('No FAQs yet. Click "Add FAQ" to create one.')}
         </p>
       ) : null}
 
-      <SettingsActions saveLabel={saving ? "Saving…" : "Save FAQs"} onSave={handleSave} />
+      <SettingsActions saveLabel={saving ? "Saving…" : t("Save FAQs")} onSave={handleSave} />
     </div>
   );
 }

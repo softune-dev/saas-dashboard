@@ -4,9 +4,10 @@ import { Lock, Upload } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LoginModal } from "@/components/auth/login-modal";
+import { useLanguage } from "@/components/providers/language-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import type { SiteOut } from "@/lib/api";
-import { listCategories, listProducts } from "@/lib/api/commerce";
+import { listProducts } from "@/lib/api/commerce";
 import { formatNumber } from "@/lib/format";
 import { PublishConfirmModal } from "./editor/publish-confirm-modal";
 import { summarizeThemeChanges } from "./editor/theme-diff";
@@ -28,27 +29,23 @@ type ThemeCardProps = {
 };
 
 export function ThemeCard({ theme, site }: ThemeCardProps) {
+  const { t } = useLanguage();
   const isActive = theme.status === "active";
   const isLocked = theme.status === "locked";
   const [canPublish, setCanPublish] = useState(false);
-  const [counts, setCounts] = useState<{ products: number; categories: number } | null>(
-    null,
-  );
+  const [counts, setCounts] = useState<{ products: number } | null>(null);
 
   useEffect(() => {
     if (!site?.id) return;
     let cancelled = false;
-    Promise.all([
-      listProducts(site.id, { limit: 1 }),
-      listCategories(site.id),
-    ])
-      .then(([productPage, categories]) => {
+    listProducts(site.id, { limit: 1 })
+      .then((productPage) => {
         if (!cancelled) {
-          setCounts({ products: productPage.total, categories: categories.length });
+          setCounts({ products: productPage.total });
         }
       })
       .catch(() => {
-        if (!cancelled) setCounts({ products: 0, categories: 0 });
+        if (!cancelled) setCounts({ products: 0 });
       });
     return () => {
       cancelled = true;
@@ -123,7 +120,7 @@ export function ThemeCard({ theme, site }: ThemeCardProps) {
         ) : null}
       </div>
 
-      <div className="mt-2.5 flex items-center gap-2 px-1.5">
+      <div className="mt-2.5 flex items-center justify-between gap-2 px-1.5">
         <div className="min-w-0 flex-1 truncate pt-0.5">
           <span className="text-base font-semibold text-white mr-2">
             {shopName}
@@ -132,7 +129,7 @@ export function ThemeCard({ theme, site }: ThemeCardProps) {
             {isLocked
               ? "Social media funnel"
               : counts
-                ? `${formatNumber(counts.products)} Products · ${formatNumber(counts.categories)} Categories`
+                ? `${formatNumber(counts.products)} ${t("Products")}`
                 : "Loading…"}
           </span>
         </div>
@@ -146,18 +143,19 @@ export function ThemeCard({ theme, site }: ThemeCardProps) {
                 disabled={publishing}
                 aria-label={`Publish ${shopName}`}
                 title="Publish to live site"
-                className="inline-flex size-9 items-center justify-center rounded-full bg-surface text-primary transition-opacity hover:opacity-90 disabled:opacity-60"
+                className="inline-flex size-9 items-center justify-center rounded-full bg-white text-black transition-opacity hover:opacity-90 disabled:opacity-60 shadow-sm"
               >
-                <Upload className="size-4" strokeWidth={2} />
+                <Upload className="size-4 text-black" strokeWidth={2} />
               </button>
             ) : null}
             <Link
               href={`/themes/editor/${theme.id}`}
               aria-label={`Edit ${shopName}`}
               title="Edit theme"
-              className="inline-flex size-9 items-center justify-center text-white transition-opacity hover:opacity-80"
+              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-white px-3.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 shadow-sm"
             >
-              <MaskIcon src="/sidebar/settings.svg" className="size-6" />
+              <MaskIcon src="/sidebar/edit.svg" className="size-3.5 text-black" />
+              <span>{t("Edit")}</span>
             </Link>
           </div>
         ) : (

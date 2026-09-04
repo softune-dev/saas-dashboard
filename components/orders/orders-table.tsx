@@ -2,6 +2,7 @@
 
 import { Eye, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import {
   TableFilterPanel,
@@ -21,17 +22,6 @@ export type OrderFilters = {
 
 export const emptyOrderFilters: OrderFilters = { status: "" };
 
-const ORDER_FILTER_FIELDS: TableFilterField[] = [
-  {
-    key: "status",
-    label: "Status",
-    options: [
-      { value: "", label: "All statuses" },
-      ...ORDER_STATUS_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-    ],
-  },
-];
-
 export function OrdersTable({
   orders,
   filters,
@@ -43,7 +33,22 @@ export function OrdersTable({
   onFiltersChange: (next: OrderFilters) => void;
   onView: (order: OrderOut) => void;
 }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
+
+  const filterFields: TableFilterField[] = useMemo(
+    () => [
+      {
+        key: "status",
+        label: t("Status"),
+        options: [
+          { value: "", label: t("All statuses") },
+          ...ORDER_STATUS_OPTIONS.map((o) => ({ value: o.value, label: t(o.label) })),
+        ],
+      },
+    ],
+    [t],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -63,14 +68,16 @@ export function OrdersTable({
   const columns: TableColumn<OrderOut>[] = [
     {
       id: "orderId",
-      header: "Order ID",
+      header: t("Order ID"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="font-semibold text-foreground">{row.order_number}</span>
       ),
     },
     {
       id: "date",
-      header: "Date",
+      header: t("Date"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="text-muted">
           {formatDisplayDate(new Date(row.created_at))}
@@ -79,7 +86,7 @@ export function OrdersTable({
     },
     {
       id: "customer",
-      header: "Customer",
+      header: t("Customer"),
       cell: (row) => {
         const name = customerName(row.customer);
         const email = customerEmail(row.customer);
@@ -95,7 +102,8 @@ export function OrdersTable({
     },
     {
       id: "items",
-      header: "Items",
+      header: t("Items"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="font-medium tabular-nums">
           {row.items.reduce((n, i) => n + i.quantity, 0)}
@@ -104,7 +112,8 @@ export function OrdersTable({
     },
     {
       id: "total",
-      header: "Total",
+      header: t("Total"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="font-semibold tabular-nums text-foreground">
           {formatTaka(row.total_cents / 100)}
@@ -113,7 +122,8 @@ export function OrdersTable({
     },
     {
       id: "channel",
-      header: "Channel",
+      header: t("Channel"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span
           className={[
@@ -123,20 +133,21 @@ export function OrdersTable({
               : "bg-sky-500/10 text-sky-600",
           ].join(" ")}
         >
-          {row.channel === "pos" ? "In-Person" : "Online"}
+          {row.channel === "pos" ? t("In-Person") : t("Online")}
         </span>
       ),
     },
     {
       id: "status",
-      header: "Status",
+      header: t("Status"),
+      className: "whitespace-nowrap",
       cell: (row) => <OrderStatusBadge status={row.status} />,
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t("Actions"),
       headerClassName: "text-right",
-      className: "text-right",
+      className: "text-right whitespace-nowrap",
       cell: (row) => (
         <button
           type="button"
@@ -153,7 +164,7 @@ export function OrdersTable({
   return (
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-foreground">All Orders</h2>
+        <h2 className="text-base font-semibold text-foreground">{t("All Orders")}</h2>
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
@@ -165,13 +176,13 @@ export function OrdersTable({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search orders..."
+              placeholder={t("Search orders...")}
               className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <TableFilterPanel
-            ariaLabel="Filter orders"
-            fields={ORDER_FILTER_FIELDS}
+            ariaLabel={t("Filter orders")}
+            fields={filterFields}
             value={filters as unknown as Record<string, string>}
             empty={emptyOrderFilters as unknown as Record<string, string>}
             onChange={(next) =>
@@ -187,7 +198,7 @@ export function OrdersTable({
         columns={columns}
         data={filtered}
         rowKey={(row) => row.id}
-        emptyMessage="No orders match your search or filters"
+        emptyMessage={t("No orders match your search")}
       />
     </section>
   );

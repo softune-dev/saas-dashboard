@@ -1,5 +1,6 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { MaskIcon } from "@/components/ui/mask-icon";
+import { useLanguage } from "@/components/providers/language-provider";
 import type { StatCardData } from "./stats-data";
 
 type StatCardProps = {
@@ -13,6 +14,7 @@ type StatCardProps = {
 };
 
 export function StatCard({ stat, compact = false }: StatCardProps) {
+  const { t } = useLanguage();
   const hasTrend = stat.changePercent !== undefined;
   const isUp = (stat.changePercent ?? 0) >= 0;
   const changeAbs = Math.abs(stat.changePercent ?? 0).toFixed(1);
@@ -46,7 +48,7 @@ export function StatCard({ stat, compact = false }: StatCardProps) {
          * gray, not brand color: dark gray in light mode, light gray in
          * dark mode (text-muted already flips that way — see globals.css). */}
         <MaskIcon src={stat.icon} className="size-3.5 shrink-0 text-muted sm:hidden" />
-        {stat.title}
+        {t(stat.title)}
       </p>
 
       <div
@@ -90,7 +92,7 @@ export function StatCard({ stat, compact = false }: StatCardProps) {
             compact ? "hidden sm:block" : "",
           ].join(" ")}
         >
-          Last Month:{" "}
+          {t("Last Month:")}{" "}
           <span
             className={
               stat.lastMonthValue === "No data"
@@ -98,7 +100,7 @@ export function StatCard({ stat, compact = false }: StatCardProps) {
                 : "font-medium text-foreground"
             }
           >
-            {stat.lastMonthValue}
+            {t(stat.lastMonthValue)}
           </span>
         </p>
       ) : (

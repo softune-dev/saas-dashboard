@@ -3,6 +3,7 @@
 import { Globe, Phone, Plus, Shield, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MaskIcon } from "@/components/ui/mask-icon";
@@ -86,6 +87,7 @@ function mergeRules(
  * persists rules + blocklist diffs in one action. */
 export function FraudView() {
   const { currentSite, loading: sessionLoading } = useSession();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const siteId = currentSite?.id ?? null;
 
@@ -357,11 +359,11 @@ export function FraudView() {
   if (!sessionLoading && !currentSite) {
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Fraud Protection" />
+        <PageHeading title={t("Fraud Protection")} />
         <EmptyState
           icon={Shield}
-          title="No site yet"
-          description="Create a site from a template in Themes before configuring fraud tools."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes before configuring fraud tools.")}
         />
       </div>
     );
@@ -371,10 +373,10 @@ export function FraudView() {
     const err = settingsError || blocklistError || ipBlocklistError;
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Fraud Protection" />
+        <PageHeading title={t("Fraud Protection")} />
         <EmptyState
           icon={Shield}
-          title="Couldn't load fraud settings"
+          title={t("Couldn't load fraud settings")}
           description={err instanceof Error ? err.message : "Something went wrong."}
         />
       </div>
@@ -392,7 +394,7 @@ export function FraudView() {
   if (stillLoading) {
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Fraud Protection" />
+        <PageHeading title={t("Fraud Protection")} />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="h-[100px] animate-pulse rounded-md bg-surface" />
           <div className="h-[100px] animate-pulse rounded-md bg-surface" />
@@ -407,11 +409,11 @@ export function FraudView() {
   if (!baselineRules) {
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Fraud Protection" />
+        <PageHeading title={t("Fraud Protection")} />
         <EmptyState
           icon={Shield}
-          title="Couldn't load fraud settings"
-          description="Settings did not return for this site."
+          title={t("Couldn't load fraud settings")}
+          description={t("Settings did not return for this site.")}
         />
       </div>
     );
@@ -420,12 +422,12 @@ export function FraudView() {
   return (
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
-        title="Fraud Protection"
+        title={t("Fraud Protection")}
         actions={
           tab === "rules" ? (
             <PrimaryButton onClick={handleSave} disabled={!dirty || saving}>
               <MaskIcon src="/sidebar/save.svg" className="size-4" />
-              {saving ? "Saving…" : "Save"}
+              {saving ? t("Saving…") : t("Save")}
             </PrimaryButton>
           ) : undefined
         }
@@ -442,7 +444,7 @@ export function FraudView() {
               : "text-muted hover:text-foreground",
           ].join(" ")}
         >
-          Protection rules
+          {t("Protection rules")}
         </button>
         <button
           type="button"
@@ -454,7 +456,7 @@ export function FraudView() {
               : "text-muted hover:text-foreground",
           ].join(" ")}
         >
-          Suspicious orders
+          {t("Suspicious orders")}
           {suspiciousOrders.length > 0 ? (
             <span
               className={[
@@ -474,7 +476,7 @@ export function FraudView() {
         ) : suspiciousError ? (
           <EmptyState
             icon={Shield}
-            title="Couldn't load suspicious orders"
+            title={t("Couldn't load suspicious orders")}
             description={
               suspiciousError instanceof Error ? suspiciousError.message : "Something went wrong."
             }
@@ -493,7 +495,7 @@ export function FraudView() {
           <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
             <MaskIcon src="/sidebar/lock.svg" className="size-5" />
           </div>
-          <p className="text-sm font-medium text-muted">Numbers blocked</p>
+          <p className="text-sm font-medium text-muted">{t("Numbers blocked")}</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
             {draftBlocklist.length}
           </p>
@@ -502,7 +504,7 @@ export function FraudView() {
           <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
             <Globe className="size-5" strokeWidth={1.75} />
           </div>
-          <p className="text-sm font-medium text-muted">IPs blocked</p>
+          <p className="text-sm font-medium text-muted">{t("IPs blocked")}</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
             {draftIpBlocklist.length}
           </p>
@@ -511,7 +513,7 @@ export function FraudView() {
           <div className="absolute top-4 right-4 flex size-11 items-center justify-center rounded-full bg-primary text-white">
             <MaskIcon src="/sidebar/settings.svg" className="size-5" />
           </div>
-          <p className="text-sm font-medium text-muted">Rules active</p>
+          <p className="text-sm font-medium text-muted">{t("Rules active")}</p>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
             {activeRules}/{FRAUD_RULES.length}
           </p>
@@ -521,10 +523,10 @@ export function FraudView() {
       <section className="rounded-md bg-surface">
         <div className="border-b border-border dark:border-transparent px-4 py-3.5 sm:px-5">
           <h2 className="text-base font-semibold text-foreground">
-            Checkout rules
+            {t("Checkout rules")}
           </h2>
           <p className="mt-0.5 text-xs text-muted">
-            Changes stay local until you hit Save.
+            {t("Changes stay local until you hit Save.")}
           </p>
         </div>
         <div className="divide-y divide-border dark:divide-transparent">
@@ -542,10 +544,10 @@ export function FraudView() {
                     <div className="flex items-start gap-3">
                       <div className="min-w-0 flex-1">
                         <h3 className="text-sm font-semibold leading-snug text-foreground">
-                          {rule.name}
+                          {t(rule.name)}
                         </h3>
                         <p className="mt-0.5 text-xs leading-snug text-muted">
-                          {rule.description}
+                          {t(rule.description)}
                         </p>
                       </div>
                       <button
@@ -573,7 +575,7 @@ export function FraudView() {
                     {thr && state.enabled ? (
                       <label className="mt-2.5 flex max-w-xs items-center gap-2 rounded-lg bg-search-bg px-2.5 py-2">
                         <span className="shrink-0 text-xs text-muted">
-                          {thr.label}
+                          {t(thr.label)}
                         </span>
                         <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-border bg-surface px-2 dark:border-transparent">
                           {thr.suffix === "৳" ? (
@@ -585,7 +587,7 @@ export function FraudView() {
                             type="number"
                             min={thr.min}
                             max={thr.max}
-                            aria-label={thr.label}
+                            aria-label={t(thr.label)}
                             value={state.value ?? thr.defaultValue}
                             onChange={(e) => {
                               const n = Number(e.target.value);
@@ -600,7 +602,7 @@ export function FraudView() {
                           />
                           {thr.suffix !== "৳" ? (
                             <span className="text-xs font-medium text-muted">
-                              {thr.suffix}
+                              {t(thr.suffix)}
                             </span>
                           ) : null}
                         </span>
@@ -618,7 +620,7 @@ export function FraudView() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border dark:border-transparent px-4 py-3.5 sm:px-5">
           <div>
             <h2 className="text-base font-semibold text-foreground">
-              Blocklist
+              {t("Blocklist")}
               {draftBlocklist.length > 0 ? (
                 <span className="ml-2 align-middle text-xs font-medium text-muted">
                   {draftBlocklist.length}
@@ -626,7 +628,7 @@ export function FraudView() {
               ) : null}
             </h2>
             <p className="mt-0.5 text-xs text-muted">
-              Add or remove numbers freely — Save writes the list.
+              {t("Add or remove numbers freely — Save writes the list.")}
             </p>
           </div>
           <button
@@ -635,7 +637,7 @@ export function FraudView() {
             className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
           >
             <Plus className="size-3.5" strokeWidth={2.25} />
-            Add number
+            {t("Add number")}
           </button>
         </div>
 
@@ -645,11 +647,10 @@ export function FraudView() {
               <Phone className="size-4" strokeWidth={1.75} />
             </span>
             <p className="text-sm font-semibold text-foreground">
-              No numbers blocked
+              {t("No numbers blocked")}
             </p>
             <p className="mt-0.5 max-w-xs text-xs leading-snug text-muted">
-              Add phones you already know are bad — from experience or word of
-              mouth.
+              {t("Add phones you already know are bad — from experience or word of mouth.")}
             </p>
             <button
               type="button"
@@ -657,7 +658,7 @@ export function FraudView() {
               className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-lg bg-search-bg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-border dark:hover:bg-white/10"
             >
               <Plus className="size-3.5" strokeWidth={2.25} />
-              Add first number
+              {t("Add first number")}
             </button>
           </div>
         ) : (
@@ -678,12 +679,12 @@ export function FraudView() {
                     </p>
                     {isLocalId(entry.id) ? (
                       <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
-                        Unsaved
+                        {t("Unsaved")}
                       </span>
                     ) : null}
                   </div>
                   <p className="mt-0.5 truncate text-xs leading-snug text-muted">
-                    {entry.note ? entry.note : "No note"}
+                    {entry.note ? entry.note : t("No note")}
                     <span className="text-muted-soft">
                       {" · "}
                       {new Date(entry.created_at).toLocaleDateString(undefined, {
@@ -702,7 +703,7 @@ export function FraudView() {
                   className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300"
                 >
                   <Trash2 className="size-3.5" strokeWidth={2} />
-                  <span className="hidden sm:inline">Unblock</span>
+                  <span className="hidden sm:inline">{t("Unblock")}</span>
                 </button>
               </div>
             ))}
@@ -714,7 +715,7 @@ export function FraudView() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border dark:border-transparent px-4 py-3.5 sm:px-5">
           <div>
             <h2 className="text-base font-semibold text-foreground">
-              IP blocklist
+              {t("IP blocklist")}
               {draftIpBlocklist.length > 0 ? (
                 <span className="ml-2 align-middle text-xs font-medium text-muted">
                   {draftIpBlocklist.length}
@@ -722,7 +723,7 @@ export function FraudView() {
               ) : null}
             </h2>
             <p className="mt-0.5 text-xs text-muted">
-              Blocks browsing entirely, not just checkout — Save writes the list.
+              {t("Blocks browsing entirely, not just checkout — Save writes the list.")}
             </p>
           </div>
           <button
@@ -731,7 +732,7 @@ export function FraudView() {
             className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
           >
             <Plus className="size-3.5" strokeWidth={2.25} />
-            Add IP
+            {t("Add IP")}
           </button>
         </div>
 
@@ -741,11 +742,10 @@ export function FraudView() {
               <Globe className="size-4" strokeWidth={1.75} />
             </span>
             <p className="text-sm font-semibold text-foreground">
-              No IPs blocked
+              {t("No IPs blocked")}
             </p>
             <p className="mt-0.5 max-w-xs text-xs leading-snug text-muted">
-              Block an address that's spamming or attacking your storefront —
-              it won't be able to load any page, not just checkout.
+              {t("Block an address that's spamming or attacking your storefront — it won't be able to load any page, not just checkout.")}
             </p>
             <button
               type="button"
@@ -753,7 +753,7 @@ export function FraudView() {
               className="mt-4 inline-flex h-8 items-center gap-1.5 rounded-lg bg-search-bg px-3 text-xs font-semibold text-foreground transition-colors hover:bg-border dark:hover:bg-white/10"
             >
               <Plus className="size-3.5" strokeWidth={2.25} />
-              Add first IP
+              {t("Add first IP")}
             </button>
           </div>
         ) : (
@@ -774,12 +774,12 @@ export function FraudView() {
                     </p>
                     {isLocalId(entry.id) ? (
                       <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
-                        Unsaved
+                        {t("Unsaved")}
                       </span>
                     ) : null}
                   </div>
                   <p className="mt-0.5 truncate text-xs leading-snug text-muted">
-                    {entry.note ? entry.note : "No note"}
+                    {entry.note ? entry.note : t("No note")}
                     <span className="text-muted-soft">
                       {" · "}
                       {new Date(entry.created_at).toLocaleDateString(undefined, {
@@ -798,7 +798,7 @@ export function FraudView() {
                   className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300"
                 >
                   <Trash2 className="size-3.5" strokeWidth={2} />
-                  <span className="hidden sm:inline">Unblock</span>
+                  <span className="hidden sm:inline">{t("Unblock")}</span>
                 </button>
               </div>
             ))}
@@ -821,26 +821,26 @@ export function FraudView() {
 
       <ConfirmDialog
         open={!!unblocking}
-        title="Remove from list?"
+        title={t("Remove from list?")}
         description={
           unblocking
             ? `${unblocking.phone} will be unblocked when you Save.`
             : undefined
         }
-        confirmLabel="Remove"
+        confirmLabel={t("Remove")}
         destructive
         onConfirm={confirmUnblock}
         onCancel={() => setUnblocking(null)}
       />
       <ConfirmDialog
         open={!!unblockingIp}
-        title="Remove from list?"
+        title={t("Remove from list?")}
         description={
           unblockingIp
             ? `${unblockingIp.ip_address} will be unblocked when you Save.`
             : undefined
         }
-        confirmLabel="Remove"
+        confirmLabel={t("Remove")}
         destructive
         onConfirm={confirmUnblockIp}
         onCancel={() => setUnblockingIp(null)}

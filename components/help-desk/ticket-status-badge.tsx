@@ -1,3 +1,4 @@
+import { useLanguage } from "@/components/providers/language-provider";
 import type { TicketPriority, TicketStatus } from "@/lib/api/help-desk";
 
 const statusStyles: Record<TicketStatus, string> = {
@@ -19,6 +20,7 @@ export function TicketStatusBadge({
 }: {
   status: TicketStatus | string;
 }) {
+  const { t } = useLanguage();
   return (
     <span
       className={[
@@ -26,7 +28,7 @@ export function TicketStatusBadge({
         statusStyles[status as TicketStatus] ?? "bg-search-bg text-muted",
       ].join(" ")}
     >
-      {status}
+      {t(status)}
     </span>
   );
 }
@@ -36,6 +38,7 @@ export function TicketPriorityBadge({
 }: {
   priority: TicketPriority;
 }) {
+  const { t } = useLanguage();
   return (
     <span
       className={[
@@ -43,7 +46,7 @@ export function TicketPriorityBadge({
         priorityStyles[priority],
       ].join(" ")}
     >
-      {priority}
+      {t(priority)}
     </span>
   );
 }

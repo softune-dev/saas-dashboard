@@ -2,6 +2,7 @@
 
 import { Truck } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -31,6 +32,7 @@ import { EcourierConnectModal, type EcourierConnectValues } from "./ecourier-con
 export function CourierView() {
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const {
     data: connections = [],
@@ -159,7 +161,7 @@ export function CourierView() {
   if (!sessionLoading && !currentSite) {
     return (
       <div className="flex flex-col gap-4 pb-2">
-        <PageHeading title="Courier" />
+        <PageHeading title={t("Courier")} />
         <EmptyState
           icon={Truck}
           title="No site yet"
@@ -173,7 +175,7 @@ export function CourierView() {
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title="Courier" />
+      <PageHeading title={t("Courier")} />
 
       {showSkeleton ? (
         <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

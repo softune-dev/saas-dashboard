@@ -10,6 +10,8 @@ type CreditsPillProps = {
   className?: string;
   /** `stack` = header (label over count). `inline` = sidebar (one row). */
   layout?: "stack" | "inline";
+  hideIcon?: boolean;
+  hideLabel?: boolean;
 };
 
 /**
@@ -19,6 +21,8 @@ type CreditsPillProps = {
 export function CreditsPill({
   className = "",
   layout = "stack",
+  hideIcon = false,
+  hideLabel = false,
 }: CreditsPillProps) {
   const { data, isLoading } = useAIUsageSWR();
   const [topupOpen, setTopupOpen] = useState(false);
@@ -41,7 +45,7 @@ export function CreditsPill({
       <div
         className={[
           "flex shrink-0 items-center rounded-full border border-border/70 bg-surface",
-          inline ? "h-11 w-full gap-2.5 px-2.5 py-1.5" : "h-10 gap-2 py-1 pr-1 pl-1.5",
+          inline ? (hideIcon ? "h-11 w-full gap-2 px-3 py-1.5" : "h-11 w-full gap-2.5 px-2.5 py-1.5") : "h-10 gap-2 py-1 pr-1 pl-1.5",
           className,
         ].join(" ")}
         aria-label={
@@ -51,24 +55,28 @@ export function CreditsPill({
         }
         title="Resets daily"
       >
-        <span
-          className={[
-            "flex shrink-0 items-center justify-center rounded-full text-white",
-            inline ? "size-8" : "size-7",
-            low ? "bg-red-500" : "bg-primary",
-          ].join(" ")}
-        >
-          <MaskIcon
-            src="/sidebar/wallet.svg"
-            className={inline ? "size-4" : "size-3.5"}
-          />
-        </span>
+        {!hideIcon && (
+          <span
+            className={[
+              "flex shrink-0 items-center justify-center rounded-full text-white",
+              inline ? "size-8" : "size-7",
+              low ? "bg-red-500" : "bg-primary",
+            ].join(" ")}
+          >
+            <MaskIcon
+              src="/sidebar/wallet.svg"
+              className={inline ? "size-4" : "size-3.5"}
+            />
+          </span>
+        )}
 
         {inline ? (
           <div className="flex min-w-0 flex-1 items-baseline gap-1.5">
-            <span className="text-xs font-semibold tracking-tight text-foreground">
-              AI Credits
-            </span>
+            {!hideLabel && (
+              <span className="text-xs font-semibold tracking-tight text-foreground">
+                AI Credits
+              </span>
+            )}
             <span className="text-sm font-semibold tabular-nums tracking-tight text-foreground">
               {typeof remaining === "number" ? remaining.toLocaleString() : "—"}
               {typeof limit === "number" ? (
@@ -78,9 +86,11 @@ export function CreditsPill({
           </div>
         ) : (
           <div className="flex min-w-0 flex-1 flex-col justify-center leading-none">
-            <span className="text-[10px] font-medium tracking-wide text-muted-soft uppercase">
-              AI Credits
-            </span>
+            {!hideLabel && (
+              <span className="text-[10px] font-medium tracking-wide text-muted-soft uppercase">
+                AI Credits
+              </span>
+            )}
             <span className="mt-0.5 text-sm font-semibold tabular-nums tracking-tight text-foreground">
               {typeof remaining === "number" ? remaining.toLocaleString() : "—"}
               {typeof limit === "number" ? (

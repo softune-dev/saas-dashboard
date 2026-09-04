@@ -8,6 +8,7 @@ import { CreditsPill } from "@/components/layout/header/credits-pill";
 import { SearchBar } from "@/components/layout/header/search-bar";
 import { SuperadminSearchBar } from "@/components/layout/header/superadmin-search-bar";
 import { useSession } from "@/components/providers/session-provider";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { SidebarNavContent } from "./sidebar-nav-content";
 
@@ -80,8 +81,9 @@ export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
                 </div>
               }
               footerExtras={
-                <div className="mb-1 w-full">
-                  <CreditsPill layout="inline" className="w-full" />
+                <div className="mb-1 flex w-full items-center justify-between gap-2">
+                  <CreditsPill layout="inline" hideIcon hideLabel className="min-w-0 flex-1" />
+                  <LanguageToggle short />
                 </div>
               }
             />

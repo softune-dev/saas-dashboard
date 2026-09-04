@@ -1,3 +1,4 @@
+import { useLanguage } from "@/components/providers/language-provider";
 import type { OrderStatus } from "@/lib/api/commerce";
 
 const styles: Record<OrderStatus, string> = {
@@ -21,6 +22,9 @@ type OrderStatusBadgeProps = {
 };
 
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
+  const { t } = useLanguage();
+  const rawLabel = labels[status] ?? status;
+
   return (
     <span
       className={[
@@ -28,7 +32,7 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
         styles[status] ?? "bg-search-bg text-muted",
       ].join(" ")}
     >
-      {labels[status] ?? status}
+      {t(rawLabel)}
     </span>
   );
 }

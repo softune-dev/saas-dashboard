@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSWRConfig } from "swr";
+import { useLanguage } from "@/components/providers/language-provider";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -13,6 +14,7 @@ import { createHelpTicket, type TicketPriority } from "@/lib/api/help-desk";
 import { priorityOptions, ticketCategories } from "./help-data";
 
 export function NewTicketForm() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const { mutate } = useSWRConfig();
   const [form, setForm] = useState({
@@ -22,6 +24,16 @@ export function NewTicketForm() {
     message: "",
   });
   const [busy, setBusy] = useState(false);
+
+  const localizedCategories = ticketCategories.map((c) => ({
+    ...c,
+    label: t(c.label),
+  }));
+
+  const localizedPriorities = priorityOptions.map((p) => ({
+    ...p,
+    label: t(p.label),
+  }));
 
   function setField<K extends keyof typeof form>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -65,48 +77,48 @@ export function NewTicketForm() {
   return (
     <section className="flex h-full flex-col rounded-md bg-surface p-4 sm:p-5">
       <h2 className="mb-1 text-base font-semibold text-foreground">
-        New ticket
+        {t("New ticket")}
       </h2>
       <p className="mb-5 text-sm text-muted">
-        Tell us what you need help with
+        {t("Tell us what you need help with")}
       </p>
 
       <div className="flex flex-1 flex-col gap-4">
         <SettingsInput
-          label="Subject"
+          label={t("Subject")}
           value={form.subject}
           onChange={(e) => setField("subject", e.target.value)}
-          placeholder="Brief summary of the issue"
+          placeholder={t("Brief summary of the issue")}
         />
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SettingsSelect
-            label="Category"
+            label={t("Category")}
             value={form.category}
-            options={ticketCategories}
+            options={localizedCategories}
             onChange={(e) => setField("category", e.target.value)}
           />
           <SettingsSelect
-            label="Priority"
+            label={t("Priority")}
             value={form.priority}
-            options={priorityOptions}
+            options={localizedPriorities}
             onChange={(e) => setField("priority", e.target.value)}
           />
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col">
           <SettingsTextarea
-            label="Message"
+            label={t("Message")}
             value={form.message}
             onChange={(e) => setField("message", e.target.value)}
-            placeholder="Describe the problem with steps if you can…"
+            placeholder={t("Describe the problem with steps if you can…")}
             className="!min-h-[140px] flex-1"
           />
         </div>
 
         <div className="mt-auto flex justify-end pt-1">
           <PrimaryButton type="button" onClick={submit} disabled={busy}>
-            {busy ? "Submitting…" : "Submit ticket"}
+            {busy ? "Submitting…" : t("Submit ticket")}
           </PrimaryButton>
         </div>
       </div>

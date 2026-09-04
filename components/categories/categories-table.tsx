@@ -3,6 +3,7 @@
 import { ImageOff, Pencil, Search } from "lucide-react";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { DataTable, type TableColumn } from "@/components/ui/table";
 import {
   TableFilterPanel,
@@ -24,27 +25,6 @@ export const emptyCategoryFilters: CategoryFilters = {
   products: "",
 };
 
-const CATEGORY_FILTER_FIELDS: TableFilterField[] = [
-  {
-    key: "status",
-    label: "Status",
-    options: [
-      { value: "", label: "All statuses" },
-      { value: "active", label: "Active" },
-      { value: "inactive", label: "Inactive" },
-    ],
-  },
-  {
-    key: "products",
-    label: "Products",
-    options: [
-      { value: "", label: "Any product count" },
-      { value: "has_products", label: "Has products" },
-      { value: "empty", label: "No products" },
-    ],
-  },
-];
-
 export function CategoriesTable({
   categories,
   productCountByCategory,
@@ -60,7 +40,32 @@ export function CategoriesTable({
   onEdit: (category: CategoryOut) => void;
   onDelete: (category: CategoryOut) => void;
 }) {
+  const { t } = useLanguage();
   const [query, setQuery] = useState("");
+
+  const filterFields: TableFilterField[] = useMemo(
+    () => [
+      {
+        key: "status",
+        label: t("Status"),
+        options: [
+          { value: "", label: t("All statuses") },
+          { value: "active", label: t("Active") },
+          { value: "inactive", label: t("Inactive") },
+        ],
+      },
+      {
+        key: "products",
+        label: t("Products"),
+        options: [
+          { value: "", label: t("Any product count") },
+          { value: "has_products", label: t("Has products") },
+          { value: "empty", label: t("No products") },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const rows: Row[] = useMemo(
     () =>
@@ -89,7 +94,7 @@ export function CategoriesTable({
   const columns: TableColumn<Row>[] = [
     {
       id: "name",
-      header: "Category",
+      header: t("Category"),
       cell: (row) => (
         <div className="flex items-center gap-3.5 py-0.5">
           <span className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-search-bg sm:size-[4.5rem]">
@@ -114,23 +119,25 @@ export function CategoriesTable({
     },
     {
       id: "products",
-      header: "Products",
+      header: t("Products"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="font-medium text-foreground">{row.productCount}</span>
       ),
     },
     {
       id: "status",
-      header: "Status",
+      header: t("Status"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <CategoryStatusBadge status={row.is_active ? "Active" : "Inactive"} />
       ),
     },
     {
       id: "actions",
-      header: "Actions",
+      header: t("Actions"),
       headerClassName: "text-right",
-      className: "text-right",
+      className: "text-right whitespace-nowrap",
       cell: (row) => (
         <div className="inline-flex items-center justify-end gap-1">
           <button
@@ -158,7 +165,7 @@ export function CategoriesTable({
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
-          All Categories
+          {t("All Categories")}
         </h2>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -171,13 +178,13 @@ export function CategoriesTable({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search categories..."
+              placeholder={t("Search categories...")}
               className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
           <TableFilterPanel
-            ariaLabel="Filter categories"
-            fields={CATEGORY_FILTER_FIELDS}
+            ariaLabel={t("Filter categories")}
+            fields={filterFields}
             value={filters as unknown as Record<string, string>}
             empty={emptyCategoryFilters as unknown as Record<string, string>}
             onChange={(next) =>
@@ -194,7 +201,7 @@ export function CategoriesTable({
         columns={columns}
         data={filtered}
         rowKey={(row) => row.id}
-        emptyMessage="No categories match your search or filters"
+        emptyMessage={t("No categories match your search or filters")}
       />
     </section>
   );

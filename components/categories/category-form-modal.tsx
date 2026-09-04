@@ -5,6 +5,7 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FormModal } from "@/components/ui/form-modal";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import type { CategoryCreate, CategoryOut, CategoryUpdate } from "@/lib/api/commerce";
 import { SettingsInput, SettingsTextarea } from "@/components/settings/site/ui/settings-field";
@@ -58,6 +59,7 @@ export function CategoryFormModal({
   onCreate,
   onUpdate,
 }: CategoryFormModalProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [form, setForm] = useState<FormState>(empty);
   const [saveStage, setSaveStage] = useState<"idle" | "uploading" | "saving">("idle");
@@ -153,7 +155,7 @@ export function CategoryFormModal({
       onClose();
     } catch (err) {
       toast({
-        title: category ? "Couldn't save changes" : "Couldn't create category",
+        title: category ? t("Couldn't save changes") : t("Couldn't create category"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -168,16 +170,16 @@ export function CategoryFormModal({
   return (
     <FormModal
       open={open}
-      title={category ? "Edit category" : "New category"}
+      title={category ? t("Edit category") : t("New category")}
       busy={busy}
       submitLabel={
         saveStage === "uploading"
-          ? "Uploading images…"
+          ? t("Uploading images…")
           : saveStage === "saving"
-            ? "Saving…"
+            ? t("Saving…")
             : category
-              ? "Save changes"
-              : "Create category"
+              ? t("Save changes")
+              : t("Create category")
       }
       onSubmit={handleSubmit}
       onClose={onClose}
@@ -210,7 +212,7 @@ export function CategoryFormModal({
                 ) : (
                   <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-soft">
                     <ImagePlus className="size-5" strokeWidth={1.5} />
-                    <span className="text-[11px] font-medium">Add banner</span>
+                    <span className="text-[11px] font-medium">{t("Add banner")}</span>
                   </div>
                 )}
                 <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
@@ -230,8 +232,8 @@ export function CategoryFormModal({
                 <button
                   type="button"
                   onClick={openIcons}
-                  title="Choose category icon"
-                  aria-label="Choose category icon"
+                  title={t("Choose category icon")}
+                  aria-label={t("Choose category icon")}
                   className="flex size-10 items-center justify-center rounded-full bg-primary text-white shadow-sm ring-2 ring-surface transition-opacity hover:opacity-90"
                 >
                   <DynamicIcon name={name} className="size-5" strokeWidth={1.75} />
@@ -271,26 +273,26 @@ export function CategoryFormModal({
         </div>
 
         <SettingsInput
-          label="Name"
+          label={t("Name")}
           required
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder="e.g. Sarees"
+          placeholder={t("e.g. Sarees")}
         />
         <SettingsInput
-          label="Slug"
+          label={t("Slug")}
           value={form.slug}
           onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-          placeholder="auto-generated from name if left blank"
+          placeholder={t("auto-generated from name if left blank")}
         />
         <SettingsTextarea
-          label="Description"
+          label={t("Description")}
           value={form.description}
           onChange={(e) =>
             setForm((f) => ({ ...f, description: e.target.value }))
           }
           rows={3}
-          placeholder="Optional"
+          placeholder={t("Optional")}
           labelExtra={
             <AiGenerateButton
               hasContext={!!form.name.trim()}

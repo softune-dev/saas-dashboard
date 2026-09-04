@@ -1,8 +1,10 @@
 "use client";
 
-import { ArrowLeft, ImagePlus } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, ImagePlus } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import {
   SettingsInput,
@@ -139,6 +141,7 @@ function imageKey(img: GalleryImage): string {
  * then a clean two-column form. Header is title + actions only (no divider). */
 export function ProductFormPage({ productId }: { productId?: string }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
 
@@ -152,9 +155,6 @@ export function ProductFormPage({ productId }: { productId?: string }) {
   const [saveStage, setSaveStage] = useState<"idle" | "uploading" | "saving">("idle");
   const busy = saveStage !== "idle";
 
-  // Real facts already on the form — what keeps AI-generated copy specific
-  // to this product instead of generic filler. Recomputed fresh on every
-  // Generate click (not memoized) since it just reads the latest form state.
   function productAiContext() {
     const category = categories.find((c) => c.id === form.categoryId)?.name;
     return {
@@ -181,7 +181,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
         if (product) setForm(fromProduct(product));
       } catch (err) {
         if (!cancelled) {
-          setLoadError(err instanceof Error ? err.message : "Failed to load product");
+          setLoadError(err instanceof Error ? err.message : t("Couldn't load product"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -190,7 +190,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
     return () => {
       cancelled = true;
     };
-  }, [currentSite, isEdit, productId]);
+  }, [currentSite, isEdit, productId, t]);
 
   const objectUrls = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -209,8 +209,6 @@ export function ProductFormPage({ productId }: { productId?: string }) {
     }));
   }
 
-  /** Picked from the media library — already real Cloudinary URLs, so these
-   * go straight in as "uploaded" with no pending/upload-on-save step. */
   function addImagesFromLibrary(images: MediaImage[]) {
     setForm((f) => ({
       ...f,
@@ -236,8 +234,6 @@ export function ProductFormPage({ productId }: { productId?: string }) {
     }));
   }
 
-  // Video, like images, defers the actual upload until save — but unlike
-  // images there's only ever one, so a single pending-file slot is enough.
   const [pendingVideoFile, setPendingVideoFile] = useState<File | null>(null);
   const [videoUploading, setVideoUploading] = useState(false);
 
@@ -299,23 +295,21 @@ export function ProductFormPage({ productId }: { productId?: string }) {
         initial_sold_count: Number.parseInt(form.initialSoldCount, 10) || 0,
         free_delivery: form.freeDelivery,
         delivery_charges: form.freeDelivery ? [] : form.deliveryCharges,
-        // Backend requires a non-empty title per feature — drop any row the
-        // merchant started but never named, rather than rejecting the save.
         features: form.features
           .filter((f) => f.title.trim())
           .map((f) => ({ title: f.title.trim(), description: f.description.trim() })),
       };
       if (isEdit) {
         await updateProduct(currentSite.id, productId, payload);
-        toast({ title: "Product updated", variant: "success" });
+        toast({ title: t("Product updated"), variant: "success" });
       } else {
         await createProduct(currentSite.id, payload);
-        toast({ title: "Product created", variant: "success" });
+        toast({ title: t("Product created"), variant: "success" });
       }
       router.push("/products");
     } catch (err) {
       toast({
-        title: isEdit ? "Couldn't save changes" : "Couldn't create product",
+        title: isEdit ? t("Couldn't save changes") : t("Couldn't create product"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -328,8 +322,8 @@ export function ProductFormPage({ productId }: { productId?: string }) {
     return (
       <EmptyState
         icon={ImagePlus}
-        title="No site yet"
-        description="Create a site from a template in Themes before adding products."
+        title={t("No site yet")}
+        description={t("Create a site from a template in Themes before adding products.")}
       />
     );
   }
@@ -348,15 +342,15 @@ export function ProductFormPage({ productId }: { productId?: string }) {
   }
 
   if (loadError) {
-    return <EmptyState icon={ImagePlus} title="Couldn't load product" description={loadError} />;
+    return <EmptyState icon={ImagePlus} title={t("Couldn't load product")} description={loadError} />;
   }
 
   const saveLabel =
     saveStage === "uploading"
-      ? "Uploading images…"
+      ? t("Uploading images…")
       : saveStage === "saving"
-        ? "Saving…"
-        : "Save Product";
+        ? t("Saving…")
+        : t("Save Product");
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5 pb-6">
@@ -373,7 +367,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
           </button>
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-semibold tracking-tight text-foreground">
-              {isEdit ? "Edit Product" : "Add Product"}
+              {isEdit ? t("Edit Product") : t("Add Product")}
             </h1>
             {isEdit && form.name ? (
               <p className="truncate text-sm text-muted">{form.name}</p>
@@ -385,9 +379,9 @@ export function ProductFormPage({ productId }: { productId?: string }) {
             type="button"
             onClick={() => router.push("/products")}
             disabled={busy}
-            className="hidden h-10 items-center justify-center rounded-full bg-surface px-5 text-sm font-medium text-foreground shadow-sm ring-1 ring-slate-200/80 transition-colors hover:bg-search-bg disabled:opacity-60 sm:inline-flex"
+            className="hidden h-10 items-center justify-center rounded-full bg-surface px-5 text-sm font-medium text-foreground shadow-sm ring-1 ring-border dark:ring-white/15 transition-colors hover:bg-search-bg disabled:opacity-60 sm:inline-flex"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="submit"
@@ -413,10 +407,10 @@ export function ProductFormPage({ productId }: { productId?: string }) {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="flex flex-col gap-5 lg:col-span-2">
           <section className="rounded-2xl bg-surface p-5 sm:p-6">
-            <h2 className="mb-4 text-[15px] font-semibold text-foreground">Details</h2>
+            <h2 className="mb-4 text-[15px] font-semibold text-foreground">{t("Details")}</h2>
             <div className="flex flex-col gap-4">
               <SettingsInput
-                label="Product Title"
+                label={t("Product Title")}
                 required
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -424,7 +418,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
               />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <SettingsInput
-                  label="Price (৳)"
+                  label={t("Price (৳)")}
                   required
                   type="number"
                   step="0.01"
@@ -434,32 +428,32 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                   placeholder="0.00"
                 />
                 <SettingsInput
-                  label="Compare-at (৳)"
+                  label={t("Compare-at (৳)")}
                   type="number"
                   step="0.01"
                   min="0"
                   value={form.compareAt}
                   onChange={(e) => setForm((f) => ({ ...f, compareAt: e.target.value }))}
-                  placeholder="Optional"
+                  placeholder={t("Optional")}
                 />
                 <SettingsInput
-                  label="Cost Price (৳)"
+                  label={t("Cost Price (৳)")}
                   type="number"
                   step="0.01"
                   min="0"
                   value={form.costPrice}
                   onChange={(e) => setForm((f) => ({ ...f, costPrice: e.target.value }))}
-                  placeholder="Optional"
-                  hint="What this actually costs you — powers real profit in Analytics. Never shown to customers."
+                  placeholder={t("Optional")}
+                  hint={t("What this actually costs you — powers real profit in Analytics. Never shown to customers.")}
                 />
               </div>
               <SettingsTextarea
-                label="Short Description"
+                label={t("Short Description")}
                 value={form.shortDescription}
                 onChange={(e) => setForm((f) => ({ ...f, shortDescription: e.target.value }))}
                 rows={2}
                 maxLength={300}
-                placeholder="One or two sentences — used for SEO and search result snippets."
+                placeholder={t("One or two sentences — used for SEO and search result snippets.")}
                 labelExtra={
                   <AiGenerateButton
                     hasContext={!!form.name.trim()}
@@ -498,7 +492,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
           </section>
 
           <section className="rounded-2xl bg-surface p-5 sm:p-6">
-            <h2 className="mb-4 text-[15px] font-semibold text-foreground">Video</h2>
+            <h2 className="mb-4 text-[15px] font-semibold text-foreground">{t("Video")}</h2>
             <ProductVideoField
               value={form.videoUrl}
               onChange={(videoUrl) => {
@@ -517,7 +511,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
 
           <section className="rounded-2xl bg-surface p-5 sm:p-6">
             <div className="mb-3 flex items-baseline justify-between gap-2">
-              <h2 className="text-[15px] font-semibold text-foreground">Variants</h2>
+              <h2 className="text-[15px] font-semibold text-foreground">{t("Variants")}</h2>
               <p className="text-xs text-muted">Optional · Size, Weight, Color…</p>
             </div>
             <ProductVariantsEditor
@@ -531,7 +525,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
           <section className="rounded-2xl bg-surface p-5 sm:p-6">
             <div className="mb-3 flex items-baseline justify-between gap-2">
               <h2 className="text-[15px] font-semibold text-foreground">
-                Feature highlights
+                {t("Feature highlights")}
               </h2>
               <p className="text-xs text-muted">
                 Optional · shown as icon callouts on the product page
@@ -546,29 +540,29 @@ export function ProductFormPage({ productId }: { productId?: string }) {
 
         <div className="flex flex-col gap-5">
           <section className="flex flex-col gap-4 rounded-2xl bg-surface p-5 sm:p-6">
-            <h2 className="text-[15px] font-semibold text-foreground">Organization</h2>
+            <h2 className="text-[15px] font-semibold text-foreground">{t("Organization")}</h2>
             <SettingsSelect
-              label="Status"
+              label={t("Status")}
               value={form.isActive ? "active" : "inactive"}
               onChange={(e) =>
                 setForm((f) => ({ ...f, isActive: e.target.value === "active" }))
               }
               options={[
-                { value: "active", label: "Active" },
-                { value: "inactive", label: "Inactive" },
+                { value: "active", label: t("Active") },
+                { value: "inactive", label: t("Inactive") },
               ]}
             />
             <SettingsSelect
-              label="Category"
+              label={t("Category")}
               value={form.categoryId}
               onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
               options={[
-                { value: "", label: "Uncategorized" },
+                { value: "", label: t("Uncategorized") },
                 ...categories.map((c) => ({ value: c.id, label: c.name })),
               ]}
             />
             <SettingsInput
-              label="Slug"
+              label={t("Slug")}
               value={form.slug}
               onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
               placeholder="auto-generated if left blank"
@@ -576,37 +570,37 @@ export function ProductFormPage({ productId }: { productId?: string }) {
           </section>
 
           <section className="flex flex-col gap-4 rounded-2xl bg-surface p-5 sm:p-6">
-            <h2 className="text-[15px] font-semibold text-foreground">Inventory</h2>
+            <h2 className="text-[15px] font-semibold text-foreground">{t("Inventory")}</h2>
             <div className="grid grid-cols-2 gap-4">
               <SettingsInput
-                label="SKU"
+                label={t("SKU")}
                 value={form.sku}
                 onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
                 placeholder="Optional"
               />
               <SettingsInput
-                label="Product Serial"
+                label={t("Product Serial")}
                 value={form.serialNumber}
                 onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))}
                 placeholder="Optional"
               />
             </div>
             <SettingsSelect
-              label="Unit"
+              label={t("Unit")}
               value={form.unit}
               onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
               options={UNIT_OPTIONS}
             />
             <div className="grid grid-cols-2 gap-4">
               <SettingsInput
-                label="Stock"
+                label={t("Stock")}
                 type="number"
                 min="0"
                 value={form.stock}
                 onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
               />
               <SettingsInput
-                label="Initial Sold Count"
+                label={t("Initial Sold Count")}
                 type="number"
                 min="0"
                 value={form.initialSoldCount}
@@ -622,7 +616,7 @@ export function ProductFormPage({ productId }: { productId?: string }) {
           </section>
 
           <section className="flex flex-col gap-4 rounded-2xl bg-surface p-5 sm:p-6">
-            <h2 className="text-[15px] font-semibold text-foreground">Shipping</h2>
+            <h2 className="text-[15px] font-semibold text-foreground">{t("Shipping")}</h2>
             <button
               type="button"
               role="switch"
@@ -633,44 +627,52 @@ export function ProductFormPage({ productId }: { productId?: string }) {
               className="flex w-full items-center justify-between gap-3 text-left"
             >
               <span className="text-sm font-medium text-foreground">
-                {form.freeDelivery ? "Free delivery" : "Delivery charge applies"}
+                {form.freeDelivery ? t("Free delivery") : t("Delivery charge applies")}
               </span>
               <span
                 className={[
                   "inline-flex h-6 w-11 shrink-0 items-center rounded-full p-0.5 transition-colors",
-                  form.freeDelivery ? "justify-end bg-primary" : "justify-start bg-slate-300",
+                  form.freeDelivery ? "justify-end bg-primary" : "justify-start bg-slate-300 dark:bg-slate-700",
                 ].join(" ")}
               >
                 <span className="size-5 rounded-full bg-surface shadow-sm" />
               </span>
             </button>
+
             {!form.freeDelivery ? (
               shippingLocations.length > 0 ? (
                 <div className="flex flex-col gap-1.5">
                   <span className="text-sm font-medium text-muted">
-                    Delivery charges
+                    {t("Delivery charges")}
                   </span>
                   <ul className="flex flex-col gap-1.5">
                     {shippingLocations.map((loc) => {
                       const checked = form.deliveryCharges.some((dc) => dc.name === loc.name);
                       return (
                         <li key={loc.id}>
-                          <label className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm text-foreground">
-                            <span className="flex items-center gap-2.5">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={(e) =>
-                                  setForm((f) => ({
-                                    ...f,
-                                    deliveryCharges: e.target.checked
-                                      ? [...f.deliveryCharges, { name: loc.name, charge_cents: loc.charge_cents }]
-                                      : f.deliveryCharges.filter((dc) => dc.name !== loc.name),
-                                  }))
-                                }
-                                className="size-3.5 rounded border-slate-300 accent-primary"
-                              />
-                              {loc.name}
+                          <label className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground transition-colors hover:bg-search-bg/50">
+                            <span className="flex items-center gap-2.5 select-none">
+                              <span className="relative flex size-4 shrink-0 items-center justify-center">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(e) => {
+                                    const isChecked = e.target.checked;
+                                    setForm((f) => ({
+                                      ...f,
+                                      deliveryCharges: isChecked
+                                        ? [...f.deliveryCharges, { name: loc.name, charge_cents: loc.charge_cents }]
+                                        : f.deliveryCharges.filter((dc) => dc.name !== loc.name),
+                                    }));
+                                  }}
+                                  className="peer size-4 cursor-pointer appearance-none rounded border border-border bg-search-bg transition-colors checked:border-primary checked:bg-primary dark:border-white/20 focus:outline-none"
+                                />
+                                <Check
+                                  className="pointer-events-none absolute size-2.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                                  strokeWidth={3}
+                                />
+                              </span>
+                              <span>{loc.name}</span>
                             </span>
                             <span className="text-muted-soft">
                               ৳{(loc.charge_cents / 100).toFixed(2)}
@@ -681,12 +683,28 @@ export function ProductFormPage({ productId }: { productId?: string }) {
                     })}
                   </ul>
                   <p className="text-xs text-muted-soft">
-                    Pick every location this product can ship to. Add or edit locations in Site Settings → Shipping.
+                    {t("Pick every location this product can ship to.")}{" "}
+                    <Link
+                      href="/settings/site/shipping"
+                      target="_blank"
+                      className="inline-flex items-center gap-0.5 font-medium text-primary underline underline-offset-2 transition-opacity hover:opacity-80"
+                    >
+                      {t("Add or edit locations in Site Settings → Shipping.")}
+                      <ArrowUpRight className="size-3" />
+                    </Link>
                   </p>
                 </div>
               ) : (
                 <p className="rounded-lg bg-search-bg px-3 py-4 text-xs text-muted-soft">
-                  No delivery locations saved yet. Add some in Site Settings → Shipping, then come back here to pick which ones apply to this product.
+                  {t("No delivery locations saved yet.")}{" "}
+                  <Link
+                    href="/settings/site/shipping"
+                    target="_blank"
+                    className="inline-flex items-center gap-0.5 font-medium text-primary underline underline-offset-2 transition-opacity hover:opacity-80"
+                  >
+                    {t("Add some in Site Settings → Shipping, then come back here to pick which ones apply to this product.")}
+                    <ArrowUpRight className="size-3" />
+                  </Link>
                 </p>
               )
             ) : null}

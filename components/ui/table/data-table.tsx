@@ -9,7 +9,7 @@ export function DataTable<T>({
   data,
   rowKey,
   emptyMessage = "No data found",
-  pageSize = 5,
+  pageSize = 10,
   paginate = true,
 }: DataTableProps<T>) {
   const [page, setPage] = useState(1);
@@ -41,7 +41,7 @@ export function DataTable<T>({
   return (
     <div className="w-full overflow-hidden rounded-md border border-border bg-surface">
       <div className="w-full overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[800px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-border dark:border-transparent bg-search-bg/60">
               {columns.map((col) => (
@@ -49,7 +49,7 @@ export function DataTable<T>({
                   key={col.id}
                   scope="col"
                   className={[
-                    "px-4 py-3 text-xs font-semibold tracking-wide text-muted uppercase",
+                    "px-4 py-3 text-xs font-semibold tracking-wide text-muted uppercase whitespace-nowrap",
                     col.headerClassName ?? "",
                   ].join(" ")}
                 >
@@ -78,7 +78,7 @@ export function DataTable<T>({
                     <td
                       key={col.id}
                       className={[
-                        "px-4 py-3.5 text-foreground",
+                        "px-4 py-3.5 align-middle text-foreground",
                         col.className ?? "",
                       ].join(" ")}
                     >

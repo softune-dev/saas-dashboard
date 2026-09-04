@@ -4,6 +4,7 @@ import { Download, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSWRConfig } from "swr";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -27,6 +28,7 @@ import {
 } from "./customers-table";
 
 export function CustomersView() {
+  const { t } = useLanguage();
   const { currentSite, loading: sessionLoading } = useSession();
   const { mutate } = useSWRConfig();
   const searchParams = useSearchParams();
@@ -45,26 +47,20 @@ export function CustomersView() {
   const error = listError
     ? listError instanceof Error
       ? listError.message
-      : "Failed to load customers"
+      : t("Failed to load customers")
     : null;
 
   const showSkeleton = sessionLoading || (loading && !!currentSite && customers.length === 0);
 
   const handleView = async (customer: CustomerOut) => {
     if (!siteId) return;
-    // Open instantly with what's already on hand (name/phone/email from the
-    // list row) instead of a blank modal — the network round trip for
-    // order_count/total_spent/orders (a real Postgres query, not free) still
-    // has to happen, but the merchant sees the contact info immediately
-    // instead of staring at nothing while it loads.
     setDetailOpen(true);
     setViewing(customer);
     try {
       const detail = await getCustomer(siteId, customer.id);
       setViewing(detail);
     } catch {
-      // Keep the seed data showing rather than closing — a failed detail
-      // fetch shouldn't yank the modal out from under someone mid-read.
+      // Keep the seed data showing rather than closing
     }
   };
 
@@ -102,13 +98,13 @@ export function CustomersView() {
   return (
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
-        title="Customers"
+        title={t("Customers")}
         actionsInline
         actions={
           customers.length > 0 ? (
             <PrimaryButton onClick={handleExport} className="px-4">
               <Download className="size-4" strokeWidth={2} />
-              <span className="hidden sm:inline">Export</span>
+              <span className="hidden sm:inline">{t("Export")}</span>
             </PrimaryButton>
           ) : undefined
         }
@@ -117,8 +113,8 @@ export function CustomersView() {
       {!sessionLoading && !currentSite ? (
         <EmptyState
           icon={Users}
-          title="No site yet"
-          description="Create a site from a template in Themes before viewing customers."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes before viewing customers.")}
         />
       ) : showSkeleton ? (
         <>
@@ -130,12 +126,12 @@ export function CustomersView() {
           <TableSkeleton columns={4} />
         </>
       ) : error ? (
-        <EmptyState icon={Users} title="Couldn't load customers" description={error} />
+        <EmptyState icon={Users} title={t("Couldn't load customers")} description={error} />
       ) : customers.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No customers yet"
-          description="A customer record is created the first time someone checks out with a phone number — once your first order comes in, they'll appear here."
+          title={t("No customers yet")}
+          description={t("A customer record is created the first time someone checks out with a phone number — once your first order comes in, they'll appear here.")}
         />
       ) : (
         <>

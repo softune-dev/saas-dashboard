@@ -31,6 +31,7 @@ import {
 import { DashboardShell } from "@/components/layout";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+// Force Turbopack re-evaluation
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

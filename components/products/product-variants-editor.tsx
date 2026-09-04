@@ -2,6 +2,7 @@
 
 import { ImagePlus, Plus, X } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { uploadProductImage } from "@/lib/api/commerce";
 import type { ProductVariant, ProductVariantValue } from "@/lib/api/commerce";
@@ -78,6 +79,7 @@ export function ProductVariantsEditor({
   basePriceCents,
   siteId,
 }: ProductVariantsEditorProps) {
+  const { t } = useLanguage();
   function addType() {
     onChange([...variants, { type: "", affectsPrice: false, isColor: false, values: [] }]);
   }
@@ -107,7 +109,7 @@ export function ProductVariantsEditor({
         </div>
       ) : (
         <p className="text-sm text-muted">
-          No variants yet. Add types like Size or Color.
+          {t("No variants yet. Add types like Size or Color.")}
         </p>
       )}
 
@@ -117,7 +119,7 @@ export function ProductVariantsEditor({
         className="inline-flex h-9 w-fit items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-white transition-opacity hover:opacity-90"
       >
         <Plus className="size-3.5" strokeWidth={2} />
-        Add type
+        {t("Add type")}
       </button>
     </div>
   );
@@ -136,6 +138,7 @@ function VariantTypeCard({
   onChange: (next: ProductVariant) => void;
   onRemove: () => void;
 }) {
+  const { t } = useLanguage();
   const [draftName, setDraftName] = useState("");
   const [draftHex, setDraftHex] = useState(DEFAULT_HEX);
 
@@ -148,9 +151,6 @@ function VariantTypeCard({
     }
     const newValue: ProductVariantValue = { value };
     if (variant.isColor) newValue.hex = draftHex;
-    // Priced types always start a new value at the base price (never a
-    // blank field) — a merchant only ever needs to CHANGE the number, never
-    // guess what an empty box means.
     if (variant.affectsPrice) newValue.priceDeltaCents = 0;
     onChange({ ...variant, values: [...variant.values, newValue] });
     setDraftName("");
@@ -172,8 +172,6 @@ function VariantTypeCard({
     onChange({
       ...variant,
       isColor,
-      // Turning Color off drops any hex already picked — a plain-text value
-      // shouldn't silently keep a color no longer shown anywhere for it.
       values: isColor ? variant.values : variant.values.map(({ hex, ...rest }) => rest),
     });
   }
@@ -183,8 +181,6 @@ function VariantTypeCard({
       ...variant,
       affectsPrice,
       values: affectsPrice
-        // Every existing value starts at base price the instant Priced
-        // turns on — never a blank field the merchant has to guess about.
         ? variant.values.map((v) => ({ ...v, priceDeltaCents: v.priceDeltaCents ?? 0 }))
         : variant.values.map(({ priceDeltaCents, ...rest }) => rest),
     });
@@ -202,11 +198,11 @@ function VariantTypeCard({
         <input
           value={variant.type}
           onChange={(e) => onChange({ ...variant, type: e.target.value })}
-          placeholder="Variant name (e.g. Size, Color)"
+          placeholder={t("Variant name (e.g. Size, Color)")}
           className="h-9 min-w-0 flex-1 rounded-md border-0 bg-surface px-2.5 text-sm font-semibold text-foreground outline-none ring-1 ring-border dark:ring-transparent placeholder:text-muted-soft focus:ring-primary"
         />
-        <MiniSwitch checked={!!variant.isColor} onChange={toggleColor} label="Color" />
-        <MiniSwitch checked={variant.affectsPrice} onChange={togglePriced} label="Priced" />
+        <MiniSwitch checked={!!variant.isColor} onChange={toggleColor} label={t("Color")} />
+        <MiniSwitch checked={variant.affectsPrice} onChange={togglePriced} label={t("Priced")} />
         <button
           type="button"
           aria-label="Remove variant type"
@@ -327,7 +323,7 @@ function VariantTypeCard({
             }
           }}
           placeholder={
-            variant.isColor ? "Add color name (e.g. Navy) + Enter" : "Add attribute (e.g. Large) + Enter"
+            variant.isColor ? t("Add color name (e.g. Navy) + Enter") : t("Add attribute (e.g. Large) + Enter")
           }
           className="h-8 min-w-0 flex-1 rounded-md border-0 bg-surface/80 px-2.5 text-xs text-foreground outline-none ring-1 ring-dashed ring-border dark:ring-transparent placeholder:text-muted-soft focus:bg-surface focus:ring-primary"
         />

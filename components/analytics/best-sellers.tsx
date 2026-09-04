@@ -1,11 +1,14 @@
 import { Package } from "lucide-react";
 import Image from "next/image";
+import { useLanguage } from "@/components/providers/language-provider";
 import { formatTaka } from "@/lib/format";
 import type { BestSeller } from "@/lib/api/analytics";
 
 export function BestSellers({ items }: { items: BestSeller[] }) {
+  const { t } = useLanguage();
+
   if (items.length === 0) {
-    return <p className="text-sm text-muted">No sales in this period yet.</p>;
+    return <p className="text-sm text-muted">{t("No sales in this period yet.")}</p>;
   }
 
   return (
@@ -47,7 +50,7 @@ export function BestSellers({ items }: { items: BestSeller[] }) {
             <p className="text-sm font-semibold tabular-nums text-foreground">
               {item.sold}
             </p>
-            <p className="text-[11px] text-muted">sold</p>
+            <p className="text-[11px] text-muted">{t("sold")}</p>
           </div>
           <div className="hidden w-24 shrink-0 text-right sm:block">
             <p className="text-sm font-semibold text-foreground">

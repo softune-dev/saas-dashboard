@@ -3,6 +3,7 @@
 import { Menu } from "lucide-react";
 import { motion } from "motion/react";
 import { useSession } from "@/components/providers/session-provider";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ActionIconsPill } from "./action-icons-pill";
 import { CreditsPill } from "./credits-pill";
@@ -46,8 +47,9 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
       ) : null}
 
       <LogoPill />
-      <div className="hidden md:contents">
+      <div className="hidden md:flex items-center">
         <ThemeToggle className="ml-5" />
+        <LanguageToggle className="ml-2" />
       </div>
       {/* Header has no room for this on small screens — it moves into the
           user menu instead (see StorePill's own TrialBadge, the exact

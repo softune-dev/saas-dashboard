@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import useSWR from "swr";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { getThemeById } from "@/components/themes/themes-data";
 import { MaskIcon } from "@/components/ui/mask-icon";
@@ -190,6 +191,7 @@ export function ShopInfoPanel({
   productImages = [],
   categoryImages = [],
 }: ShopInfoPanelProps) {
+  const { t } = useLanguage();
   const { currentSite } = useSession();
   const siteId = currentSite?.id ?? null;
 
@@ -226,7 +228,7 @@ export function ShopInfoPanel({
   return (
     <div className="flex h-full flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-foreground">My Shop</h2>
+        <h2 className="text-base font-semibold text-foreground">{t("My Shop")}</h2>
         {currentSite ? (
           <span
             className={[
@@ -236,7 +238,7 @@ export function ShopInfoPanel({
                 : "bg-amber-500/10 text-amber-600",
             ].join(" ")}
           >
-            {currentSite.status === "published" ? "Live" : "Draft"}
+            {currentSite.status === "published" ? t("Live") : t("Draft")}
           </span>
         ) : null}
       </div>
@@ -245,20 +247,20 @@ export function ShopInfoPanel({
       <div className="flex items-center gap-3 rounded-md bg-search-bg p-3.5">
         <ShopAvatar
           logoUrl={logoUrl}
-          name={currentSite?.name ?? "Your site"}
+          name={currentSite?.name ?? t("Your site")}
         />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-foreground">
-            {currentSite?.name ?? "Your site"}
+            {currentSite?.name ?? t("Your site")}
           </p>
-          <p className="truncate text-xs text-muted">{displayHost ?? "No domain yet"}</p>
+          <p className="truncate text-xs text-muted">{displayHost ?? t("No domain yet")}</p>
         </div>
         {shopUrl ? (
           <a
             href={shopUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Open shop in a new tab"
+            aria-label={t("Open shop in a new tab")}
             className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-primary"
           >
             <ArrowUpRight className="size-4" strokeWidth={2} />
@@ -283,14 +285,14 @@ export function ShopInfoPanel({
             {media ? formatBytes(usedBytes) : "—"}
           </p>
           <p className="text-xs text-muted">
-            of {formatBytes(limitBytes)} storage
+            {t("of")} {formatBytes(limitBytes)} {t("storage")}
           </p>
         </div>
         <Link
           href="/settings/site/media"
           className="shrink-0 text-xs font-medium text-muted transition-colors hover:underline"
         >
-          Manage
+          {t("Manage")}
         </Link>
       </div>
 
@@ -306,7 +308,7 @@ export function ShopInfoPanel({
               </span>
               <span className="flex w-full items-center justify-between gap-2">
                 <span className="text-sm font-medium text-foreground">
-                  Add product
+                  {t("Add product")}
                 </span>
               </span>
             </Link>
@@ -319,7 +321,7 @@ export function ShopInfoPanel({
               </span>
               <span className="flex w-full items-center justify-between gap-2">
                 <span className="text-sm font-medium text-foreground">
-                  Add category
+                  {t("Add category")}
                 </span>
               </span>
             </Link>
@@ -329,13 +331,13 @@ export function ShopInfoPanel({
             <CountTile
               href="/products"
               count={productsCount}
-              label="Products"
+              label={t("Products")}
               images={productImages}
             />
             <CountTile
               href="/categories"
               count={categoriesCount}
-              label="Categories"
+              label={t("Categories")}
               images={categoryImages}
             />
           </>

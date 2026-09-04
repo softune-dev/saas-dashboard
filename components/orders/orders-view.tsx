@@ -3,6 +3,7 @@
 import { ShoppingBag, Truck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
@@ -30,6 +31,7 @@ import {
 } from "./orders-table";
 
 export function OrdersView() {
+  const { t } = useLanguage();
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -88,7 +90,7 @@ export function OrdersView() {
   const error = ordersError
     ? ordersError instanceof Error
       ? ordersError.message
-      : "Failed to load orders"
+      : t("Failed to load orders")
     : null;
 
   // Deep-link from header search: /orders?order=<id>
@@ -178,13 +180,13 @@ export function OrdersView() {
   return (
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
-        title="Orders"
+        title={t("Orders")}
         actionsInline
         actions={
           currentSite ? (
             <PrimaryButton onClick={() => setBulkBookOpen(true)} className="px-4">
               <Truck className="size-4" strokeWidth={1.75} />
-              <span className="hidden sm:inline">Bulk book courier</span>
+              <span className="hidden sm:inline">{t("Bulk book courier")}</span>
             </PrimaryButton>
           ) : undefined
         }
@@ -193,8 +195,8 @@ export function OrdersView() {
       {!sessionLoading && !currentSite ? (
         <EmptyState
           icon={ShoppingBag}
-          title="No site yet"
-          description="Create a site from a template in Themes before managing orders."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes before managing orders.")}
         />
       ) : showSkeleton ? (
         <>
@@ -206,12 +208,12 @@ export function OrdersView() {
           <TableSkeleton columns={6} />
         </>
       ) : error ? (
-        <EmptyState icon={ShoppingBag} title="Couldn't load orders" description={error} />
+        <EmptyState icon={ShoppingBag} title={t("Couldn't load orders")} description={error} />
       ) : orders.length === 0 && !hasFilters ? (
         <EmptyState
           icon={ShoppingBag}
-          title="No orders yet"
-          description="Orders from your storefront checkout will show up here."
+          title={t("No orders yet")}
+          description={t("Orders from your storefront checkout will show up here.")}
         />
       ) : (
         <>

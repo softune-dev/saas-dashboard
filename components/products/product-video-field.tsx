@@ -2,14 +2,10 @@
 
 import { Link as LinkIcon, Loader2, Upload, Video, X } from "lucide-react";
 import { useState } from "react";
-import { EditorLabel } from "@/components/themes/editor/editor-field";
+import { useLanguage } from "@/components/providers/language-provider";
 
 type Mode = "upload" | "link";
 
-/** Detects a pasted URL vs an uploaded Cloudinary URL well enough to decide
- * how the storefront should render it (native <video> vs an embed) — see
- * templates/aurora's product page. Not exhaustive; good enough for the two
- * cases merchants actually paste (YouTube/Vimeo links vs our own uploads). */
 function looksLikeExternalLink(url: string): boolean {
   return /youtube\.com|youtu\.be|vimeo\.com/i.test(url);
 }
@@ -21,16 +17,13 @@ type ProductVideoFieldProps = {
   onUploadFile: (file: File) => void;
 };
 
-/** Video is either an uploaded file (Cloudinary, autoplays natively as
- * muted+loop on the storefront) or a pasted link (YouTube/Vimeo, autoplays
- * via that platform's embed params) — one field, two ways to fill it,
- * because the storefront needs to know which rendering path to use. */
 export function ProductVideoField({
   value,
   onChange,
   uploading,
   onUploadFile,
 }: ProductVideoFieldProps) {
+  const { t } = useLanguage();
   const [mode, setMode] = useState<Mode>(
     value && looksLikeExternalLink(value) ? "link" : "upload",
   );
@@ -39,7 +32,7 @@ export function ProductVideoField({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <EditorLabel>Product video</EditorLabel>
+        <label className="text-sm font-medium text-muted">{t("Product video")}</label>
         <div className="flex gap-1 rounded-lg bg-search-bg p-0.5">
           {(["upload", "link"] as const).map((m) => (
             <button
@@ -51,7 +44,7 @@ export function ProductVideoField({
                 mode === m ? "bg-surface text-foreground shadow-sm" : "text-muted",
               ].join(" ")}
             >
-              {m === "upload" ? "Upload" : "Link"}
+              {m === "upload" ? t("Upload") : t("Link")}
             </button>
           ))}
         </div>

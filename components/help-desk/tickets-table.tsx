@@ -2,6 +2,7 @@
 
 import { Eye, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { DataTable, TableSkeleton, type TableColumn } from "@/components/ui/table";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { useHelpTicketsSWR, type HelpTicketOut } from "@/lib/api/help-desk";
@@ -12,11 +13,15 @@ import {
   TicketStatusBadge,
 } from "./ticket-status-badge";
 
-function buildColumns(onView: (row: HelpTicketOut) => void): TableColumn<HelpTicketOut>[] {
+function buildColumns(
+  onView: (row: HelpTicketOut) => void,
+  t: (key: string) => string,
+): TableColumn<HelpTicketOut>[] {
   return [
     {
       id: "ticketId",
-      header: "Ticket",
+      header: t("Ticket"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="font-semibold text-foreground">
           {row.ticket_number_display}
@@ -25,27 +30,30 @@ function buildColumns(onView: (row: HelpTicketOut) => void): TableColumn<HelpTic
     },
     {
       id: "subject",
-      header: "Subject",
+      header: t("Subject"),
       cell: (row) => (
         <div className="min-w-0">
           <p className="truncate font-medium text-foreground">{row.subject}</p>
-          <p className="truncate text-xs text-muted">{row.category}</p>
+          <p className="truncate text-xs text-muted">{t(row.category)}</p>
         </div>
       ),
     },
     {
       id: "priority",
-      header: "Priority",
+      header: t("Priority"),
+      className: "whitespace-nowrap",
       cell: (row) => <TicketPriorityBadge priority={row.priority} />,
     },
     {
       id: "status",
-      header: "Status",
+      header: t("Status"),
+      className: "whitespace-nowrap",
       cell: (row) => <TicketStatusBadge status={row.status} />,
     },
     {
       id: "updatedAt",
-      header: "Updated",
+      header: t("Updated"),
+      className: "whitespace-nowrap",
       cell: (row) => (
         <span className="text-muted">
           {formatDisplayDate(new Date(row.updated_at))}
@@ -54,9 +62,9 @@ function buildColumns(onView: (row: HelpTicketOut) => void): TableColumn<HelpTic
     },
     {
       id: "actions",
-      header: "View",
+      header: t("View"),
       headerClassName: "text-right",
-      className: "text-right",
+      className: "text-right whitespace-nowrap",
       cell: (row) => (
         <button
           type="button"
@@ -72,6 +80,7 @@ function buildColumns(onView: (row: HelpTicketOut) => void): TableColumn<HelpTic
 }
 
 export function TicketsTable() {
+  const { t } = useLanguage();
   const { data, isLoading } = useHelpTicketsSWR();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<HelpTicketOut | null>(null);
@@ -95,7 +104,7 @@ export function TicketsTable() {
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
-          Your tickets
+          {t("Your tickets")}
         </h2>
 
         <div className="flex items-center gap-2">
@@ -108,7 +117,7 @@ export function TicketsTable() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search tickets..."
+              placeholder={t("Search tickets...")}
               className="h-9 w-44 rounded-full border border-border bg-surface pr-3 pl-9 text-sm outline-none placeholder:text-muted-soft focus:border-primary sm:w-56"
             />
           </div>
@@ -126,11 +135,11 @@ export function TicketsTable() {
         <TableSkeleton columns={6} />
       ) : (
         <DataTable
-          columns={buildColumns(setSelected)}
+          columns={buildColumns(setSelected, t)}
           data={filtered}
           rowKey={(row) => row.id}
-          pageSize={5}
-          emptyMessage="No tickets yet — submit one above and it'll show up here."
+          pageSize={10}
+          emptyMessage={t("No tickets yet — submit one above and it'll show up here.")}
         />
       )}
 

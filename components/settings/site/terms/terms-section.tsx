@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import { saveSiteLegal, useSiteSettingsSWR } from "@/lib/api/site-settings";
 import { SettingsActions } from "../ui/settings-actions";
 import { SettingsInput, SettingsTextarea } from "../ui/settings-field";
@@ -11,6 +12,7 @@ import { SettingsEditorSkeleton, SettingsFieldSkeleton } from "../ui/settings-sk
 export function TermsSection() {
   const { currentSite } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
   const { data, isLoading, mutate } = useSiteSettingsSWR(siteId);
 
@@ -36,10 +38,10 @@ export function TermsSection() {
         terms: { title, content, published },
       });
       await mutate({ ...data, legal: updated.legal }, { revalidate: false });
-      toast({ title: "Terms saved", variant: "success" });
+      toast({ title: t("Terms saved"), variant: "success" });
     } catch (err) {
       toast({
-        title: "Couldn't save terms",
+        title: t("Couldn't save terms"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -59,10 +61,10 @@ export function TermsSection() {
 
   return (
     <div className="flex flex-col gap-5">
-      <SettingsInput label="Page title" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <SettingsInput label={t("Page title")} value={title} onChange={(e) => setTitle(e.target.value)} />
 
       <SettingsTextarea
-        label="Terms content"
+        label={t("Terms content")}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Write your terms of service…"
@@ -76,10 +78,10 @@ export function TermsSection() {
           onChange={(e) => setPublished(e.target.checked)}
           className="size-4 rounded border-slate-300 accent-primary"
         />
-        Published on storefront
+        {t("Published on storefront")}
       </label>
 
-      <SettingsActions saveLabel={saving ? "Saving…" : "Save terms"} onSave={handleSave} />
+      <SettingsActions saveLabel={saving ? "Saving…" : t("Save terms")} onSave={handleSave} />
     </div>
   );
 }

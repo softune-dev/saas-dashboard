@@ -2,6 +2,7 @@
 
 import { FolderTree, Plus } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -29,6 +30,7 @@ import {
 import { CategoryFormModal } from "./category-form-modal";
 
 export function CategoriesView() {
+  const { t } = useLanguage();
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
   const { deleteWithUndo } = useUndoableDelete();
@@ -54,7 +56,7 @@ export function CategoriesView() {
   const error = categoriesError
     ? categoriesError instanceof Error
       ? categoriesError.message
-      : "Failed to load categories"
+      : t("Failed to load categories")
     : null;
 
   const [formOpen, setFormOpen] = useState(false);
@@ -74,7 +76,7 @@ export function CategoriesView() {
     if (!currentSite) return;
     const created = await createCategory(currentSite.id, data);
     await mutateCategories((prev) => [...(prev ?? []), created], { revalidate: false });
-    toast({ title: "Category created", variant: "success" });
+    toast({ title: t("Category created"), variant: "success" });
   }
 
   async function handleUpdate(id: string, data: CategoryUpdate) {
@@ -84,7 +86,7 @@ export function CategoriesView() {
       (prev) => (prev ?? []).map((c) => (c.id === id ? updated : c)),
       { revalidate: false },
     );
-    toast({ title: "Category updated", variant: "success" });
+    toast({ title: t("Category updated"), variant: "success" });
   }
 
   function handleDelete() {
@@ -106,7 +108,7 @@ export function CategoriesView() {
       commitDelete: () => deleteCategory(site.id, category.id),
       onError: (err) =>
         toast({
-          title: "Couldn't delete category",
+          title: t("Couldn't delete category"),
           description: err instanceof Error ? err.message : "Something went wrong.",
           variant: "info",
         }),
@@ -118,7 +120,7 @@ export function CategoriesView() {
   return (
     <div className="flex flex-col gap-4 pb-2">
       <PageHeading
-        title="Categories"
+        title={t("Categories")}
         actionsInline
         actions={
           <PrimaryButton
@@ -129,7 +131,7 @@ export function CategoriesView() {
             disabled={!currentSite}
           >
             <Plus className="size-4" strokeWidth={2} />
-            Add Category
+            {t("Add Category")}
           </PrimaryButton>
         }
       />
@@ -137,8 +139,8 @@ export function CategoriesView() {
       {!sessionLoading && !currentSite ? (
         <EmptyState
           icon={FolderTree}
-          title="No site yet"
-          description="Create a site from a template in Themes before adding categories."
+          title={t("No site yet")}
+          description={t("Create a site from a template in Themes before adding categories.")}
         />
       ) : showSkeleton ? (
         <>
@@ -150,12 +152,12 @@ export function CategoriesView() {
           <TableSkeleton columns={4} />
         </>
       ) : error ? (
-        <EmptyState icon={FolderTree} title="Couldn't load categories" description={error} />
+        <EmptyState icon={FolderTree} title={t("Couldn't load categories")} description={error} />
       ) : categories.length === 0 ? (
         <EmptyState
           icon={FolderTree}
-          title="No categories yet"
-          description="Group your products by adding your first category."
+          title={t("No categories yet")}
+          description={t("Group your products by adding your first category.")}
           action={
             <PrimaryButton
               onClick={() => {
@@ -164,7 +166,7 @@ export function CategoriesView() {
               }}
             >
               <Plus className="size-4" strokeWidth={2} />
-              Add Category
+              {t("Add Category")}
             </PrimaryButton>
           }
         />
@@ -196,9 +198,9 @@ export function CategoriesView() {
 
       <ConfirmDialog
         open={!!deleting}
-        title={`Delete "${deleting?.name}"?`}
-        description="You'll have 10 seconds to undo from the toast after this."
-        confirmLabel="Delete"
+        title={`${t("Delete")} "${deleting?.name}"?`}
+        description={t("You'll have 10 seconds to undo from the toast after this.")}
+        confirmLabel={t("Delete")}
         destructive
         onConfirm={handleDelete}
         onCancel={() => setDeleting(null)}

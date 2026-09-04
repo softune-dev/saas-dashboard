@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { confirmChangePassword, requestChangePasswordOtp } from "@/lib/api";
+import { useLanguage } from "@/components/providers/language-provider";
 import { SettingsInput } from "@/components/settings/site/ui/settings-field";
 import { FormModal } from "@/components/ui/form-modal";
 import { OtpBoxes, emptyOtpDigits, OTP_LENGTH } from "@/components/auth/otp-boxes";
@@ -15,6 +16,7 @@ const empty = { current: "", next: "", confirm: "" };
  * affected. 2FA has no backend support yet — left as a disabled
  * placeholder rather than a button that does nothing. */
 export function AccountSecurity() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"form" | "otp">("form");
@@ -84,13 +86,13 @@ export function AccountSecurity() {
 
   return (
     <section className="rounded-md bg-surface p-4 sm:p-5">
-      <h2 className="mb-4 text-base font-semibold text-foreground">Security</h2>
+      <h2 className="mb-4 text-base font-semibold text-foreground">{t("Security")}</h2>
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h3 className="mb-1 text-sm font-semibold text-foreground">Password</h3>
+          <h3 className="mb-1 text-sm font-semibold text-foreground">{t("Password")}</h3>
           <p className="text-sm text-muted">
-            A code emailed to you is required to change it.
+            {t("A code emailed to you is required to change it.")}
           </p>
         </div>
         <button
@@ -98,41 +100,41 @@ export function AccountSecurity() {
           onClick={() => setOpen(true)}
           className="shrink-0 inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-search-bg"
         >
-          Change password
+          {t("Change password")}
         </button>
       </div>
 
       <div className="mt-8 flex items-center justify-between gap-4 border-t border-border dark:border-transparent pt-6">
         <div>
           <h3 className="mb-1 text-sm font-semibold text-foreground">
-            Two-Factor Authentication (2FA)
+            {t("Two-Factor Authentication (2FA)")}
           </h3>
           <p className="text-sm text-muted">
-            Add an extra layer of security to your account.
+            {t("Add an extra layer of security to your account.")}
           </p>
         </div>
         <button
           type="button"
           disabled
-          title="Coming soon"
+          title={t("Coming soon")}
           className="shrink-0 inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-muted-soft transition-colors disabled:cursor-not-allowed"
         >
-          Coming soon
+          {t("Coming soon")}
         </button>
       </div>
 
       <FormModal
         open={open}
-        title={step === "form" ? "Change password" : "Enter the code"}
+        title={step === "form" ? t("Change password") : t("Enter the code")}
         busy={busy}
         submitLabel={
           step === "form"
             ? busy
               ? "Sending code…"
-              : "Send code"
+              : t("Send code")
             : busy
               ? "Updating…"
-              : "Update password"
+              : t("Update password")
         }
         onClose={close}
         onSubmit={(e) => {
@@ -144,21 +146,21 @@ export function AccountSecurity() {
         {step === "form" ? (
           <div className="flex flex-col gap-4">
             <SettingsInput
-              label="Current password"
+              label={t("Current password")}
               type="password"
               value={form.current}
               onChange={(e) => setForm((p) => ({ ...p, current: e.target.value }))}
               autoComplete="current-password"
             />
             <SettingsInput
-              label="New password"
+              label={t("New password")}
               type="password"
               value={form.next}
               onChange={(e) => setForm((p) => ({ ...p, next: e.target.value }))}
               autoComplete="new-password"
             />
             <SettingsInput
-              label="Confirm password"
+              label={t("Confirm password")}
               type="password"
               value={form.confirm}
               onChange={(e) => setForm((p) => ({ ...p, confirm: e.target.value }))}

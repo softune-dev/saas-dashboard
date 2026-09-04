@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { updateTenantNotifications, type TenantNotificationPrefs } from "@/lib/api";
 import { useSession } from "@/components/providers/session-provider";
+import { useLanguage } from "@/components/providers/language-provider";
 import { SettingsActions } from "@/components/settings/site/ui/settings-actions";
 import { useToast } from "@/components/ui/toast";
 
@@ -38,14 +39,13 @@ const FALLBACK: TenantNotificationPrefs = {
 
 export function AccountNotifications() {
   const { me, refetch } = useSession();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [prefs, setPrefs] = useState<TenantNotificationPrefs>(
     me?.tenant.notifications ?? FALLBACK,
   );
   const [busy, setBusy] = useState(false);
 
-  // Real tenant data may arrive after this component's first render — sync
-  // once it does, instead of only ever showing the fallback defaults.
   useEffect(() => {
     if (me?.tenant.notifications) setPrefs(me.tenant.notifications);
   }, [me?.tenant.notifications]);
@@ -75,7 +75,7 @@ export function AccountNotifications() {
   return (
     <section className="rounded-md bg-surface p-4 sm:p-5">
       <h2 className="mb-4 text-base font-semibold text-foreground">
-        Notifications
+        {t("Notifications")}
       </h2>
 
       <ul className="flex flex-col gap-3">
@@ -86,9 +86,9 @@ export function AccountNotifications() {
           >
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground">
-                {item.label}
+                {t(item.label)}
               </p>
-              <p className="mt-0.5 text-xs text-muted">{item.description}</p>
+              <p className="mt-0.5 text-xs text-muted">{t(item.description)}</p>
             </div>
 
             <button
@@ -103,7 +103,6 @@ export function AccountNotifications() {
             >
               <span
                 className={[
-                  // Thumb stays white in both themes for contrast on the track.
                   "absolute top-0.5 left-0.5 size-5 rounded-full bg-[#ffffff] transition-transform",
                   prefs[item.id] ? "translate-x-5" : "translate-x-0",
                 ].join(" ")}
@@ -114,7 +113,7 @@ export function AccountNotifications() {
       </ul>
 
       <SettingsActions
-        saveLabel={busy ? "Saving…" : "Save preferences"}
+        saveLabel={busy ? "Saving…" : t("Save preferences")}
         onSave={handleSave}
       />
     </section>

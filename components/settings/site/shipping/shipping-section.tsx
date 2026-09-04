@@ -6,6 +6,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import {
   saveSiteShipping,
   useSiteSettingsSWR,
@@ -27,6 +28,7 @@ function majorToCents(major: string): number {
 export function ShippingSection() {
   const { currentSite } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
   const { data, isLoading, mutate } = useSiteSettingsSWR(siteId);
 
@@ -60,10 +62,10 @@ export function ShippingSection() {
       const updated = await saveSiteShipping(siteId, { locations: cleaned });
       setLocations(updated.shipping.locations);
       await mutate({ ...data!, shipping: updated.shipping }, { revalidate: false });
-      toast({ title: "Shipping settings saved", variant: "success" });
+      toast({ title: t("Shipping settings saved"), variant: "success" });
     } catch (err) {
       toast({
-        title: "Couldn't save shipping settings",
+        title: t("Couldn't save shipping settings"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -86,10 +88,9 @@ export function ShippingSection() {
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold text-foreground">Delivery locations</h2>
+          <h2 className="text-base font-semibold text-foreground">{t("Delivery locations")}</h2>
           <p className="mt-0.5 text-xs text-muted-soft">
-            Used in the Add Product page to pick a delivery charge instead of
-            typing one each time.
+            {t("Used in the Add Product page to pick a delivery charge instead of typing one each time.")}
           </p>
         </div>
         <PrimaryButton
@@ -98,14 +99,13 @@ export function ShippingSection() {
           className="!h-9 !px-3 text-xs"
         >
           <Plus className="size-3.5" strokeWidth={2} />
-          Add location
+          {t("Add location")}
         </PrimaryButton>
       </div>
 
       {locations.length === 0 ? (
         <p className="rounded-md bg-search-bg px-4 py-8 text-center text-sm text-muted">
-          No delivery locations yet. Add one to start pricing shipping by
-          area.
+          {t("No delivery locations yet. Add one to start pricing shipping by area.")}
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
@@ -154,7 +154,7 @@ export function ShippingSection() {
         </ul>
       )}
 
-      <SettingsActions saveLabel={saving ? "Saving…" : "Save shipping"} onSave={handleSave} />
+      <SettingsActions saveLabel={saving ? "Saving…" : t("Save shipping")} onSave={handleSave} />
     </div>
   );
 }

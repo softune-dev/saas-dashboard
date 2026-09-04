@@ -12,7 +12,7 @@ export function TableSkeleton({
   return (
     <div className="w-full overflow-hidden rounded-md border border-border bg-surface">
       <div className="w-full overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[800px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-border bg-search-bg/60">
               {Array.from({ length: columns }).map((_, i) => (

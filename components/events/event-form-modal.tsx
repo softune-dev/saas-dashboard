@@ -2,6 +2,7 @@
 
 import { ImagePlus } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { FormModal } from "@/components/ui/form-modal";
 import { useToast } from "@/components/ui/toast";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
@@ -62,6 +63,7 @@ export function EventFormModal({
   onCreate,
   onUpdate,
 }: EventFormModalProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [form, setForm] = useState<FormState>(empty);
   const [saveStage, setSaveStage] = useState<"idle" | "uploading" | "saving">("idle");
@@ -122,8 +124,8 @@ export function EventFormModal({
     const discountPercent = Number(form.discountPercent);
     if (!Number.isFinite(discountPercent) || discountPercent < 1 || discountPercent > 90) {
       toast({
-        title: "Invalid discount",
-        description: "Discount must be a whole number between 1 and 90.",
+        title: t("Invalid discount"),
+        description: t("Discount must be a whole number between 1 and 90."),
         variant: "info",
       });
       return;
@@ -158,7 +160,7 @@ export function EventFormModal({
       onClose();
     } catch (err) {
       toast({
-        title: event ? "Couldn't save changes" : "Couldn't create event",
+        title: event ? t("Couldn't save changes") : t("Couldn't create event"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -172,16 +174,16 @@ export function EventFormModal({
   return (
     <FormModal
       open={open}
-      title={event ? "Edit event" : "New event"}
+      title={event ? t("Edit event") : t("New event")}
       busy={busy}
       submitLabel={
         saveStage === "uploading"
-          ? "Uploading image…"
+          ? t("Uploading image…")
           : saveStage === "saving"
-            ? "Saving…"
+            ? t("Saving…")
             : event
-              ? "Save changes"
-              : "Create event"
+              ? t("Save changes")
+              : t("Create event")
       }
       onSubmit={handleSubmit}
       onClose={onClose}
@@ -209,7 +211,7 @@ export function EventFormModal({
               ) : (
                 <div className="flex size-full flex-col items-center justify-center gap-1 text-muted-soft">
                   <ImagePlus className="size-5" strokeWidth={1.5} />
-                  <span className="text-[11px] font-medium">Add event image</span>
+                  <span className="text-[11px] font-medium">{t("Add event image")}</span>
                 </div>
               )}
               <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
@@ -220,28 +222,28 @@ export function EventFormModal({
         </MediaSourceMenu>
 
         <SettingsInput
-          label="Name"
+          label={t("Name")}
           required
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           placeholder="e.g. Summer Sale"
         />
         <SettingsInput
-          label="Slug"
+          label={t("Slug")}
           value={form.slug}
           onChange={(e) => setForm((f) => ({ ...f, slug: e.target.value }))}
-          placeholder="auto-generated from name if left blank"
+          placeholder={t("auto-generated from name if left blank")}
         />
         <SettingsTextarea
-          label="Description"
+          label={t("Description")}
           value={form.description}
           onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           rows={3}
-          placeholder="A short line shown on the storefront card"
+          placeholder={t("A short line shown on the storefront card")}
         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <SettingsInput
-            label="Discount %"
+            label={t("Discount %")}
             required
             type="number"
             min={1}
@@ -251,10 +253,10 @@ export function EventFormModal({
             placeholder="e.g. 20"
           />
           <SettingsInput
-            label="Button label"
+            label={t("Button label")}
             value={form.ctaLabel}
             onChange={(e) => setForm((f) => ({ ...f, ctaLabel: e.target.value }))}
-            placeholder="Shop now"
+            placeholder={t("Shop now")}
           />
         </div>
 
@@ -267,8 +269,8 @@ export function EventFormModal({
         >
           <span className="text-sm font-medium text-foreground">
             {form.isActive
-              ? "Active — discount applies at checkout now"
-              : "Inactive — draft, no discount applied"}
+              ? t("Active — discount applies at checkout now")
+              : t("Inactive — draft, no discount applied")}
           </span>
           <span
             className={[

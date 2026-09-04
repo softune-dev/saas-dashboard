@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { FormModal } from "@/components/ui/form-modal";
 import { SettingsInput } from "@/components/settings/site/ui/settings-field";
 
@@ -16,6 +17,7 @@ type AddBlockModalProps = {
 };
 
 export function AddBlockModal({ open, onClose, onAdd }: AddBlockModalProps) {
+  const { t } = useLanguage();
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
 
@@ -36,8 +38,8 @@ export function AddBlockModal({ open, onClose, onAdd }: AddBlockModalProps) {
   return (
     <FormModal
       open={open}
-      title="Block a number"
-      submitLabel="Add"
+      title={t("Block a number")}
+      submitLabel={t("Add")}
       headerBorder={false}
       compact
       onSubmit={handleSubmit}
@@ -45,7 +47,7 @@ export function AddBlockModal({ open, onClose, onAdd }: AddBlockModalProps) {
     >
       <div className="flex flex-col gap-3">
         <SettingsInput
-          label="Phone number"
+          label={t("Phone number")}
           required
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
@@ -53,10 +55,10 @@ export function AddBlockModal({ open, onClose, onAdd }: AddBlockModalProps) {
           autoComplete="off"
         />
         <SettingsInput
-          label="Note"
+          label={t("Note")}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Optional — why blocked"
+          placeholder={t("Optional — why blocked")}
         />
       </div>
     </FormModal>

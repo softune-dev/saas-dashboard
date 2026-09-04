@@ -2,6 +2,7 @@
 
 import { AlertTriangle, CheckCircle2, ShieldAlert, ShieldBan } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/components/providers/language-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
 import type { OrderOut } from "@/lib/api/commerce";
@@ -21,6 +22,7 @@ type SuspiciousOrdersTableProps = {
 /** Immediate row actions — NOT part of the rest of this page's draft/Save
  * flow. A review decision is one-shot, not a setting to batch. */
 export function SuspiciousOrdersTable({ siteId, orders, onReviewed }: SuspiciousOrdersTableProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [blockedIps, setBlockedIps] = useState<Set<string>>(new Set());
@@ -71,8 +73,8 @@ export function SuspiciousOrdersTable({ siteId, orders, onReviewed }: Suspicious
       <div className="rounded-md bg-surface">
         <EmptyState
           icon={ShieldAlert}
-          title="No suspicious orders"
-          description="Orders flagged by your checkout rules (high-value first orders, order bursts) show up here for review."
+          title={t("No suspicious orders")}
+          description={t("Orders flagged by your checkout rules (high-value first orders, order bursts) show up here for review.")}
         />
       </div>
     );
@@ -82,13 +84,13 @@ export function SuspiciousOrdersTable({ siteId, orders, onReviewed }: Suspicious
     <section className="rounded-md bg-surface">
       <div className="border-b border-border dark:border-transparent px-4 py-3.5 sm:px-5">
         <h2 className="text-base font-semibold text-foreground">
-          Suspicious orders
+          {t("Suspicious orders")}
           <span className="ml-2 align-middle text-xs font-medium text-muted">
             {orders.length}
           </span>
         </h2>
         <p className="mt-0.5 text-xs text-muted">
-          Flagged for review — clearing or confirming takes effect immediately.
+          {t("Flagged for review — clearing or confirming takes effect immediately.")}
         </p>
       </div>
       <div className="divide-y divide-border dark:divide-transparent">
@@ -104,7 +106,7 @@ export function SuspiciousOrdersTable({ siteId, orders, onReviewed }: Suspicious
                   {order.order_number}
                 </p>
                 <span className="rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300">
-                  {order.fraud_reason ? REASON_LABEL[order.fraud_reason] ?? order.fraud_reason : "Flagged"}
+                  {order.fraud_reason ? t(REASON_LABEL[order.fraud_reason] ?? order.fraud_reason) : t("Flagged")}
                 </span>
               </div>
               <p className="mt-0.5 truncate text-xs leading-snug text-muted">
@@ -135,7 +137,7 @@ export function SuspiciousOrdersTable({ siteId, orders, onReviewed }: Suspicious
                   className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 disabled:opacity-50 dark:hover:text-red-300"
                 >
                   <ShieldBan className="size-3.5" strokeWidth={2} />
-                  {blockedIps.has(order.ip_address) ? "IP blocked" : "Block IP"}
+                  {blockedIps.has(order.ip_address) ? t("IP blocked") : t("Block IP")}
                 </button>
               ) : null}
               <button
@@ -145,7 +147,7 @@ export function SuspiciousOrdersTable({ siteId, orders, onReviewed }: Suspicious
                 className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-emerald-500/10 hover:text-emerald-600 disabled:opacity-50 dark:hover:text-emerald-300"
               >
                 <CheckCircle2 className="size-3.5" strokeWidth={2} />
-                Clear
+                {t("Clear")}
               </button>
               <button
                 type="button"
@@ -154,7 +156,7 @@ export function SuspiciousOrdersTable({ siteId, orders, onReviewed }: Suspicious
                 className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted transition-colors hover:bg-red-500/10 hover:text-red-600 disabled:opacity-50 dark:hover:text-red-300"
               >
                 <ShieldAlert className="size-3.5" strokeWidth={2} />
-                Confirm fraud
+                {t("Mark fraud")}
               </button>
             </div>
           </div>

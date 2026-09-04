@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/ui/toast";
 import { PrimaryButton } from "@/components/ui/primary-button";
+import { useLanguage } from "@/components/providers/language-provider";
 import {
   getDomainStatus,
   saveSiteDomain,
@@ -81,6 +82,7 @@ function LiveDomainRow({
   onRefresh,
   refreshing,
 }: LiveDomainRowProps) {
+  const { t } = useLanguage();
   const hostColor =
     kind === "custom"
       ? connected === true
@@ -103,7 +105,7 @@ function LiveDomainRow({
             KIND_STYLES[kind],
           ].join(" ")}
         >
-          {kind === "free" ? "Free" : "Custom"}
+          {kind === "free" ? t("Free") : t("Custom")}
         </span>
       </div>
       <span
@@ -146,6 +148,7 @@ function LiveDomainRow({
 export function DomainsSection() {
   const { currentSite } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
   const { data, isLoading, mutate } = useSiteSettingsSWR(siteId);
 
@@ -201,10 +204,10 @@ export function DomainsSection() {
       const updated = await saveSiteDomain(siteId, trimmed);
       await mutate({ ...data!, custom_domain: updated.custom_domain }, { revalidate: false });
       toast({
-        title: trimmed ? "Custom domain saved" : "Custom domain removed",
+        title: trimmed ? t("Custom domain saved") : t("Custom domain removed"),
         description: isPublished
-          ? "Now add the DNS record shown below."
-          : "It'll connect once this site is published.",
+          ? t("Now add the DNS record shown below.")
+          : t("It'll connect once this site is published."),
         variant: "success",
       });
       // A merchant who just saved a brand-new domain doesn't yet know they
@@ -214,7 +217,7 @@ export function DomainsSection() {
       if (isNewDomain) setSetupOpen(true);
     } catch (err) {
       toast({
-        title: "Couldn't save domain",
+        title: t("Couldn't save domain"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -239,7 +242,7 @@ export function DomainsSection() {
           <LiveDomainRow
             kind="free"
             host={subdomainHost}
-            statusLabel={isPublished ? "Live" : "Not live yet"}
+            statusLabel={isPublished ? t("Live") : t("Not live yet")}
             statusTone={isPublished ? "live" : "unknown"}
           />
         ) : null}
@@ -249,14 +252,14 @@ export function DomainsSection() {
             host={data.custom_domain}
             statusLabel={
               !isPublished
-                ? "Not live yet"
+                ? t("Not live yet")
                 : checkingStatus
-                  ? "Checking…"
+                  ? t("Checking…")
                   : domainStatus?.connected === true
-                    ? "Connected"
+                    ? t("Connected")
                     : domainStatus?.connected === false
-                      ? "DNS not detected yet"
-                      : "Unknown"
+                      ? t("DNS not detected yet")
+                      : t("Unknown")
             }
             statusTone={
               isPublished && domainStatus?.connected === true
@@ -281,7 +284,7 @@ export function DomainsSection() {
         {!data?.custom_domain ? (
           <>
             <label htmlFor="custom-domain" className="text-sm font-medium text-muted">
-              Custom domain
+              {t("Custom domain")}
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -301,7 +304,7 @@ export function DomainsSection() {
                 disabled={saving}
                 className="h-10 shrink-0"
               >
-                {saving ? "Saving…" : "Save"}
+                {saving ? t("Saving…") : t("Save")}
               </PrimaryButton>
             </div>
           </>
@@ -312,13 +315,13 @@ export function DomainsSection() {
           className="mr-auto inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-opacity hover:opacity-80"
         >
           <Info className="size-3.5" strokeWidth={2} />
-          How to connect a domain
+          {t("How to connect a domain")}
         </button>
       </div>
 
       <SettingsModal
         open={setupOpen}
-        title="How to connect your domain"
+        title={t("How to connect your domain")}
         onClose={() => setSetupOpen(false)}
       >
         <div className="flex flex-col gap-5 text-sm text-muted">

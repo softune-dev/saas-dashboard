@@ -2,9 +2,11 @@
 
 import { StatCard } from "@/components/dashboard/stats/stat-card";
 import type { StatCardData } from "@/components/dashboard/stats/stats-data";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useHelpTicketsSWR } from "@/lib/api/help-desk";
 
 export function HelpStats() {
+  const { t } = useLanguage();
   const { data, isLoading } = useHelpTicketsSWR();
   const tickets = data?.items ?? [];
 
@@ -14,26 +16,22 @@ export function HelpStats() {
     (t) => t.status === "Resolved" || t.status === "Closed",
   ).length;
 
-  // No "avg. reply time" here — that needs a real agent-reply timestamp,
-  // which doesn't exist yet (soft launch, no admin/reply flow — see
-  // app/models.py's HelpTicket docstring). Showing three real counts beats
-  // a fourth invented one.
   const stats: StatCardData[] = [
     {
       id: "open",
-      title: "Open tickets",
+      title: t("Open tickets"),
       value: isLoading ? "…" : String(open),
       icon: "/sidebar/help-desk.svg",
     },
     {
       id: "progress",
-      title: "In progress",
+      title: t("In progress"),
       value: isLoading ? "…" : String(inProgress),
       icon: "/sidebar/inbox.svg",
     },
     {
       id: "resolved",
-      title: "Resolved",
+      title: t("Resolved"),
       value: isLoading ? "…" : String(resolved),
       icon: "/sidebar/note.svg",
     },

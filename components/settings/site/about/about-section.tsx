@@ -6,6 +6,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
+import { useLanguage } from "@/components/providers/language-provider";
 import { uploadSiteMedia, type MediaImage } from "@/lib/api";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
 import { saveSiteAbout, useSiteSettingsSWR, type SiteAbout } from "@/lib/api/site-settings";
@@ -20,6 +21,7 @@ const emptyForm: SiteAbout = { heading: "", image: "", paragraphs: [] };
 export function AboutSection() {
   const { currentSite } = useSession();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
   const { data, isLoading, mutate } = useSiteSettingsSWR(siteId);
 
@@ -81,10 +83,10 @@ export function AboutSection() {
       const updated = await saveSiteAbout(siteId, cleaned);
       setForm({ ...emptyForm, ...updated.about });
       await mutate({ ...data!, about: updated.about }, { revalidate: false });
-      toast({ title: "About page saved", variant: "success" });
+      toast({ title: t("About page saved"), variant: "success" });
     } catch (err) {
       toast({
-        title: "Couldn't save the About page",
+        title: t("Couldn't save the About page"),
         description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "info",
       });
@@ -108,7 +110,7 @@ export function AboutSection() {
   return (
     <div className="flex flex-col gap-5">
       <SettingsInput
-        label="Heading"
+        label={t("Heading")}
         value={form.heading ?? ""}
         onChange={(e) => setField("heading", e.target.value)}
         placeholder="e.g. Where heritage meets contemporary form"
@@ -129,7 +131,7 @@ export function AboutSection() {
         )}
 
         <div className="flex flex-col gap-3 py-1">
-          <span className="text-base font-semibold text-foreground">About image</span>
+          <span className="text-base font-semibold text-foreground">{t("About image")}</span>
           <div className="flex flex-wrap items-center gap-2">
             <MediaSourceMenu
               siteId={siteId}
@@ -148,7 +150,7 @@ export function AboutSection() {
                   disabled={uploading}
                   className="inline-flex h-10 cursor-pointer items-center justify-center rounded-md border border-dashed border-slate-300 bg-search-bg px-4 text-xs font-medium text-muted transition-colors hover:border-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {uploading ? "Uploading…" : form.image ? "Replace image" : "Add image"}
+                  {uploading ? "Uploading…" : form.image ? t("Replace image") : t("Add image")}
                 </button>
               )}
             </MediaSourceMenu>
@@ -168,14 +170,14 @@ export function AboutSection() {
 
       <div className="flex flex-col gap-3 border-t border-border dark:border-transparent pt-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm font-medium text-muted">Story paragraphs</p>
+          <p className="text-sm font-medium text-muted">{t("Story paragraphs")}</p>
           <PrimaryButton
             type="button"
             onClick={addParagraph}
             className="!h-9 !px-3 text-xs"
           >
             <Plus className="size-3.5" strokeWidth={2} />
-            Add paragraph
+            {t("Add paragraph")}
           </PrimaryButton>
         </div>
 
@@ -184,7 +186,7 @@ export function AboutSection() {
             <li key={index} className="flex flex-col gap-2 rounded-md border border-border p-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold tracking-wide text-muted-soft uppercase">
-                  Paragraph {index + 1}
+                  {t("Paragraph")} {index + 1}
                 </span>
                 <button
                   type="button"
@@ -196,7 +198,7 @@ export function AboutSection() {
                 </button>
               </div>
               <SettingsTextarea
-                label="Text"
+                label=""
                 value={paragraph}
                 onChange={(e) => updateParagraph(index, e.target.value)}
                 placeholder="Tell your store's story…"
@@ -231,7 +233,7 @@ export function AboutSection() {
         ) : null}
       </div>
 
-      <SettingsActions saveLabel={saving ? "Saving…" : "Save About page"} onSave={handleSave} />
+      <SettingsActions saveLabel={saving ? "Saving…" : t("Save About page")} onSave={handleSave} />
     </div>
   );
 }

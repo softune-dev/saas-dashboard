@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import useSWR from "swr";
+import { useLanguage } from "@/components/providers/language-provider";
 import { useSession } from "@/components/providers/session-provider";
 import { getThemeById } from "@/components/themes/themes-data";
 import { clearToken, listTemplates, resolveSiteLogoUrl } from "@/lib/api";
@@ -48,6 +49,7 @@ function isActivePath(pathname: string, href: string) {
 }
 
 export function StorePill() {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const { me, sites, currentSite, setCurrentSiteId, loading } = useSession();
   const [open, setOpen] = useState(false);
@@ -327,7 +329,7 @@ export function StorePill() {
               see lib/linked-accounts.ts. */}
           <div className="border-b border-border dark:border-transparent p-1.5">
             <p className="px-2 py-1.5 text-[10px] font-semibold tracking-wide text-muted-soft uppercase">
-              Accounts
+              {t("Accounts")}
             </p>
             <div className="flex flex-wrap items-center gap-2 px-2 pb-1.5">
               {/* Same size/colors as the "My Shop" panel's ShopAvatar
@@ -427,7 +429,7 @@ export function StorePill() {
           {sites.length > 1 ? (
             <div className="border-b border-border dark:border-transparent p-1.5">
               <p className="px-2 py-1.5 text-[10px] font-semibold tracking-wide text-muted-soft uppercase">
-                Switch site
+                {t("Switch site")}
               </p>
               <div className="max-h-36 overflow-y-auto">
                 {sites.map((site) => {
@@ -465,7 +467,7 @@ export function StorePill() {
           {/* Quick links — sidebar icons */}
           <div className="p-1.5">
             <p className="px-2 py-1.5 text-[10px] font-semibold tracking-wide text-muted-soft uppercase">
-              Quick access
+              {t("Quick access")}
             </p>
             {QUICK_LINKS.map((item) => {
               const active = isActivePath(pathname, item.href);
@@ -483,7 +485,7 @@ export function StorePill() {
                   ].join(" ")}
                 >
                   <MaskIcon src={item.icon} className="size-4" />
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate">{t(item.label)}</span>
                 </Link>
               );
             })}
@@ -498,7 +500,7 @@ export function StorePill() {
               className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
             >
               <MaskIcon src={logoutItem.icon} className="size-4" />
-              <span>{logoutItem.label}</span>
+              <span>{t(logoutItem.label)}</span>
             </button>
           </div>
         </div>
