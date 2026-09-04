@@ -30,7 +30,7 @@ export function MyListingsView() {
   const [removing, setRemoving] = useState<SupplierListing | null>(null);
   const [viewing, setViewing] = useState<SupplierListing | null>(null);
 
-  function handleAdd(data: { productName: string; wholesalePriceCents: number; stock: number }) {
+  function handleAdd(data: Parameters<typeof addListing>[0]) {
     addListing(data);
     toast({ title: `${data.productName} listed for wholesale`, variant: "success" });
     setAddOpen(false);

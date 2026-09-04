@@ -146,6 +146,50 @@ export function toWhatsAppNumber(raw: string): string | null {
   return "880" + normalized.slice(1);
 }
 
+export type SupplierDirectoryEntry = {
+  name: string;
+  city: string;
+  contact: string;
+  description: string;
+};
+
+/** One row per real-world supplier — MOCK_SUPPLIER_LISTINGS only carries
+ * supplierName/supplierContact per listing (denormalized, like a real
+ * catalog table would be), so the Suppliers directory page groups listings
+ * by this instead of duplicating profile info onto every listing row. */
+export const MOCK_SUPPLIERS_DIRECTORY: SupplierDirectoryEntry[] = [
+  {
+    name: "Dhaka Fabrics Ltd.",
+    city: "Dhaka",
+    contact: "01711000001",
+    description: "Wholesale cotton wear and handloom textiles.",
+  },
+  {
+    name: "Chattogram Leather Co.",
+    city: "Chattogram",
+    contact: "01711000002",
+    description: "Genuine leather goods — wallets, shoes, belts.",
+  },
+  {
+    name: "TechBazar Wholesale",
+    city: "Dhaka",
+    contact: "01711000003",
+    description: "Consumer electronics and gadgets at wholesale rates.",
+  },
+  {
+    name: "Rivelle Home Goods",
+    city: "Gazipur",
+    contact: "01711000004",
+    description: "Home decor and kitchenware.",
+  },
+  {
+    name: "Sonar Bangla Handicrafts",
+    city: "Rajshahi",
+    contact: "01711000005",
+    description: "Handmade jute and terracotta crafts.",
+  },
+];
+
 export function buildSupplierContactLink(phone: string, supplierName: string): string | null {
   const number = toWhatsAppNumber(phone);
   if (!number) return null;

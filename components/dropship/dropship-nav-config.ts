@@ -4,6 +4,7 @@ import {
   ShoppingBag,
   Store,
   Truck,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +21,7 @@ export type DropshipNavItem = {
  * items competing for sidebar space. */
 export const dropshipNav: DropshipNavItem[] = [
   { id: "browse", label: "Browse Suppliers", href: "/dropship/browse", LucideIcon: PackageSearch },
+  { id: "suppliers", label: "Suppliers", href: "/dropship/suppliers", LucideIcon: Users },
   { id: "listings", label: "My Listings", href: "/dropship/listings", LucideIcon: Store },
   { id: "imported", label: "Imported Products", href: "/dropship/imported", LucideIcon: ShoppingBag },
   { id: "fulfillment", label: "Fulfillment", href: "/dropship/fulfillment", LucideIcon: Truck },

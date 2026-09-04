@@ -1,12 +1,12 @@
 "use client";
 
-import { Info, PackageSearch } from "lucide-react";
+import { Info, PackageSearch, Search } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { TablePagination } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import type { SupplierListing } from "@/lib/dropship-mock";
+import { DELIVERY_LOCATIONS, type SupplierListing } from "@/lib/dropship-mock";
 import { useDropshipMock } from "./dropship-mock-context";
 import { DropshipProductCard } from "./dropship-product-card";
 import { DropshipShell } from "./dropship-shell";
@@ -20,11 +20,33 @@ export function BrowseSuppliersView() {
   const { toast } = useToast();
   const [importing, setImporting] = useState<SupplierListing | null>(null);
   const [viewing, setViewing] = useState<SupplierListing | null>(null);
+  const [search, setSearch] = useState("");
+  const [location, setLocation] = useState<string>("all");
   const [page, setPage] = useState(1);
 
   const importedListingIds = new Set(importedProducts.map((p) => p.listingId));
-  const totalPages = Math.max(1, Math.ceil(marketplace.length / PAGE_SIZE));
-  const pageItems = marketplace.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const filtered = marketplace.filter((listing) => {
+    const matchesSearch =
+      listing.productName.toLowerCase().includes(search.trim().toLowerCase()) ||
+      listing.supplierName.toLowerCase().includes(search.trim().toLowerCase());
+    const matchesLocation =
+      location === "all" || (listing.deliveryLocations ?? []).includes(location as never);
+    return matchesSearch && matchesLocation;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function updateSearch(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
+
+  function updateLocation(value: string) {
+    setLocation(value);
+    setPage(1);
+  }
 
   function handleImport(retailPriceCents: number, category: string) {
     if (!importing) return;
@@ -46,6 +68,38 @@ export function BrowseSuppliersView() {
           description="Once other stores start listing wholesale products, they'll show up here."
         />
       ) : (
+        <>
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-soft" strokeWidth={1.75} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => updateSearch(e.target.value)}
+              placeholder="Search products or suppliers"
+              className="h-9 w-full rounded-md border border-border bg-surface pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
+            />
+          </div>
+          <select
+            value={location}
+            onChange={(e) => updateLocation(e.target.value)}
+            className="h-9 rounded-md border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary sm:w-48"
+          >
+            <option value="all">All delivery areas</option>
+            {DELIVERY_LOCATIONS.map((loc) => (
+              <option key={loc} value={loc}>
+                {loc}
+              </option>
+            ))}
+          </select>
+        </div>
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={PackageSearch}
+            title="No listings match your filters"
+            description="Try a different search term or delivery area."
+          />
+        ) : (
         <>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {pageItems.map((listing) => {
@@ -105,11 +159,13 @@ export function BrowseSuppliersView() {
           <TablePagination
             page={page}
             totalPages={totalPages}
-            totalItems={marketplace.length}
+            totalItems={filtered.length}
             pageSize={PAGE_SIZE}
             onPageChange={setPage}
           />
         </div>
+        </>
+        )}
         </>
       )}
 
