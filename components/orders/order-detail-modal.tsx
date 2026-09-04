@@ -1,6 +1,6 @@
 "use client";
 
-import { ImageOff, Package, Printer, ShieldBan, X } from "lucide-react";
+import { ImageOff, Package, Printer, ShieldBan, Truck, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
@@ -13,6 +13,7 @@ import {
   customerPhone,
 } from "@/lib/order-customer";
 import {
+  bookOrderCourier,
   listProducts,
   type OrderItemOut,
   type OrderOut,
@@ -22,12 +23,21 @@ import {
 import { addIpToBlocklist } from "@/lib/api/fraud";
 import { OrderStatusBadge, ORDER_STATUS_OPTIONS } from "./order-status-badge";
 
+const DELIVERY_STATUS_LABEL: Record<string, string> = {
+  in_review: "In review",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+
 type OrderDetailModalProps = {
   open: boolean;
   order: OrderOut | null;
   busy?: boolean;
   onClose: () => void;
   onStatusChange: (order: OrderOut, status: OrderStatus) => Promise<void>;
+  /** Called after a successful manual courier booking, so the caller can
+   * update its own cached copy of this order (consignment_id etc. changed). */
+  onCourierBooked?: (order: OrderOut) => void;
 };
 
 function ItemThumb({
@@ -62,6 +72,7 @@ export function OrderDetailModal({
   busy,
   onClose,
   onStatusChange,
+  onCourierBooked,
 }: OrderDetailModalProps) {
   const { currentSite } = useSession();
   const { toast } = useToast();
@@ -69,11 +80,36 @@ export function OrderDetailModal({
   const [products, setProducts] = useState<ProductOut[]>([]);
   const [blockingIp, setBlockingIp] = useState(false);
   const [ipBlocked, setIpBlocked] = useState(false);
+  const [booking, setBooking] = useState(false);
 
   useEffect(() => {
     setLocalStatus(null);
     setIpBlocked(false);
   }, [order?.id]);
+
+  async function handleBookCourier() {
+    if (!currentSite || !order) return;
+    setBooking(true);
+    try {
+      const updated = await bookOrderCourier(currentSite.id, order.id);
+      onCourierBooked?.(updated);
+      toast({
+        title: "Booked with Steadfast",
+        description: updated.courier_tracking_code
+          ? `Tracking code ${updated.courier_tracking_code}`
+          : undefined,
+        variant: "success",
+      });
+    } catch (err) {
+      toast({
+        title: "Couldn't book this order",
+        description: err instanceof Error ? err.message : "Something went wrong.",
+        variant: "info",
+      });
+    } finally {
+      setBooking(false);
+    }
+  }
 
   async function handleBlockIp() {
     if (!currentSite || !order?.ip_address) return;
@@ -319,6 +355,46 @@ export function OrderDetailModal({
                       ) : null}
                     </div>
                   ) : null}
+                </div>
+              ) : null}
+
+              {/* Courier — only shown for storefront orders; POS/walk-in
+                  sales don't ship. */}
+              {order.channel !== "pos" ? (
+                <div className="border-t border-border dark:border-transparent pt-5 print:hidden">
+                  <p className="mb-1.5 text-xs font-medium text-muted">Courier</p>
+                  {order.courier_consignment_id ? (
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      <span className="text-foreground capitalize">{order.courier_provider}</span>
+                      {order.courier_tracking_code ? (
+                        <span className="rounded-md bg-search-bg px-2 py-1 font-mono text-xs text-muted">
+                          {order.courier_tracking_code}
+                        </span>
+                      ) : null}
+                      <span
+                        className={[
+                          "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
+                          order.delivery_status === "delivered"
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : order.delivery_status === "cancelled"
+                              ? "bg-rose-500/10 text-rose-600"
+                              : "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+                        ].join(" ")}
+                      >
+                        {DELIVERY_STATUS_LABEL[order.delivery_status ?? ""] ?? "In review"}
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={booking}
+                      onClick={handleBookCourier}
+                      className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:bg-search-bg disabled:opacity-60"
+                    >
+                      <Truck className="size-3.5" strokeWidth={1.75} />
+                      {booking ? "Booking…" : "Book with Steadfast"}
+                    </button>
+                  )}
                 </div>
               ) : null}
 

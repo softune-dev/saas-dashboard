@@ -442,6 +442,15 @@ export type OrderOut = {
    * which address to add to the fraud IP blocklist (Settings -> Fraud
    * Protection). Null for POS orders and orders placed before this shipped. */
   ip_address: string | null;
+  /** Set once this order is booked with a courier — see
+   * app/courier_booking.py and the /courier/book, /courier/bulk-book
+   * endpoints. All null until booked. */
+  courier_provider: string | null;
+  courier_consignment_id: string | null;
+  courier_tracking_code: string | null;
+  /** in_review | delivered | cancelled | null (not booked) — updated by
+   * Steadfast's own delivery-status webhook as the parcel moves. */
+  delivery_status: "in_review" | "delivered" | "cancelled" | null;
   created_at: string;
 };
 
@@ -510,6 +519,44 @@ export async function updateOrderStatus(
   return request<OrderOut>(`/sites/${siteId}/orders/${orderId}`, {
     method: "PATCH",
     body: JSON.stringify({ status }),
+  });
+}
+
+/** Books a single order with the site's connected Steadfast account — see
+ * app/courier_booking.py. 400 if no working connection exists, 409 if
+ * already booked, 502 if Steadfast itself rejects the request. */
+export async function bookOrderCourier(
+  siteId: string,
+  orderId: string,
+): Promise<OrderOut> {
+  return request<OrderOut>(`/sites/${siteId}/orders/${orderId}/courier/book`, {
+    method: "POST",
+  });
+}
+
+export type CourierBulkBookIn = {
+  /** Explicit selection — wins over the filter fields below if present. */
+  order_ids?: string[];
+  status?: OrderStatus;
+  date_from?: string;
+  date_to?: string;
+};
+
+export type CourierBulkBookResult = {
+  booked: number;
+  skipped: number;
+  errors: { order_number: string; message: string }[];
+};
+
+/** Books up to 500 orders in one Steadfast call — see
+ * app/api/commerce.py's bulk_book_orders_courier. */
+export async function bulkBookOrdersCourier(
+  siteId: string,
+  data: CourierBulkBookIn,
+): Promise<CourierBulkBookResult> {
+  return request<CourierBulkBookResult>(`/sites/${siteId}/orders/courier/bulk-book`, {
+    method: "POST",
+    body: JSON.stringify(data),
   });
 }
 

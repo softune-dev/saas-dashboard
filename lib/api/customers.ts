@@ -19,11 +19,30 @@ export type CustomerOut = {
   updated_at: string;
 };
 
+/** Rule-based, computed fresh on every read — see app/risk_score.py. */
+export type RiskScore = {
+  score: number;
+  label: "Low" | "Medium" | "High";
+  signals: {
+    previous_orders: number;
+    delivered: number;
+    cancelled: number;
+    delivery_success_rate: number | null;
+    cod_orders: number;
+    device_known: boolean | null;
+    ip_blocklisted: boolean;
+    has_open_duplicate_order: boolean;
+    courier_history_available: boolean;
+    confirmed_fraud_history: boolean;
+  };
+};
+
 export type CustomerDetailOut = CustomerOut & {
   order_count: number;
   total_spent_cents: number;
   last_order_at: string | null;
   orders: OrderOut[];
+  risk_score: RiskScore;
 };
 
 export type CustomerUpdate = {

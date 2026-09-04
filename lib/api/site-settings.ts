@@ -108,6 +108,12 @@ export type SiteLegal = {
  * this API layer — keeps them from drifting out of sync in two places. */
 export type SiteFraudRules = Record<string, { enabled: boolean; value?: number }>;
 
+/** {"auto_book": {"enabled": bool, "provider": "steadfast"}} — see
+ * migrations/059 and app/courier_booking.py. Same untyped-Record shape as
+ * SiteFraudRules, same reasoning: keeps the rule catalog owned by the
+ * component, not this API layer. */
+export type SiteCourierRules = Record<string, { enabled: boolean; provider?: string }>;
+
 export type SiteSettings = {
   id: string;
   name: string;
@@ -120,6 +126,7 @@ export type SiteSettings = {
   faqs: SiteFaq[];
   legal: SiteLegal;
   fraud_rules: SiteFraudRules;
+  courier_rules: SiteCourierRules;
 };
 
 export async function getSiteSettings(siteId: string): Promise<SiteSettings> {
@@ -135,7 +142,10 @@ export function useSiteSettingsSWR(
 }
 
 type SiteSettingsPatch = Partial<
-  Pick<SiteSettings, "business" | "about" | "seo" | "shipping" | "faqs" | "legal" | "fraud_rules">
+  Pick<
+    SiteSettings,
+    "business" | "about" | "seo" | "shipping" | "faqs" | "legal" | "fraud_rules" | "courier_rules"
+  >
 >;
 
 async function patchSite(siteId: string, patch: SiteSettingsPatch): Promise<SiteSettings> {
@@ -156,6 +166,8 @@ export const saveSiteFaqs = (siteId: string, faqs: SiteFaq[]) => patchSite(siteI
 export const saveSiteLegal = (siteId: string, legal: SiteLegal) => patchSite(siteId, { legal });
 export const saveSiteFraudRules = (siteId: string, fraud_rules: SiteFraudRules) =>
   patchSite(siteId, { fraud_rules });
+export const saveSiteCourierRules = (siteId: string, courier_rules: SiteCourierRules) =>
+  patchSite(siteId, { courier_rules });
 
 /** Not routed through patchSite's typed subset above — custom_domain isn't
  * a settings-section field, it's site identity, but it's the same one

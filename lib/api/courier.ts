@@ -55,6 +55,13 @@ export type CourierConnectionOut = {
   last_verified_at: string | null;
   created_at: string;
   updated_at: string;
+  /** Bearer token to paste into the courier's own webhook settings
+   * (Steadfast: portal.packzy.com -> Settings -> API -> Update Webhook
+   * Info), alongside webhook_url below. Re-displayed on every read, unlike
+   * api_key_hint — see migrations/058's comment for why this one is safe
+   * to keep showing. Null for providers without a webhook yet. */
+  webhook_secret: string | null;
+  webhook_url: string | null;
 };
 
 /** Body for POST /sites/{site_id}/couriers/steadfast */

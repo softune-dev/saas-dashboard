@@ -1,11 +1,12 @@
 "use client";
 
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Truck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
+import { PrimaryButton } from "@/components/ui/primary-button";
 import { TableSkeleton } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -19,6 +20,7 @@ import {
   type OrderOut,
   type OrderStatus,
 } from "@/lib/api/commerce";
+import { BulkBookCourierModal } from "./bulk-book-courier-modal";
 import { OrderDetailModal } from "./order-detail-modal";
 import { OrdersStats } from "./orders-stats";
 import {
@@ -37,6 +39,7 @@ export function OrdersView() {
 
   const [viewing, setViewing] = useState<OrderOut | null>(null);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [bulkBookOpen, setBulkBookOpen] = useState(false);
 
   const { data: notifications = [], mutate: mutateNotifications } =
     useNotificationsSWR(siteId);
@@ -157,13 +160,35 @@ export function OrdersView() {
     }
   }
 
+  function handleCourierBooked(updated: OrderOut) {
+    mutateOrders(
+      (prev) => {
+        if (!prev) return prev;
+        return { ...prev, items: prev.items.map((o) => (o.id === updated.id ? updated : o)) };
+      },
+      { revalidate: false },
+    );
+    setViewing((v) => (v?.id === updated.id ? updated : v));
+  }
+
   const hasFilters = Boolean(filters.status);
   const showSkeleton =
     sessionLoading || (loading && currentSite && orders.length === 0 && !hasFilters);
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title="Orders" />
+      <PageHeading
+        title="Orders"
+        actionsInline
+        actions={
+          currentSite ? (
+            <PrimaryButton onClick={() => setBulkBookOpen(true)} className="px-4">
+              <Truck className="size-4" strokeWidth={1.75} />
+              <span className="hidden sm:inline">Bulk book courier</span>
+            </PrimaryButton>
+          ) : undefined
+        }
+      />
 
       {!sessionLoading && !currentSite ? (
         <EmptyState
@@ -206,6 +231,13 @@ export function OrdersView() {
         busy={statusBusy}
         onClose={() => setViewing(null)}
         onStatusChange={handleStatusChange}
+        onCourierBooked={handleCourierBooked}
+      />
+      <BulkBookCourierModal
+        open={bulkBookOpen}
+        siteId={siteId}
+        onClose={() => setBulkBookOpen(false)}
+        onBooked={() => mutateOrders()}
       />
     </div>
   );

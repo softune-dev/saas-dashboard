@@ -18,6 +18,7 @@ import {
   type CourierProvider,
 } from "@/lib/api/courier";
 import { COURIER_CATALOG } from "./courier-data";
+import { CourierAutomationCard } from "./courier-automation-card";
 import { CourierCard } from "./courier-card";
 import {
   SteadfastConnectModal,
@@ -209,6 +210,13 @@ export function CourierView() {
           })}
         </div>
       )}
+
+      {currentSite ? (
+        <CourierAutomationCard
+          siteId={currentSite.id}
+          steadfastConnection={connections.find((c) => c.provider === "steadfast") ?? null}
+        />
+      ) : null}
 
       <SteadfastConnectModal
         open={connectingProvider === "steadfast"}

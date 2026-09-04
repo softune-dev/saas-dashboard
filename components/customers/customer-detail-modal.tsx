@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/toast";
 import { formatDisplayDate, formatTaka } from "@/lib/format";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
-import type { CustomerDetailOut, CustomerOut } from "@/lib/api/customers";
+import type { CustomerDetailOut, CustomerOut, RiskScore } from "@/lib/api/customers";
 
 type CustomerDetailModalProps = {
   open: boolean;
@@ -240,6 +240,16 @@ export function CustomerDetailModal({
                 </div>
               </div>
 
+              {/* Risk score — rule-based signals from real order history,
+                  see app/risk_score.py. Only renders once the detail call
+                  settles; a skeleton here would be more noise than the
+                  stats/orders sections already show while loading. */}
+              {detail ? (
+                <RiskScoreCard risk={detail.risk_score} />
+              ) : (
+                <div className="h-24 animate-pulse rounded-md bg-search-bg" />
+              )}
+
               {/* Linked orders — capped height so a customer with dozens of
                   orders scrolls inside this section instead of blowing up
                   the whole modal's height. */}
@@ -288,5 +298,80 @@ export function CustomerDetailModal({
         </div>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+const LABEL_STYLES: Record<RiskScore["label"], string> = {
+  Low: "bg-emerald-500/10 text-emerald-600",
+  Medium: "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  High: "bg-rose-500/10 text-rose-600",
+};
+
+const RING_STYLES: Record<RiskScore["label"], string> = {
+  Low: "border-emerald-500/30",
+  Medium: "border-amber-500/30",
+  High: "border-rose-500/30",
+};
+
+function signalRows(risk: RiskScore): { label: string; value: string }[] {
+  const s = risk.signals;
+  return [
+    { label: "Previous orders", value: String(s.previous_orders) },
+    { label: "Delivered", value: String(s.delivered) },
+    { label: "Cancelled", value: String(s.cancelled) },
+    {
+      label: "Delivery success",
+      value: s.delivery_success_rate === null ? "No data yet" : `${s.delivery_success_rate}%`,
+    },
+    { label: "COD orders", value: String(s.cod_orders) },
+    {
+      label: "Device history",
+      value: s.device_known === null ? "No current order" : s.device_known ? "Known" : "New",
+    },
+    { label: "IP history", value: s.ip_blocklisted ? "Blocked" : "Normal" },
+    { label: "Duplicate order", value: s.has_open_duplicate_order ? "Yes" : "No" },
+    { label: "Courier history", value: s.courier_history_available ? "Available" : "None yet" },
+  ];
+}
+
+/** Rule-based aggregate view — see app/risk_score.py's module docstring for
+ * why every row here traces back to a real column, not a black-box model.
+ * Deliberately NOT editable or actionable here (no "block this customer"
+ * button) — it's a read signal for a merchant's own judgment, same spirit
+ * as Fraud Protection's Suspicious Orders queue leaving the decision to a
+ * human. */
+function RiskScoreCard({ risk }: { risk: RiskScore }) {
+  return (
+    <div className="border-t border-border pt-5 dark:border-transparent">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-medium text-muted">Risk score</p>
+        <span
+          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${LABEL_STYLES[risk.label]}`}
+        >
+          {risk.label} risk
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-center gap-4">
+        <div
+          className={`flex size-16 shrink-0 items-center justify-center rounded-full border-4 ${RING_STYLES[risk.label]}`}
+        >
+          <span className="text-xl font-bold tabular-nums text-foreground">{risk.score}</span>
+        </div>
+        <p className="text-xs text-muted">
+          Computed from this customer&apos;s order, delivery, device, and IP history — not an
+          estimate, and never a reason to auto-reject an order on its own.
+        </p>
+      </div>
+
+      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
+        {signalRows(risk).map((row) => (
+          <div key={row.label}>
+            <dt className="text-[11px] text-muted-soft">{row.label}</dt>
+            <dd className="text-sm font-medium text-foreground">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
 }
