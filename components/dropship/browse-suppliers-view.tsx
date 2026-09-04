@@ -3,17 +3,20 @@
 import { PackageSearch } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PrimaryButton } from "@/components/ui/primary-button";
 import { useToast } from "@/components/ui/toast";
 import type { SupplierListing } from "@/lib/dropship-mock";
 import { useDropshipMock } from "./dropship-mock-context";
 import { DropshipProductCard } from "./dropship-product-card";
 import { DropshipShell } from "./dropship-shell";
 import { ImportProductModal } from "./import-product-modal";
+import { ListingDetailModal } from "./listing-detail-modal";
 
 export function BrowseSuppliersView() {
   const { marketplace, importedProducts, importProduct } = useDropshipMock();
   const { toast } = useToast();
   const [importing, setImporting] = useState<SupplierListing | null>(null);
+  const [viewing, setViewing] = useState<SupplierListing | null>(null);
 
   const importedListingIds = new Set(importedProducts.map((p) => p.listingId));
 
@@ -56,15 +59,15 @@ export function BrowseSuppliersView() {
                     <span className="text-muted">{listing.stock} in stock</span>
                   )
                 }
+                onClick={() => setViewing(listing)}
                 footer={
-                  <button
-                    type="button"
+                  <PrimaryButton
                     disabled={outOfStock || already}
                     onClick={() => setImporting(listing)}
-                    className="inline-flex h-9 w-full items-center justify-center rounded-full border border-border text-sm font-medium text-foreground transition-colors hover:bg-search-bg disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full disabled:cursor-not-allowed"
                   >
                     {already ? "Already imported" : "Import"}
-                  </button>
+                  </PrimaryButton>
                 }
               />
             );
@@ -77,6 +80,7 @@ export function BrowseSuppliersView() {
         onClose={() => setImporting(null)}
         onImport={handleImport}
       />
+      <ListingDetailModal listing={viewing} onClose={() => setViewing(null)} />
     </DropshipShell>
   );
 }

@@ -14,6 +14,12 @@ export type SupplierListing = {
   id: string;
   productName: string;
   image: string | null;
+  /** Optional — most of what a listing detail view needs (see
+   * listing-detail-modal.tsx) beyond price/stock. Deliberately just a
+   * description, not full variant/SEO complexity: the real product still
+   * lives on the supplier's own Products page with all of that; a listing
+   * is just "which product, at what wholesale price, how much stock." */
+  description?: string;
   wholesalePriceCents: number;
   stock: number;
   supplierName: string;
@@ -107,11 +113,31 @@ export const MOCK_MY_LISTINGS: SupplierListing[] = [
     id: "ml_1",
     productName: "Handwoven Nakshi Kantha Shawl",
     image: null,
+    description:
+      "Traditional hand-embroidered Nakshi Kantha shawl, made by artisans in Jashore using " +
+      "layered cotton and running-stitch patterns passed down through generations. Each piece " +
+      "is one-of-a-kind — patterns vary slightly across the batch.",
     wholesalePriceCents: 95000,
     stock: 16,
     supplierName: "Your store",
     isMine: true,
-    resellers: ["Ananya Lifestyle", "Nokshi Boutique"],
+    resellers: [
+      "Ananya Lifestyle",
+      "Nokshi Boutique",
+      "Desi Threads",
+      "Shaari Ghar",
+      "Ethnic Attire BD",
+      "Rongberonger Haat",
+      "Kutir Craft Store",
+      "Deshi Fashion House",
+      "Nokshikatha Corner",
+      "Traditional Trends",
+      "Village Weaves",
+      "Bangla Boutique",
+      "Handloom Hub",
+      "Artisan Attire",
+      "Heritage Wear BD",
+    ],
   },
 ];
 

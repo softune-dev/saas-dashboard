@@ -11,6 +11,7 @@ import { AddListingModal } from "./add-listing-modal";
 import { useDropshipMock } from "./dropship-mock-context";
 import { DropshipProductCard } from "./dropship-product-card";
 import { DropshipShell } from "./dropship-shell";
+import { ListingDetailModal } from "./listing-detail-modal";
 
 export function MyListingsView() {
   const { supplierMode, setSupplierMode, myListings, addListing, removeListing } =
@@ -18,6 +19,7 @@ export function MyListingsView() {
   const { toast } = useToast();
   const [addOpen, setAddOpen] = useState(false);
   const [removing, setRemoving] = useState<SupplierListing | null>(null);
+  const [viewing, setViewing] = useState<SupplierListing | null>(null);
 
   function handleAdd(data: { productName: string; wholesalePriceCents: number; stock: number }) {
     addListing(data);
@@ -94,6 +96,7 @@ export function MyListingsView() {
               priceLabel="Wholesale price"
               priceCents={listing.wholesalePriceCents}
               resellers={listing.resellers}
+              onClick={() => setViewing(listing)}
               footer={
                 <button
                   type="button"
@@ -119,6 +122,7 @@ export function MyListingsView() {
         onConfirm={handleRemoveConfirm}
         onCancel={() => setRemoving(null)}
       />
+      <ListingDetailModal listing={viewing} onClose={() => setViewing(null)} />
     </DropshipShell>
   );
 }

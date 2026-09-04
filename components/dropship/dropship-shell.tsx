@@ -12,7 +12,7 @@ type DropshipShellProps = {
 export function DropshipShell({ title, actions, children }: DropshipShellProps) {
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title="Dropship" actions={actions} />
+      <PageHeading title="Dropship" actions={actions} tag="Under Development" />
 
       <div className="flex min-h-0 flex-col gap-3 sm:flex-row sm:items-start">
         <DropshipNav />
