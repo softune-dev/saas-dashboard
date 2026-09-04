@@ -1,12 +1,22 @@
 "use client";
 
 import { ArrowDownCircle, ArrowLeftRight, ArrowUpCircle, Check } from "lucide-react";
+import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { TablePagination } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import { formatTaka } from "@/lib/format";
 import type { SettlementEntry } from "@/lib/dropship-mock";
 import { useDropshipMock } from "./dropship-mock-context";
 import { DropshipShell } from "./dropship-shell";
+
+const PAGE_SIZE = 4;
+
+function paginate<T>(items: T[], page: number) {
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+  const pageItems = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  return { pageItems, totalPages };
+}
 
 /** Pure bookkeeping, never real money movement — see the settlement-design
  * discussion this feature is built from. Each row is a statement, not a
@@ -20,10 +30,17 @@ import { DropshipShell } from "./dropship-shell";
 export function SettlementsView() {
   const { settlements, markSettled } = useDropshipMock();
   const { toast } = useToast();
+  const [payPage, setPayPage] = useState(1);
+  const [collectPage, setCollectPage] = useState(1);
+  const [settledPage, setSettledPage] = useState(1);
 
   const toPay = settlements.filter((s) => s.direction === "you_owe" && !s.settled);
   const toCollect = settlements.filter((s) => s.direction === "owed_to_you" && !s.settled);
   const settled = settlements.filter((s) => s.settled);
+
+  const payPagination = paginate(toPay, payPage);
+  const collectPagination = paginate(toCollect, collectPage);
+  const settledPagination = paginate(settled, settledPage);
 
   const totalToPay = toPay.reduce((sum, s) => sum + s.amountCents, 0);
   const totalToCollect = toCollect.reduce((sum, s) => sum + s.amountCents, 0);
@@ -128,10 +145,21 @@ export function SettlementsView() {
                 To pay
               </p>
               <div className="space-y-2">
-                {toPay.map((entry) => (
+                {payPagination.pageItems.map((entry) => (
                   <SettlementCard key={entry.id} entry={entry} />
                 ))}
               </div>
+              {payPagination.totalPages > 1 ? (
+                <div className="mt-2 rounded-md border border-border">
+                  <TablePagination
+                    page={payPage}
+                    totalPages={payPagination.totalPages}
+                    totalItems={toPay.length}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={setPayPage}
+                  />
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -141,10 +169,21 @@ export function SettlementsView() {
                 To collect
               </p>
               <div className="space-y-2">
-                {toCollect.map((entry) => (
+                {collectPagination.pageItems.map((entry) => (
                   <SettlementCard key={entry.id} entry={entry} />
                 ))}
               </div>
+              {collectPagination.totalPages > 1 ? (
+                <div className="mt-2 rounded-md border border-border">
+                  <TablePagination
+                    page={collectPage}
+                    totalPages={collectPagination.totalPages}
+                    totalItems={toCollect.length}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={setCollectPage}
+                  />
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -154,10 +193,21 @@ export function SettlementsView() {
                 Settled
               </p>
               <div className="space-y-2">
-                {settled.map((entry) => (
+                {settledPagination.pageItems.map((entry) => (
                   <SettlementCard key={entry.id} entry={entry} />
                 ))}
               </div>
+              {settledPagination.totalPages > 1 ? (
+                <div className="mt-2 rounded-md border border-border">
+                  <TablePagination
+                    page={settledPage}
+                    totalPages={settledPagination.totalPages}
+                    totalItems={settled.length}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={setSettledPage}
+                  />
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
