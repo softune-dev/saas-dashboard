@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Plus, Search, Users } from "lucide-react";
+import { Eye, Pencil, Plus, Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
@@ -9,7 +9,6 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { DataTable, TableSkeleton, type TableColumn } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
-import { formatDisplayDate, formatRelativeTime } from "@/lib/format";
 import {
   createTeammate,
   updateUser,
@@ -20,7 +19,9 @@ import {
 } from "@/lib/api/superadmin";
 import { AddTeammateModal } from "./add-teammate-modal";
 import { EditUserModal } from "./edit-user-modal";
+import { RowActionsMenu } from "./row-actions-menu";
 import { UserActiveBadge } from "./status-badge";
+import { UserDetailModal } from "./user-detail-modal";
 
 export function SuperAdminUsersView() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export function SuperAdminUsersView() {
   const [tenantId, setTenantId] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [createBusy, setCreateBusy] = useState(false);
+  const [viewing, setViewing] = useState<SuperAdminUser | null>(null);
   const [editing, setEditing] = useState<SuperAdminUser | null>(null);
   const [editBusy, setEditBusy] = useState(false);
 
@@ -114,14 +116,18 @@ export function SuperAdminUsersView() {
       id: "user",
       header: "User",
       cell: (row) => (
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-foreground">
+        <button
+          type="button"
+          onClick={() => setViewing(row)}
+          className="min-w-0 text-left"
+        >
+          <p className="truncate font-semibold text-foreground hover:text-primary">
             {row.full_name || row.email}
           </p>
           {row.full_name ? (
             <p className="truncate text-xs text-muted">{row.email}</p>
           ) : null}
-        </div>
+        </button>
       ),
     },
     {
@@ -142,39 +148,18 @@ export function SuperAdminUsersView() {
       cell: (row) => <UserActiveBadge active={row.is_active} />,
     },
     {
-      id: "login",
-      header: "Last login",
-      cell: (row) => (
-        <span className="text-muted">
-          {row.last_login_at
-            ? formatRelativeTime(new Date(row.last_login_at))
-            : "Never"}
-        </span>
-      ),
-    },
-    {
-      id: "created",
-      header: "Created",
-      cell: (row) => (
-        <span className="text-muted">
-          {formatDisplayDate(new Date(row.created_at))}
-        </span>
-      ),
-    },
-    {
       id: "actions",
-      header: "Actions",
+      header: "",
       headerClassName: "text-right",
       className: "text-right",
       cell: (row) => (
-        <button
-          type="button"
-          aria-label={`Edit ${row.email}`}
-          onClick={() => setEditing(row)}
-          className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
-        >
-          <Pencil className="size-3.5" strokeWidth={1.75} />
-        </button>
+        <RowActionsMenu
+          label={row.email}
+          actions={[
+            { label: "View details", icon: Eye, onClick: () => setViewing(row) },
+            { label: "Edit", icon: Pencil, onClick: () => setEditing(row) },
+          ]}
+        />
       ),
     },
   ];
@@ -193,7 +178,7 @@ export function SuperAdminUsersView() {
       />
 
       {isLoading && users.length === 0 ? (
-        <TableSkeleton columns={6} />
+        <TableSkeleton columns={5} />
       ) : error ? (
         <EmptyState icon={Users} title="Couldn't load users" description={error} />
       ) : (
@@ -260,6 +245,7 @@ export function SuperAdminUsersView() {
         onClose={() => setEditing(null)}
         onSave={handleSave}
       />
+      <UserDetailModal user={viewing} onClose={() => setViewing(null)} />
     </div>
   );
 }

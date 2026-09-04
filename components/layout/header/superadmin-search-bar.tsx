@@ -10,14 +10,12 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { Building2, LifeBuoy, Loader2, Search, UserPlus, Users } from "lucide-react";
+import { Building2, LifeBuoy, Loader2, Search, Users } from "lucide-react";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import {
-  listLeads,
   listTenants,
   listTickets,
   listUsers,
-  type SuperAdminLead,
   type SuperAdminTenant,
   type SuperAdminTicket,
   type SuperAdminUser,
@@ -28,7 +26,7 @@ type SuperadminSearchBarProps = {
 };
 
 type SearchHit = {
-  kind: "user" | "tenant" | "lead" | "ticket";
+  kind: "user" | "tenant" | "ticket";
   id: string;
   title: string;
   subtitle: string;
@@ -57,18 +55,6 @@ function tenantHit(t: SuperAdminTenant): SearchHit {
   };
 }
 
-function leadHit(l: SuperAdminLead): SearchHit {
-  return {
-    kind: "lead",
-    id: l.id,
-    title: l.full_name || l.email,
-    subtitle: [l.email, l.shop_name, l.status.replace(/_/g, " ")]
-      .filter(Boolean)
-      .join(" · "),
-    href: `/superadmin/leads?q=${encodeURIComponent(l.email)}`,
-  };
-}
-
 function ticketHit(t: SuperAdminTicket): SearchHit {
   return {
     kind: "ticket",
@@ -80,16 +66,14 @@ function ticketHit(t: SuperAdminTicket): SearchHit {
 }
 
 async function fetchOmnibox(q: string) {
-  const [usersPage, tenantsPage, leadsPage, ticketsPage] = await Promise.all([
+  const [usersPage, tenantsPage, ticketsPage] = await Promise.all([
     listUsers({ q, limit: RESULT_LIMIT }),
     listTenants({ q, limit: RESULT_LIMIT }),
-    listLeads({ q, limit: RESULT_LIMIT }),
     listTickets({ q, limit: RESULT_LIMIT }),
   ]);
   return {
     users: usersPage.items.map(userHit),
     tenants: tenantsPage.items.map(tenantHit),
-    leads: leadsPage.items.map(leadHit),
     tickets: ticketsPage.items.map(ticketHit),
   };
 }
@@ -124,7 +108,6 @@ export function SuperadminSearchBar({
     return [
       { key: "users", label: "Users", icon: Users, items: data.users },
       { key: "tenants", label: "Tenants", icon: Building2, items: data.tenants },
-      { key: "leads", label: "Leads", icon: UserPlus, items: data.leads },
       { key: "tickets", label: "Tickets", icon: LifeBuoy, items: data.tickets },
     ].filter((g) => g.items.length > 0);
   }, [data]);
@@ -195,7 +178,7 @@ export function SuperadminSearchBar({
   return (
     <div ref={rootRef} className={`relative ${className}`}>
       <label htmlFor={id} className="sr-only">
-        Search users, tenants, leads, and tickets
+        Search users, tenants, and tickets
       </label>
       <Search
         className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-soft"
@@ -208,7 +191,7 @@ export function SuperadminSearchBar({
         aria-expanded={showPanel}
         aria-controls={`${id}-results`}
         aria-autocomplete="list"
-        placeholder="Search users, tenants, leads, tickets..."
+        placeholder="Search users, tenants, tickets..."
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);

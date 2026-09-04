@@ -9,6 +9,16 @@
 import useSWR, { type SWRResponse } from "swr";
 import { request, type Page } from "../api";
 
+/** One storefront a tenant owns — the real subdomain/custom_domain, not a
+ * guess from the tenant slug. Up to 3 on a Business-plan tenant. */
+export type SuperAdminSite = {
+  id: string;
+  subdomain: string;
+  custom_domain: string | null;
+  status: "draft" | "published" | string;
+  template_key: string | null;
+};
+
 export type SuperAdminTenant = {
   id: string;
   slug: string;
@@ -33,6 +43,9 @@ export type SuperAdminTenant = {
   user_count: number;
   payment_providers: string[];
   courier_providers: string[];
+  owner_last_login_at: string | null;
+  template_key: string | null;
+  sites: SuperAdminSite[];
 };
 
 export type SuperAdminStats = {
@@ -58,11 +71,13 @@ export type SuperAdminUser = {
   tenant_name: string;
   email: string;
   full_name: string | null;
+  phone: string | null;
   role: "owner" | "admin" | "member";
   is_active: boolean;
   is_superadmin: boolean;
   last_login_at: string | null;
   created_at: string;
+  sites: SuperAdminSite[];
 };
 
 export async function listTenants(
@@ -119,67 +134,6 @@ export async function updateTenant(
 /** Hard delete — 204, no body. Irreversible; every child row cascades. */
 export async function deleteTenant(id: string): Promise<void> {
   await request<void>(`/superadmin/tenants/${id}`, { method: "DELETE" });
-}
-
-export type SuperAdminLead = {
-  id: string;
-  email: string;
-  full_name: string | null;
-  phone: string | null;
-  shop_name: string | null;
-  shop_category: string | null;
-  status:
-    | "signed_up"
-    | "otp_verified"
-    | "profile_complete"
-    | "demo_accessed"
-    | "purchase_requested";
-  demo_accessed_at: string | null;
-  purchase_requested_at: string | null;
-  created_at: string;
-};
-
-export async function listLeads(
-  params: {
-    q?: string;
-    status_filter?: string;
-    limit?: number;
-    offset?: number;
-  } = {},
-): Promise<Page<SuperAdminLead>> {
-  const search = new URLSearchParams();
-  if (params.q) search.set("q", params.q);
-  if (params.status_filter) search.set("status_filter", params.status_filter);
-  search.set("limit", String(params.limit ?? 50));
-  search.set("offset", String(params.offset ?? 0));
-  return request<Page<SuperAdminLead>>(`/superadmin/leads?${search}`);
-}
-
-export function useLeadsSWR(
-  params: { q?: string; status_filter?: string } = {},
-): SWRResponse<Page<SuperAdminLead>> {
-  return useSWR(
-    ["superadmin-leads", params.q ?? "", params.status_filter ?? ""],
-    () => listLeads(params),
-  );
-}
-
-export type ConvertLeadIn = {
-  workspace_name: string;
-  plan: SuperAdminTenant["plan"];
-  template_key: string;
-  site_name: string;
-  subdomain: string;
-};
-
-export async function convertLead(
-  leadId: string,
-  data: ConvertLeadIn,
-): Promise<SuperAdminTenant> {
-  return request<SuperAdminTenant>(`/superadmin/leads/${leadId}/convert`, {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
 }
 
 export async function listUsers(

@@ -1,6 +1,6 @@
 "use client";
 
-import { Ban, Building2, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Ban, Building2, Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
@@ -21,7 +21,9 @@ import {
 } from "@/lib/api/superadmin";
 import { CreateAccountModal } from "./create-account-modal";
 import { EditTenantModal } from "./edit-tenant-modal";
+import { RowActionsMenu } from "./row-actions-menu";
 import { TenantStatusBadge } from "./status-badge";
+import { TenantDetailModal } from "./tenant-detail-modal";
 
 export function SuperAdminTenantsView() {
   const router = useRouter();
@@ -34,6 +36,7 @@ export function SuperAdminTenantsView() {
   const [query, setQuery] = useState(urlQuery);
   const [createOpen, setCreateOpen] = useState(false);
   const [createBusy, setCreateBusy] = useState(false);
+  const [viewing, setViewing] = useState<SuperAdminTenant | null>(null);
   const [editing, setEditing] = useState<SuperAdminTenant | null>(null);
   const [editBusy, setEditBusy] = useState(false);
   const [confirming, setConfirming] = useState<{
@@ -138,10 +141,14 @@ export function SuperAdminTenantsView() {
       id: "name",
       header: "Tenant",
       cell: (row) => (
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-foreground">{row.name}</p>
+        <button
+          type="button"
+          onClick={() => setViewing(row)}
+          className="min-w-0 text-left"
+        >
+          <p className="truncate font-semibold text-foreground hover:text-primary">{row.name}</p>
           <p className="truncate text-xs text-muted">{row.slug}</p>
-        </div>
+        </button>
       ),
     },
     {
@@ -174,48 +181,6 @@ export function SuperAdminTenantsView() {
       cell: (row) => <TenantStatusBadge status={row.status} />,
     },
     {
-      id: "content",
-      header: "Categories / Products / Orders",
-      cell: (row) => (
-        <span className="text-muted">
-          {row.category_count ?? 0} / {row.product_count ?? 0} / {row.order_count ?? 0}
-        </span>
-      ),
-    },
-    {
-      id: "integrations",
-      header: "Payment / Courier",
-      // Guarded against undefined: a stale SWR-persisted cache from before
-      // these fields existed on the response can render one frame before
-      // revalidation replaces it with the real shape.
-      cell: (row) => {
-        const payments = row.payment_providers ?? [];
-        const couriers = row.courier_providers ?? [];
-        return (
-          <div className="flex flex-col gap-0.5 text-xs">
-            <span className={payments.length ? "text-foreground" : "text-muted-soft"}>
-              {payments.length ? payments.join(", ") : "None"}
-            </span>
-            <span className={couriers.length ? "text-foreground" : "text-muted-soft"}>
-              {couriers.length ? couriers.join(", ") : "No courier"}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: "billing",
-      header: "Billing",
-      cell: (row) => {
-        const label = row.business?.trade_name || row.business?.legal_name;
-        return label ? (
-          <span className="truncate text-muted">{label}</span>
-        ) : (
-          <span className="text-muted-soft">Not set</span>
-        );
-      },
-    },
-    {
       id: "created",
       header: "Created",
       cell: (row) => (
@@ -226,38 +191,26 @@ export function SuperAdminTenantsView() {
     },
     {
       id: "actions",
-      header: "Actions",
+      header: "",
       headerClassName: "text-right",
       className: "text-right",
       cell: (row) => (
-        <div className="inline-flex items-center justify-end gap-0.5">
-          <button
-            type="button"
-            aria-label={`Edit ${row.name}`}
-            onClick={() => setEditing(row)}
-            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
-          >
-            <Pencil className="size-3.5" strokeWidth={1.75} />
-          </button>
-          {row.status !== "suspended" ? (
-            <button
-              type="button"
-              aria-label={`Ban ${row.name}`}
-              onClick={() => setConfirming({ kind: "ban", tenant: row })}
-              className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-amber-500/10 hover:text-amber-700"
-            >
-              <Ban className="size-3.5" strokeWidth={1.75} />
-            </button>
-          ) : null}
-          <button
-            type="button"
-            aria-label={`Delete ${row.name}`}
-            onClick={() => setConfirming({ kind: "delete", tenant: row })}
-            className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-rose-500/10 hover:text-rose-600"
-          >
-            <Trash2 className="size-3.5" strokeWidth={1.75} />
-          </button>
-        </div>
+        <RowActionsMenu
+          label={row.name}
+          actions={[
+            { label: "View details", icon: Eye, onClick: () => setViewing(row) },
+            { label: "Edit", icon: Pencil, onClick: () => setEditing(row) },
+            row.status !== "suspended"
+              ? { label: "Ban", icon: Ban, onClick: () => setConfirming({ kind: "ban", tenant: row }) }
+              : { label: "Ban", icon: Ban, onClick: () => {}, disabled: true },
+            {
+              label: "Delete",
+              icon: Trash2,
+              destructive: true,
+              onClick: () => setConfirming({ kind: "delete", tenant: row }),
+            },
+          ]}
+        />
       ),
     },
   ];
@@ -349,6 +302,7 @@ export function SuperAdminTenantsView() {
         onConfirm={handleConfirm}
         onCancel={() => setConfirming(null)}
       />
+      <TenantDetailModal tenant={viewing} onClose={() => setViewing(null)} />
     </div>
   );
 }
