@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { TablePagination } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
+import { SettingsSelect } from "@/components/settings/site/ui/settings-field";
 import { DELIVERY_LOCATIONS, type SupplierListing } from "@/lib/dropship-mock";
 import { useDropshipMock } from "./dropship-mock-context";
 import { DropshipProductCard } from "./dropship-product-card";
@@ -56,7 +57,7 @@ export function BrowseSuppliersView() {
   }
 
   return (
-    <DropshipShell title="Browse Suppliers">
+    <DropshipShell title="Browse Products">
       <p className="mb-4 text-sm text-muted">
         Products other Softunebd stores are wholesaling. Import one into your own catalog, set
         your own retail price, and the supplier ships it directly to your customer when it sells.
@@ -69,29 +70,31 @@ export function BrowseSuppliersView() {
         />
       ) : (
         <>
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-soft" strokeWidth={1.75} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => updateSearch(e.target.value)}
-              placeholder="Search products or suppliers"
-              className="h-9 w-full rounded-md border border-border bg-surface pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="block flex-1">
+            <span className="text-sm font-medium text-muted">Search</span>
+            <div className="relative mt-1.5">
+              <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-soft" strokeWidth={1.75} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => updateSearch(e.target.value)}
+                placeholder="Search products or suppliers"
+                className="h-10 w-full rounded-md border border-border bg-search-bg pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-surface"
+              />
+            </div>
+          </label>
+          <div className="sm:w-52">
+            <SettingsSelect
+              label="Delivery area"
+              value={location}
+              onChange={(e) => updateLocation(e.target.value)}
+              options={[
+                { value: "all", label: "All delivery areas" },
+                ...DELIVERY_LOCATIONS.map((loc) => ({ value: loc, label: loc })),
+              ]}
             />
           </div>
-          <select
-            value={location}
-            onChange={(e) => updateLocation(e.target.value)}
-            className="h-9 rounded-md border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary sm:w-48"
-          >
-            <option value="all">All delivery areas</option>
-            {DELIVERY_LOCATIONS.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </select>
         </div>
         {filtered.length === 0 ? (
           <EmptyState

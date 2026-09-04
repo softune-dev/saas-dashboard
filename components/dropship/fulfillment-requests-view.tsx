@@ -39,8 +39,20 @@ export function FulfillmentRequestsView() {
           <p className="truncate font-semibold text-foreground hover:text-primary">
             {row.orderNumber}
           </p>
-          <p className="truncate text-xs text-muted">from {row.resellerName}</p>
+          <p className="truncate text-xs text-muted">
+            {formatDisplayDate(new Date(row.createdAt))}
+          </p>
         </button>
+      ),
+    },
+    {
+      id: "shop",
+      header: "Shop",
+      cell: (row) => (
+        <div className="min-w-0">
+          <p className="truncate text-foreground">{row.resellerName}</p>
+          <p className="truncate text-xs text-muted">{row.resellerDomain}</p>
+        </div>
       ),
     },
     {
@@ -51,6 +63,11 @@ export function FulfillmentRequestsView() {
           {row.productName} × {row.quantity}
         </span>
       ),
+    },
+    {
+      id: "payment",
+      header: "Payment",
+      cell: (row) => <span className="text-muted">{row.paymentMethod}</span>,
     },
     {
       id: "earn",
@@ -66,17 +83,10 @@ export function FulfillmentRequestsView() {
       header: "Status",
       cell: (row) => <FulfillmentStatusBadge status={row.status} />,
     },
-    {
-      id: "created",
-      header: "Placed",
-      cell: (row) => (
-        <span className="text-muted">{formatDisplayDate(new Date(row.createdAt))}</span>
-      ),
-    },
   ];
 
   return (
-    <DropshipShell title="Fulfillment Requests">
+    <DropshipShell title="Orders">
       <p className="mb-4 text-sm text-muted">
         Orders from other stores reselling your products. Ship these yourself, same as your own
         inventory — they never show up on your regular Orders page.

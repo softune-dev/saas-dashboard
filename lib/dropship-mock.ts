@@ -77,11 +77,18 @@ export type ImportedProduct = {
 
 export type FulfillmentStatus = "pending" | "shipped" | "cancelled";
 
+export type FulfillmentPaymentMethod = "COD" | "Prepaid";
+
 export type FulfillmentRequest = {
   id: string;
   orderNumber: string;
   resellerName: string;
+  /** The reseller's own storefront domain — the shop the customer actually
+   * bought from, distinct from the supplier fulfilling it. */
+  resellerDomain: string;
+  paymentMethod: FulfillmentPaymentMethod;
   productName: string;
+  productImage: string | null;
   quantity: number;
   wholesalePriceCents: number;
   retailPriceCents: number;
@@ -133,6 +140,12 @@ export type SettlementEntry = {
   orderCount: number;
   periodLabel: string;
   settled: boolean;
+  /** Where the money actually moves — a snapshot of the counterparty's
+   * payout instructions at settlement time, since a supplier or reseller's
+   * account details can change between periods. */
+  payoutMethod: SettlementMethod;
+  payoutAccountNumber: string;
+  payoutAccountName: string;
 };
 
 /** Bangladeshi mobile number -> wa.me's expected digits-only format
@@ -151,6 +164,9 @@ export type SupplierDirectoryEntry = {
   city: string;
   contact: string;
   description: string;
+  /** Store logo — null falls back to an initials avatar in the UI, same as
+   * every other place in the dashboard that doesn't have a real upload yet. */
+  logo: string | null;
 };
 
 /** One row per real-world supplier — MOCK_SUPPLIER_LISTINGS only carries
@@ -163,30 +179,35 @@ export const MOCK_SUPPLIERS_DIRECTORY: SupplierDirectoryEntry[] = [
     city: "Dhaka",
     contact: "01711000001",
     description: "Wholesale cotton wear and handloom textiles.",
+    logo: null,
   },
   {
     name: "Chattogram Leather Co.",
     city: "Chattogram",
     contact: "01711000002",
     description: "Genuine leather goods — wallets, shoes, belts.",
+    logo: null,
   },
   {
     name: "TechBazar Wholesale",
     city: "Dhaka",
     contact: "01711000003",
     description: "Consumer electronics and gadgets at wholesale rates.",
+    logo: null,
   },
   {
     name: "Rivelle Home Goods",
     city: "Gazipur",
     contact: "01711000004",
     description: "Home decor and kitchenware.",
+    logo: null,
   },
   {
     name: "Sonar Bangla Handicrafts",
     city: "Rajshahi",
     contact: "01711000005",
     description: "Handmade jute and terracotta crafts.",
+    logo: null,
   },
 ];
 
@@ -369,7 +390,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_1",
     orderNumber: "ORD-1042",
     resellerName: "Ananya Lifestyle",
+    resellerDomain: "ananyalifestyle.softunebd.com",
+    paymentMethod: "COD",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 1,
     wholesalePriceCents: 95000,
     retailPriceCents: 145000,
@@ -383,7 +407,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_2",
     orderNumber: "ORD-0997",
     resellerName: "Nokshi Boutique",
+    resellerDomain: "nokshiboutique.softunebd.com",
+    paymentMethod: "Prepaid",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 2,
     wholesalePriceCents: 190000,
     retailPriceCents: 280000,
@@ -397,7 +424,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_3",
     orderNumber: "ORD-1051",
     resellerName: "Village Weaves",
+    resellerDomain: "villageweaves.softunebd.com",
+    paymentMethod: "COD",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 1,
     wholesalePriceCents: 95000,
     retailPriceCents: 150000,
@@ -411,7 +441,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_4",
     orderNumber: "ORD-1049",
     resellerName: "Bangla Boutique",
+    resellerDomain: "banglaboutique.softunebd.com",
+    paymentMethod: "COD",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 3,
     wholesalePriceCents: 285000,
     retailPriceCents: 435000,
@@ -425,7 +458,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_5",
     orderNumber: "ORD-1038",
     resellerName: "Handloom Hub",
+    resellerDomain: "handloomhub.softunebd.com",
+    paymentMethod: "Prepaid",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 1,
     wholesalePriceCents: 95000,
     retailPriceCents: 149000,
@@ -439,7 +475,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_6",
     orderNumber: "ORD-1029",
     resellerName: "Artisan Attire",
+    resellerDomain: "artisanattire.softunebd.com",
+    paymentMethod: "COD",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 2,
     wholesalePriceCents: 190000,
     retailPriceCents: 290000,
@@ -453,7 +492,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_7",
     orderNumber: "ORD-1015",
     resellerName: "Heritage Wear BD",
+    resellerDomain: "heritagewearbd.softunebd.com",
+    paymentMethod: "COD",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 1,
     wholesalePriceCents: 95000,
     retailPriceCents: 152000,
@@ -467,7 +509,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_8",
     orderNumber: "ORD-0988",
     resellerName: "Ananya Lifestyle",
+    resellerDomain: "ananyalifestyle.softunebd.com",
+    paymentMethod: "Prepaid",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 2,
     wholesalePriceCents: 190000,
     retailPriceCents: 285000,
@@ -481,7 +526,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_9",
     orderNumber: "ORD-0970",
     resellerName: "Nokshi Boutique",
+    resellerDomain: "nokshiboutique.softunebd.com",
+    paymentMethod: "COD",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 1,
     wholesalePriceCents: 95000,
     retailPriceCents: 148000,
@@ -495,7 +543,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_10",
     orderNumber: "ORD-0955",
     resellerName: "Village Weaves",
+    resellerDomain: "villageweaves.softunebd.com",
+    paymentMethod: "COD",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 4,
     wholesalePriceCents: 380000,
     retailPriceCents: 590000,
@@ -509,7 +560,10 @@ export const MOCK_FULFILLMENT_REQUESTS: FulfillmentRequest[] = [
     id: "fr_11",
     orderNumber: "ORD-0940",
     resellerName: "Bangla Boutique",
+    resellerDomain: "banglaboutique.softunebd.com",
+    paymentMethod: "Prepaid",
     productName: "Handwoven Nakshi Kantha Shawl",
+    productImage: null,
     quantity: 1,
     wholesalePriceCents: 95000,
     retailPriceCents: 151000,
@@ -530,6 +584,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 1,
     periodLabel: "Sep 2026",
     settled: false,
+    payoutMethod: "bkash",
+    payoutAccountNumber: "01712345678",
+    payoutAccountName: "Ananya Lifestyle",
   },
   {
     id: "st_2",
@@ -539,6 +596,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 2,
     periodLabel: "Aug 2026",
     settled: true,
+    payoutMethod: "nagad",
+    payoutAccountNumber: "01898765432",
+    payoutAccountName: "Nokshi Boutique",
   },
   {
     id: "st_3",
@@ -548,6 +608,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 1,
     periodLabel: "Sep 2026",
     settled: false,
+    payoutMethod: "bank",
+    payoutAccountNumber: "2001-8834-1290",
+    payoutAccountName: "Chattogram Leather Co.",
   },
   {
     id: "st_4",
@@ -557,6 +620,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 1,
     periodLabel: "Sep 2026",
     settled: false,
+    payoutMethod: "bkash",
+    payoutAccountNumber: "01911223344",
+    payoutAccountName: "Village Weaves",
   },
   {
     id: "st_5",
@@ -566,6 +632,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 3,
     periodLabel: "Sep 2026",
     settled: false,
+    payoutMethod: "nagad",
+    payoutAccountNumber: "01722334455",
+    payoutAccountName: "Bangla Boutique",
   },
   {
     id: "st_6",
@@ -575,6 +644,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 1,
     periodLabel: "Aug 2026",
     settled: false,
+    payoutMethod: "bkash",
+    payoutAccountNumber: "01633445566",
+    payoutAccountName: "Handloom Hub",
   },
   {
     id: "st_7",
@@ -584,6 +656,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 2,
     periodLabel: "Aug 2026",
     settled: false,
+    payoutMethod: "bank",
+    payoutAccountNumber: "1145-7729-0034",
+    payoutAccountName: "Artisan Attire",
   },
   {
     id: "st_8",
@@ -593,6 +668,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 1,
     periodLabel: "Aug 2026",
     settled: false,
+    payoutMethod: "bkash",
+    payoutAccountNumber: "01455667788",
+    payoutAccountName: "Heritage Wear BD",
   },
   {
     id: "st_9",
@@ -602,6 +680,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 2,
     periodLabel: "Aug 2026",
     settled: false,
+    payoutMethod: "bkash",
+    payoutAccountNumber: "01712345678",
+    payoutAccountName: "Ananya Lifestyle",
   },
   {
     id: "st_10",
@@ -611,6 +692,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 1,
     periodLabel: "Jul 2026",
     settled: true,
+    payoutMethod: "nagad",
+    payoutAccountNumber: "01898765432",
+    payoutAccountName: "Nokshi Boutique",
   },
   {
     id: "st_11",
@@ -620,6 +704,9 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 4,
     periodLabel: "Jul 2026",
     settled: true,
+    payoutMethod: "bkash",
+    payoutAccountNumber: "01911223344",
+    payoutAccountName: "Village Weaves",
   },
   {
     id: "st_12",
@@ -629,5 +716,8 @@ export const MOCK_SETTLEMENTS: SettlementEntry[] = [
     orderCount: 1,
     periodLabel: "Jul 2026",
     settled: true,
+    payoutMethod: "bank",
+    payoutAccountNumber: "2001-8834-1290",
+    payoutAccountName: "Chattogram Leather Co.",
   },
 ];

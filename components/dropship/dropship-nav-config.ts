@@ -20,10 +20,10 @@ export type DropshipNavItem = {
  * components/settings/site/site-nav-config.ts), not five separate top-level
  * items competing for sidebar space. */
 export const dropshipNav: DropshipNavItem[] = [
-  { id: "browse", label: "Browse Suppliers", href: "/dropship/browse", LucideIcon: PackageSearch },
-  { id: "suppliers", label: "Suppliers", href: "/dropship/suppliers", LucideIcon: Users },
+  { id: "browse", label: "Browse Products", href: "/dropship/browse", LucideIcon: PackageSearch },
+  { id: "suppliers", label: "All Suppliers", href: "/dropship/suppliers", LucideIcon: Users },
   { id: "listings", label: "My Listings", href: "/dropship/listings", LucideIcon: Store },
   { id: "imported", label: "Imported Products", href: "/dropship/imported", LucideIcon: ShoppingBag },
-  { id: "fulfillment", label: "Fulfillment", href: "/dropship/fulfillment", LucideIcon: Truck },
+  { id: "fulfillment", label: "Orders", href: "/dropship/fulfillment", LucideIcon: Truck },
   { id: "settlements", label: "Settlements", href: "/dropship/settlements", LucideIcon: ArrowLeftRight },
 ];

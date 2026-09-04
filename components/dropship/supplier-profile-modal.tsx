@@ -14,6 +14,7 @@ import { useDropshipMock } from "./dropship-mock-context";
 import { DropshipProductCard } from "./dropship-product-card";
 import { ImportProductModal } from "./import-product-modal";
 import { ListingDetailModal } from "./listing-detail-modal";
+import { SupplierLogo } from "./supplier-logo";
 import { WhatsAppIcon } from "./whatsapp-icon";
 
 type SupplierProfileModalProps = {
@@ -66,15 +67,21 @@ export function SupplierProfileModal({ supplier, onClose }: SupplierProfileModal
             className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-border bg-surface"
           >
             <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
-              <div className="min-w-0">
-                <h3 id="supplier-profile-title" className="text-base font-semibold text-foreground">
-                  {supplier.name}
-                </h3>
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
-                  <MapPin className="size-3.5" strokeWidth={1.75} />
-                  {supplier.city}
-                </p>
-                <p className="mt-2 text-sm text-muted">{supplier.description}</p>
+              <div className="flex min-w-0 items-start gap-3">
+                <SupplierLogo name={supplier.name} logo={supplier.logo} size="lg" />
+                <div className="min-w-0 pt-0.5">
+                  <h3
+                    id="supplier-profile-title"
+                    className="text-base font-semibold text-foreground"
+                  >
+                    {supplier.name}
+                  </h3>
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                    <MapPin className="size-3.5" strokeWidth={1.75} />
+                    {supplier.city}
+                  </p>
+                  <p className="mt-2 text-sm text-muted">{supplier.description}</p>
+                </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 {contactLink ? (

@@ -2,6 +2,7 @@
 
 import { MapPin, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { SettingsSelect } from "@/components/settings/site/ui/settings-field";
 import { TablePagination } from "@/components/ui/table";
 import {
   buildSupplierContactLink,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/dropship-mock";
 import { useDropshipMock } from "./dropship-mock-context";
 import { DropshipShell } from "./dropship-shell";
+import { SupplierLogo } from "./supplier-logo";
 import { SupplierProfileModal } from "./supplier-profile-modal";
 import { WhatsAppIcon } from "./whatsapp-icon";
 
@@ -62,35 +64,37 @@ export function SuppliersView() {
   }
 
   return (
-    <DropshipShell title="Suppliers">
+    <DropshipShell title="All Suppliers">
       <p className="mb-4 text-sm text-muted">
         Every store supplying wholesale products on Softunebd. Open a profile to see their full
         catalog and import directly from there.
       </p>
 
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-soft" strokeWidth={1.75} />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => updateSearch(e.target.value)}
-            placeholder="Search suppliers"
-            className="h-9 w-full rounded-md border border-border bg-surface pl-9 pr-3 text-sm text-foreground outline-none placeholder:text-muted-soft focus:border-primary"
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+        <label className="block flex-1">
+          <span className="text-sm font-medium text-muted">Search</span>
+          <div className="relative mt-1.5">
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-soft" strokeWidth={1.75} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => updateSearch(e.target.value)}
+              placeholder="Search suppliers"
+              className="h-10 w-full rounded-md border border-border bg-search-bg pl-9 pr-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-soft focus:border-primary focus:bg-surface"
+            />
+          </div>
+        </label>
+        <div className="sm:w-48">
+          <SettingsSelect
+            label="City"
+            value={city}
+            onChange={(e) => updateCity(e.target.value)}
+            options={[
+              { value: "all", label: "All cities" },
+              ...cities.map((c) => ({ value: c, label: c })),
+            ]}
           />
         </div>
-        <select
-          value={city}
-          onChange={(e) => updateCity(e.target.value)}
-          className="h-9 rounded-md border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary sm:w-48"
-        >
-          <option value="all">All cities</option>
-          {cities.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
       </div>
 
       {filtered.length === 0 ? (
@@ -100,7 +104,7 @@ export function SuppliersView() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {pageItems.map((supplier) => {
               const contactLink = buildSupplierContactLink(supplier.contact, supplier.name);
               const count = listingCounts.get(supplier.name) ?? 0;
@@ -109,16 +113,19 @@ export function SuppliersView() {
                   key={supplier.name}
                   className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4"
                 >
-                  <div className="min-w-0">
-                    <h3 className="truncate text-sm font-semibold text-foreground">
-                      {supplier.name}
-                    </h3>
-                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
-                      <MapPin className="size-3.5" strokeWidth={1.75} />
-                      {supplier.city}
-                    </p>
-                    <p className="mt-2 line-clamp-2 text-xs text-muted">{supplier.description}</p>
+                  <div className="flex items-start gap-3">
+                    <SupplierLogo name={supplier.name} logo={supplier.logo} size="lg" />
+                    <div className="min-w-0 pt-0.5">
+                      <h3 className="truncate text-sm font-semibold text-foreground">
+                        {supplier.name}
+                      </h3>
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
+                        <MapPin className="size-3.5" strokeWidth={1.75} />
+                        {supplier.city}
+                      </p>
+                    </div>
                   </div>
+                  <p className="line-clamp-2 text-xs text-muted">{supplier.description}</p>
 
                   <p className="text-xs font-medium text-muted-soft">
                     {count} product{count === 1 ? "" : "s"} listed
