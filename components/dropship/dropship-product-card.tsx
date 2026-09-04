@@ -39,7 +39,7 @@ export function DropshipProductCard({
   onClick,
 }: DropshipProductCardProps) {
   return (
-    <article className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+    <article className="flex flex-col overflow-hidden rounded-2xl border border-border bg-surface">
       <button
         type="button"
         onClick={onClick}

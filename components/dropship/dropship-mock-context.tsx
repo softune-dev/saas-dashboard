@@ -12,11 +12,18 @@ import {
   type ImportedProduct,
   type SettlementEntry,
   type SupplierListing,
+  type SupplierProfile,
 } from "@/lib/dropship-mock";
 
 type DropshipMockState = {
   supplierMode: boolean;
   setSupplierMode: (on: boolean) => void;
+
+  /** Null until the "Become a Supplier" form is completed — supplierMode
+   * can only be true once this exists, so there's no path to shipping
+   * other stores' orders without providing real accountability info. */
+  supplierProfile: SupplierProfile | null;
+  saveSupplierProfile: (profile: SupplierProfile) => void;
 
   marketplace: SupplierListing[];
   myListings: SupplierListing[];
@@ -26,7 +33,7 @@ type DropshipMockState = {
   removeListing: (id: string) => void;
 
   importedProducts: ImportedProduct[];
-  importProduct: (listing: SupplierListing, retailPriceCents: number) => void;
+  importProduct: (listing: SupplierListing, retailPriceCents: number, category: string) => void;
 
   fulfillmentRequests: FulfillmentRequest[];
   updateFulfillmentStatus: (id: string, status: FulfillmentStatus) => void;
@@ -43,12 +50,26 @@ const DropshipMockContext = createContext<DropshipMockState | null>(null);
  * switching tabs (Browse -> My Listings -> ...) doesn't lose in-session
  * changes, the same continuity a real backend would give for free. */
 export function DropshipMockProvider({ children }: { children: ReactNode }) {
-  const [supplierMode, setSupplierMode] = useState(true);
+  const [supplierMode, setSupplierModeState] = useState(false);
+  const [supplierProfile, setSupplierProfile] = useState<SupplierProfile | null>(null);
   const [marketplace, setMarketplace] = useState(MOCK_SUPPLIER_LISTINGS);
   const [myListings, setMyListings] = useState(MOCK_MY_LISTINGS);
   const [importedProducts, setImportedProducts] = useState(MOCK_IMPORTED_PRODUCTS);
   const [fulfillmentRequests, setFulfillmentRequests] = useState(MOCK_FULFILLMENT_REQUESTS);
   const [settlements, setSettlements] = useState(MOCK_SETTLEMENTS);
+
+  /** Guards against turning supplierMode on without a profile — the caller
+   * (My Listings) should open BecomeSupplierModal instead when this is
+   * attempted with no profile, not silently fail. */
+  function setSupplierMode(on: boolean) {
+    if (on && !supplierProfile) return;
+    setSupplierModeState(on);
+  }
+
+  function saveSupplierProfile(profile: SupplierProfile) {
+    setSupplierProfile(profile);
+    setSupplierModeState(true);
+  }
 
   function addListing(
     listing: Omit<SupplierListing, "id" | "isMine" | "supplierName" | "image">,
@@ -58,7 +79,8 @@ export function DropshipMockProvider({ children }: { children: ReactNode }) {
         ...listing,
         id: `ml_${Date.now()}`,
         isMine: true,
-        supplierName: "Your store",
+        supplierName: supplierProfile?.businessName ?? "Your store",
+        supplierContact: supplierProfile?.publicPhone,
         image: null,
       },
       ...prev,
@@ -69,7 +91,7 @@ export function DropshipMockProvider({ children }: { children: ReactNode }) {
     setMyListings((prev) => prev.filter((l) => l.id !== id));
   }
 
-  function importProduct(listing: SupplierListing, retailPriceCents: number) {
+  function importProduct(listing: SupplierListing, retailPriceCents: number, category: string) {
     setImportedProducts((prev) => [
       {
         id: `ip_${Date.now()}`,
@@ -79,6 +101,7 @@ export function DropshipMockProvider({ children }: { children: ReactNode }) {
         supplierName: listing.supplierName,
         wholesalePriceCents: listing.wholesalePriceCents,
         retailPriceCents,
+        category,
         importedAt: new Date().toISOString(),
       },
       ...prev,
@@ -98,6 +121,8 @@ export function DropshipMockProvider({ children }: { children: ReactNode }) {
       value={{
         supplierMode,
         setSupplierMode,
+        supplierProfile,
+        saveSupplierProfile,
         marketplace,
         myListings,
         addListing,

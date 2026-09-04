@@ -1,9 +1,10 @@
 "use client";
 
-import { PackageSearch } from "lucide-react";
+import { Info, PackageSearch } from "lucide-react";
 import { useState } from "react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PrimaryButton } from "@/components/ui/primary-button";
+import { TablePagination } from "@/components/ui/table";
 import { useToast } from "@/components/ui/toast";
 import type { SupplierListing } from "@/lib/dropship-mock";
 import { useDropshipMock } from "./dropship-mock-context";
@@ -12,17 +13,22 @@ import { DropshipShell } from "./dropship-shell";
 import { ImportProductModal } from "./import-product-modal";
 import { ListingDetailModal } from "./listing-detail-modal";
 
+const PAGE_SIZE = 8;
+
 export function BrowseSuppliersView() {
   const { marketplace, importedProducts, importProduct } = useDropshipMock();
   const { toast } = useToast();
   const [importing, setImporting] = useState<SupplierListing | null>(null);
   const [viewing, setViewing] = useState<SupplierListing | null>(null);
+  const [page, setPage] = useState(1);
 
   const importedListingIds = new Set(importedProducts.map((p) => p.listingId));
+  const totalPages = Math.max(1, Math.ceil(marketplace.length / PAGE_SIZE));
+  const pageItems = marketplace.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  function handleImport(retailPriceCents: number) {
+  function handleImport(retailPriceCents: number, category: string) {
     if (!importing) return;
-    importProduct(importing, retailPriceCents);
+    importProduct(importing, retailPriceCents, category);
     toast({ title: `${importing.productName} added to your catalog`, variant: "success" });
     setImporting(null);
   }
@@ -40,8 +46,9 @@ export function BrowseSuppliersView() {
           description="Once other stores start listing wholesale products, they'll show up here."
         />
       ) : (
+        <>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {marketplace.map((listing) => {
+          {pageItems.map((listing) => {
             const already = importedListingIds.has(listing.id);
             const outOfStock = listing.stock === 0;
             return (
@@ -61,18 +68,49 @@ export function BrowseSuppliersView() {
                 }
                 onClick={() => setViewing(listing)}
                 footer={
-                  <PrimaryButton
-                    disabled={outOfStock || already}
-                    onClick={() => setImporting(listing)}
-                    className="w-full disabled:cursor-not-allowed"
-                  >
-                    {already ? "Already imported" : "Import"}
-                  </PrimaryButton>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setViewing(listing)}
+                      aria-label="View details"
+                      title="View details"
+                      className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-border text-muted-soft transition-colors hover:bg-search-bg hover:text-foreground"
+                    >
+                      <Info className="size-4" strokeWidth={1.75} />
+                    </button>
+                    {already ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center rounded-full border border-border text-sm font-medium text-muted"
+                      >
+                        Already imported
+                      </button>
+                    ) : (
+                      <PrimaryButton
+                        disabled={outOfStock}
+                        onClick={() => setImporting(listing)}
+                        className="h-9 flex-1 disabled:cursor-not-allowed"
+                      >
+                        Import
+                      </PrimaryButton>
+                    )}
+                  </div>
                 }
               />
             );
           })}
         </div>
+        <div className="mt-4">
+          <TablePagination
+            page={page}
+            totalPages={totalPages}
+            totalItems={marketplace.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        </div>
+        </>
       )}
 
       <ImportProductModal

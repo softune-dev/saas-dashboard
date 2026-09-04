@@ -3,12 +3,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { FormModal } from "@/components/ui/form-modal";
 import { formatTaka } from "@/lib/format";
-import type { SupplierListing } from "@/lib/dropship-mock";
+import { MOCK_CATEGORIES, type SupplierListing } from "@/lib/dropship-mock";
 
 type ImportProductModalProps = {
   listing: SupplierListing | null;
   onClose: () => void;
-  onImport: (retailPriceCents: number) => void;
+  onImport: (retailPriceCents: number, category: string) => void;
 };
 
 /** Set a retail price when importing a supplier's listing into your own
@@ -16,11 +16,13 @@ type ImportProductModalProps = {
  * not enforced; the reseller can set anything. */
 export function ImportProductModal({ listing, onClose, onImport }: ImportProductModalProps) {
   const [retailTaka, setRetailTaka] = useState("");
+  const [category, setCategory] = useState<string>(MOCK_CATEGORIES[0]);
 
   useEffect(() => {
     if (listing) {
       const suggested = Math.round((listing.wholesalePriceCents * 1.6) / 100);
       setRetailTaka(String(suggested));
+      setCategory(MOCK_CATEGORIES[0]);
     }
   }, [listing?.id]);
 
@@ -32,7 +34,7 @@ export function ImportProductModal({ listing, onClose, onImport }: ImportProduct
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (retailCents <= 0) return;
-    onImport(retailCents);
+    onImport(retailCents, category);
   }
 
   return (
@@ -69,6 +71,21 @@ export function ImportProductModal({ listing, onClose, onImport }: ImportProduct
             onChange={(e) => setRetailTaka(e.target.value)}
             className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary"
           />
+        </label>
+
+        <label className="block">
+          <span className="text-xs font-medium text-muted-soft">Category</span>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="mt-1 h-9 w-full rounded-md border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary"
+          >
+            {MOCK_CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </label>
 
         <p className={`text-xs ${marginCents > 0 ? "text-emerald-600" : "text-rose-600"}`}>
