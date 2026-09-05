@@ -15,10 +15,12 @@ import { formatDisplayDate } from "@/lib/format";
 import {
   getCustomer,
   updateCustomer,
+  useAbandonedCheckoutsSWR,
   useCustomersSWR,
   type CustomerDetailOut,
   type CustomerOut,
 } from "@/lib/api/customers";
+import { AbandonedCheckoutsSection } from "./abandoned-checkouts-section";
 import { CustomerDetailModal } from "./customer-detail-modal";
 import { CustomersStats } from "./customers-stats";
 import {
@@ -44,6 +46,8 @@ export function CustomersView() {
     limit: 100,
   });
   const customers = useMemo<CustomerOut[]>(() => page?.items ?? [], [page]);
+  const { data: abandonedPage } = useAbandonedCheckoutsSWR(siteId, { limit: 20 });
+  const abandonedCheckouts = useMemo(() => abandonedPage?.items ?? [], [abandonedPage]);
   const error = listError
     ? listError instanceof Error
       ? listError.message
@@ -145,6 +149,8 @@ export function CustomersView() {
           />
         </>
       )}
+
+      <AbandonedCheckoutsSection checkouts={abandonedCheckouts} />
 
       <CustomerDetailModal
         open={detailOpen}

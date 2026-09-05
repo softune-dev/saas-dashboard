@@ -90,3 +90,45 @@ export function useCustomersSWR(
   const key = siteId ? [siteId, "customers", params.limit ?? 50, params.offset ?? 0] : null;
   return useSWR(key, () => listCustomers(siteId as string, params));
 }
+
+/** Shoppers who entered a phone during checkout but never completed the
+ * order — captured by the storefront, see app/api/public.py's
+ * capture_abandoned_checkout. Data only, no automated follow-up; a
+ * merchant reaches out themselves (e.g. WhatsApp/call). */
+export type AbandonedCheckoutItem = {
+  product_id: string;
+  name: string;
+  quantity: number;
+};
+
+export type AbandonedCheckoutOut = {
+  id: string;
+  phone: string;
+  items: AbandonedCheckoutItem[];
+  subtotal_cents: number;
+  converted_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function listAbandonedCheckouts(
+  siteId: string,
+  params: ListCustomersParams = {},
+): Promise<Page<AbandonedCheckoutOut>> {
+  const search = new URLSearchParams();
+  search.set("limit", String(params.limit ?? 50));
+  search.set("offset", String(params.offset ?? 0));
+  return request<Page<AbandonedCheckoutOut>>(
+    `/sites/${siteId}/abandoned-checkouts?${search.toString()}`,
+  );
+}
+
+export function useAbandonedCheckoutsSWR(
+  siteId: string | null,
+  params: ListCustomersParams = {},
+): SWRResponse<Page<AbandonedCheckoutOut>> {
+  const key = siteId
+    ? [siteId, "abandoned-checkouts", params.limit ?? 50, params.offset ?? 0]
+    : null;
+  return useSWR(key, () => listAbandonedCheckouts(siteId as string, params));
+}
