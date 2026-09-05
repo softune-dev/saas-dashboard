@@ -221,11 +221,12 @@ export const unsupportedSectionsByTheme: Record<string, SectionType[]> = {
   bazaar: ["banner"],
 };
 
-/** Recommended top-to-bottom homepage section order */
+/** Recommended top-to-bottom homepage section order. "events" is opt-in
+ * (see sectionCatalog above) and deliberately absent here — a merchant adds
+ * it themselves once they have a real sale campaign to run. */
 export const defaultSectionOrder: PageSection[] = [
   { id: "s2", type: "hero" },
   { id: "s1", type: "banner" },
-  { id: "s2b", type: "events" },
   { id: "s3", type: "categories" },
   { id: "s4", type: "featureProducts" },
   { id: "s5", type: "productShowcase" },

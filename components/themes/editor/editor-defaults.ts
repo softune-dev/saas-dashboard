@@ -5,11 +5,13 @@ import {
   type SiteEditorSettings,
 } from "./editor-types";
 
-/** Aurora / boutique home section order (historical editor default). */
+/** Aurora / boutique home section order (historical editor default).
+ * "events" is deliberately excluded — a merchant adds it themselves from
+ * the section picker once they actually have a sale campaign to run,
+ * rather than every new site shipping an empty Events section by default. */
 const auroraSections: PageSection[] = [
   { id: "s2", type: "hero" },
   { id: "s1", type: "banner" },
-  { id: "s2b", type: "events" },
   { id: "s3", type: "categories" },
   { id: "s4", type: "featureProducts" },
   { id: "s5", type: "productShowcase" },
@@ -27,10 +29,10 @@ const auroraSections: PageSection[] = [
  * section there is a permanent no-op — including it as a default would put
  * a section in the editor's list that visibly does nothing on the live
  * site, which is exactly the misleading-editor problem this default order
- * exists to avoid. */
+ * exists to avoid. "events" is likewise deliberately excluded — a merchant
+ * adds it themselves once they have a real sale campaign to run. */
 const bazaarSections: PageSection[] = [
   { id: "sec-1", type: "hero" },
-  { id: "sec-1b", type: "events" },
   { id: "sec-2", type: "features" },
   { id: "sec-3", type: "categories" },
   { id: "sec-4", type: "featureProducts" },
