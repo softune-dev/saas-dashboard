@@ -15,7 +15,7 @@ const GROUPS: { label: string; fields: (keyof SiteEditorSettings)[] }[] = [
   { label: "Section order", fields: ["sections"] },
   { label: "Banner", fields: ["announcementItems", "announcementDivider"] },
   { label: "Hero images", fields: ["heroImages", "heroImagesSquare"] },
-  { label: "Categories section", fields: ["categoriesTitle", "selectedCategoryIds"] },
+  { label: "Categories section", fields: ["categoriesTitle", "selectedCategoryIds", "excludedCategoryIds"] },
   { label: "Feature products", fields: ["featureProductsTitle", "selectedProductIds"] },
   { label: "Product showcase", fields: ["showcaseProductId"] },
   { label: "Why choose us", fields: ["whyTitle", "whyImage", "why1Title", "why1", "why2Title", "why2", "why3Title", "why3"] },

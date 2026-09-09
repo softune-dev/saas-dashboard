@@ -125,9 +125,16 @@ export type SiteEditorSettings = {
   // "empty selection = show all" fallback (unlike Categories below) — see
   // EventPicker's own comment.
   selectedEventIds: string[];
-  // Categories — pick from dashboard categories by id
+  // Categories — opt-out model: every catalog category shows by default
+  // (including ones created after this was last touched), minus whatever
+  // the merchant explicitly hides. selectedCategoryIds is the old
+  // opt-in list from before this existed — CategoryVisibilityPicker/
+  // CategoriesSection derive excludedCategoryIds from it on first read
+  // for sites that never touched the new field, so already-published
+  // curated lists keep rendering exactly as before.
   categoriesTitle: string;
   selectedCategoryIds: string[];
+  excludedCategoryIds?: string[];
   // Feature products — pick catalog products by id (any count)
   featureProductsTitle: string;
   selectedProductIds: string[];

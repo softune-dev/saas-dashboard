@@ -27,6 +27,7 @@ import {
 } from "./editor-field";
 import {
   CategoryPicker,
+  CategoryVisibilityPicker,
   EventPicker,
   ProductPicker,
   ProductSinglePicker,
@@ -751,6 +752,14 @@ function PanelFields({
   }
 
   if (panel === "categories") {
+    // A site that never touched the new opt-out field yet: derive its
+    // current excluded set from the old opt-in list so it keeps rendering
+    // exactly what it already shows, instead of resetting to "show all".
+    const excludedCategoryIds =
+      settings.excludedCategoryIds ??
+      (settings.selectedCategoryIds?.length
+        ? categories.filter((c) => !settings.selectedCategoryIds.includes(c.id)).map((c) => c.id)
+        : []);
     return (
       <>
         <EditorField label="Title">
@@ -759,11 +768,10 @@ function PanelFields({
             onChange={(v) => onChange({ categoriesTitle: v })}
           />
         </EditorField>
-        <CategoryPicker
-          selectedIds={settings.selectedCategoryIds}
+        <CategoryVisibilityPicker
+          excludedIds={excludedCategoryIds}
           options={categories}
-          onChange={(ids) => onChange({ selectedCategoryIds: ids })}
-          autoFillFromCatalog
+          onChange={(ids) => onChange({ excludedCategoryIds: ids })}
         />
       </>
     );
@@ -1100,6 +1108,12 @@ function PageContentFields({
   }
 
   if (type === "categories") {
+    // Same legacy-to-opt-out derivation as the "categories" panel above.
+    const excludedCategoryIds =
+      settings.excludedCategoryIds ??
+      (settings.selectedCategoryIds?.length
+        ? categories.filter((c) => !settings.selectedCategoryIds.includes(c.id)).map((c) => c.id)
+        : []);
     return (
       <>
         <EditorField label="Title">
@@ -1108,11 +1122,10 @@ function PageContentFields({
             onChange={(v) => onChange({ categoriesTitle: v })}
           />
         </EditorField>
-        <CategoryPicker
-          selectedIds={settings.selectedCategoryIds}
+        <CategoryVisibilityPicker
+          excludedIds={excludedCategoryIds}
           options={categories}
-          onChange={(ids) => onChange({ selectedCategoryIds: ids })}
-          autoFillFromCatalog
+          onChange={(ids) => onChange({ excludedCategoryIds: ids })}
         />
       </>
     );

@@ -182,6 +182,122 @@ export function CategoryPicker({
   );
 }
 
+/** Opt-out category picker: every catalog category is on the storefront by
+ * default, including ones created after this panel was last touched — the
+ * merchant only ever records which ones to HIDE. This is what lets a newly
+ * added dashboard category show up on the site with no editor visit at all,
+ * which the old opt-in CategoryPicker (a materialized include-list) could
+ * never do once the merchant had picked anything even once. */
+export function CategoryVisibilityPicker({
+  excludedIds,
+  options,
+  onChange,
+}: {
+  excludedIds: string[];
+  options: Category[];
+  onChange: (excludedIds: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const excluded = new Set(excludedIds ?? []);
+  const visible = options.filter((o) => !excluded.has(o.id));
+  const hidden = options.filter((o) => excluded.has(o.id));
+
+  function hide(id: string) {
+    onChange([...(excludedIds ?? []), id]);
+  }
+
+  function show(id: string) {
+    onChange((excludedIds ?? []).filter((x) => x !== id));
+    setOpen(false);
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-2">
+        <EditorLabel>Categories on storefront</EditorLabel>
+        <span className="text-[11px] font-medium text-slate-400">
+          {visible.length} of {options.length}
+        </span>
+      </div>
+
+      <p className="rounded-xl bg-search-bg px-3 py-2 text-center text-[11px] text-muted">
+        Every category shows automatically — hide any you don&rsquo;t want. New
+        categories you add later show up here on their own.
+      </p>
+
+      {visible.length === 0 ? (
+        <p className="rounded-xl bg-search-bg px-3 py-4 text-center text-xs text-muted">
+          All categories are hidden — show one below.
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-1.5">
+          {visible.map((cat) => (
+            <li
+              key={cat.id}
+              className="flex items-center gap-2.5 rounded-xl bg-search-bg px-2.5 py-2"
+            >
+              <Thumb src={cat.image} alt={cat.name} fallback={PLACEHOLDER} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {cat.name}
+                </p>
+                <p className="truncate text-[11px] text-muted">
+                  {cat.products} products
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label={`Hide ${cat.name}`}
+                onClick={() => hide(cat.id)}
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-rose-500/10 hover:text-red-500"
+              >
+                <MaskIcon src="/sidebar/delete.svg" className="size-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {hidden.length > 0 ? (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-dashed border-border text-xs font-semibold text-foreground transition-colors hover:border-primary hover:bg-primary/5"
+          >
+            <Plus className="size-3.5" strokeWidth={2} />
+            Show a hidden category ({hidden.length})
+          </button>
+
+          {open ? (
+            <ul className="scrollbar-thin absolute inset-x-0 top-[calc(100%+6px)] z-20 max-h-52 overflow-y-auto rounded-xl border border-border dark:border-transparent bg-surface p-1.5">
+              {hidden.map((cat) => (
+                <li key={cat.id}>
+                  <button
+                    type="button"
+                    onClick={() => show(cat.id)}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-search-bg"
+                  >
+                    <Thumb src={cat.image} alt={cat.name} fallback={PLACEHOLDER} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {cat.name}
+                      </p>
+                      <p className="text-[11px] text-muted">
+                        {cat.products} products
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /** Multi-select list for catalog products.
  *
  * `autoFillFromCatalog` mirrors FeatureProductsSection.tsx's own real
