@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LoginModal } from "@/components/auth/login-modal";
 import { useLanguage } from "@/components/providers/language-provider";
-import { MaskIcon } from "@/components/ui/mask-icon";
 import type { SiteOut } from "@/lib/api";
 import { listProducts } from "@/lib/api/commerce";
 import { formatNumber } from "@/lib/format";
@@ -143,18 +142,18 @@ export function ThemeCard({ theme, site }: ThemeCardProps) {
                 disabled={publishing}
                 aria-label={`Publish ${shopName}`}
                 title="Publish to live site"
-                className="inline-flex size-9 items-center justify-center rounded-full bg-white text-black transition-opacity hover:opacity-90 disabled:opacity-60 shadow-sm"
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-foreground px-3.5 text-xs font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-60 shadow-sm"
               >
-                <Upload className="size-4 text-black" strokeWidth={2} />
+                <Upload className="size-3.5" strokeWidth={2} />
+                <span>{t("Publish")}</span>
               </button>
             ) : null}
             <Link
               href={`/themes/editor/${theme.id}`}
               aria-label={`Edit ${shopName}`}
               title="Edit theme"
-              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-white px-3.5 text-xs font-semibold text-black transition-opacity hover:opacity-90 shadow-sm"
+              className="inline-flex h-9 items-center justify-center rounded-full bg-surface px-3.5 text-xs font-semibold text-foreground transition-opacity hover:opacity-90 shadow-sm"
             >
-              <MaskIcon src="/sidebar/edit.svg" className="size-3.5 text-black" />
               <span>{t("Edit")}</span>
             </Link>
           </div>

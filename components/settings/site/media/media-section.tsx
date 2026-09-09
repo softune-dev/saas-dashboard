@@ -114,46 +114,49 @@ export function MediaSection() {
   async function handleUpload(files: File[]) {
     if (!siteId) return;
     const category: MediaCategory = "other";
-    const toastIds = files.map((file) =>
-      toast({
-        title: file.name,
-        description: formatBytes(file.size),
-        progress: 0,
-        duration: 2200,
-      }),
-    );
-
+    // A queue, not a burst: at most UPLOAD_CONCURRENCY toasts exist at once.
+    // A file only gets a toast once a worker actually picks it up, so as one
+    // upload finishes and its toast clears, the next queued file's toast
+    // takes its place instead of every file's toast appearing all at once.
+    const UPLOAD_CONCURRENCY = 3;
     let uploaded = 0;
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]!;
-      const id = toastIds[i]!;
-      try {
-        await uploadSiteMediaWithProgress(siteId, file, category, (fraction) =>
-          updateToast(id, { progress: Math.round(fraction * 100) }),
-        );
-        uploaded += 1;
-        updateToast(id, {
-          progress: 100,
-          variant: "success",
-          description: `${formatBytes(file.size)} · Uploaded`,
+    let index = 0;
+    let aborted = false;
+
+    async function worker() {
+      while (index < files.length && !aborted) {
+        const file = files[index++]!;
+        const id = toast({
+          title: file.name,
+          description: formatBytes(file.size),
+          progress: 0,
+          duration: 2200,
         });
-      } catch (err) {
-        updateToast(id, {
-          progress: 100,
-          variant: "info",
-          description: err instanceof Error ? err.message : "Something went wrong.",
-          duration: 5000,
-        });
-        for (let j = i + 1; j < files.length; j++) {
-          updateToast(toastIds[j]!, {
+        try {
+          await uploadSiteMediaWithProgress(siteId!, file, category, (fraction) =>
+            updateToast(id, { progress: Math.round(fraction * 100) }),
+          );
+          uploaded += 1;
+          updateToast(id, {
+            progress: 100,
+            variant: "success",
+            description: `${formatBytes(file.size)} · Uploaded`,
+          });
+        } catch (err) {
+          aborted = true;
+          updateToast(id, {
             progress: 100,
             variant: "info",
-            description: "Skipped — previous upload failed",
+            description: err instanceof Error ? err.message : "Something went wrong.",
+            duration: 5000,
           });
         }
-        break;
       }
     }
+
+    await Promise.all(
+      Array.from({ length: Math.min(UPLOAD_CONCURRENCY, files.length) }, worker),
+    );
     if (uploaded > 0) await mutate();
   }
 
