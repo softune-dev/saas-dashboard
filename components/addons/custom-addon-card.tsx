@@ -4,10 +4,37 @@ import { MaskIcon } from "@/components/ui/mask-icon";
 
 type CustomAddonCardProps = {
   onRequest: () => void;
+  variant?: "grid" | "list";
 };
 
 /** Dashed CTA at the end of the Add-Ons grid — opens the custom request form. */
-export function CustomAddonCard({ onRequest }: CustomAddonCardProps) {
+export function CustomAddonCard({
+  onRequest,
+  variant = "grid",
+}: CustomAddonCardProps) {
+  if (variant === "list") {
+    return (
+      <article className="flex items-center gap-3 px-3 py-2.5">
+        <span className="flex size-10 shrink-0 items-center justify-center">
+          <MaskIcon
+            src="/sidebar/add-on.svg"
+            className="size-5 text-foreground"
+          />
+        </span>
+        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+          Custom Add-on
+        </h3>
+        <button
+          type="button"
+          onClick={onRequest}
+          className="inline-flex h-8 shrink-0 items-center justify-center rounded-full bg-primary px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+        >
+          Request
+        </button>
+      </article>
+    );
+  }
+
   return (
     <article className="flex flex-col rounded-2xl border border-dashed border-border bg-surface/60 p-5 shadow-sm">
       <MaskIcon

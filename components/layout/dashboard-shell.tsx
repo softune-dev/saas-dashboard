@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { TourProvider } from "@/components/tour";
 import { useAutoHideScrollbar } from "@/lib/hooks/use-auto-hide-scrollbar";
 import { Header } from "./header/header";
+import { MobileBottomNav } from "./mobile-bottom-nav";
 import { MobileSidebar } from "./sidebar/mobile-sidebar";
 import { Sidebar } from "./sidebar/sidebar";
 
@@ -30,7 +31,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   return (
     <TourProvider>
-      <div className="flex h-dvh max-w-[100vw] flex-col gap-3 overflow-x-hidden bg-background p-3">
+      <div className="flex h-dvh max-w-[100vw] flex-col gap-3 overflow-x-hidden bg-background p-3 max-md:pb-0">
         <Header
           onOpenMobileNav={
             isThemeEditor ? undefined : () => setMobileNavOpen(true)
@@ -61,6 +62,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
             {children}
           </main>
         </div>
+        {!isThemeEditor ? (
+          <MobileBottomNav />
+        ) : null}
       </div>
     </TourProvider>
   );

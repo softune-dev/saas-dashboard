@@ -56,6 +56,19 @@ export function formatTaka(value: number): string {
   return `${formatNumber(value)}৳`;
 }
 
+/** Display a Bangladesh mobile as +8801XXXXXXXXX. */
+export function formatBdPhone(phone: string | null | undefined): string {
+  if (!phone) return "";
+  const trimmed = phone.trim();
+  if (!trimmed) return "";
+  const digits = trimmed.replace(/\D/g, "");
+  if (!digits) return trimmed;
+  if (digits.startsWith("880")) return `+${digits}`;
+  if (digits.startsWith("0")) return `+880${digits.slice(1)}`;
+  if (trimmed.startsWith("+")) return `+${digits}`;
+  return `+880${digits}`;
+}
+
 /** Format a byte count as "1.2 MB" / "340 KB" — for storage totals. */
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;

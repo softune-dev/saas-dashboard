@@ -19,7 +19,7 @@ export function SettingsActions({
   const { t } = useLanguage();
 
   return (
-    <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-border dark:border-transparent pt-4">
+    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3 dark:border-transparent">
       <PrimaryButton type="button" onClick={onSave}>
         <MaskIcon src="/sidebar/save.svg" className="size-4" />
         {t(saveLabel)}

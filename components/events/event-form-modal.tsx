@@ -203,7 +203,7 @@ export function EventFormModal({
             <button
               type="button"
               onClick={open}
-              className="group relative block h-36 w-full cursor-pointer overflow-hidden rounded-xl bg-search-bg ring-1 ring-border dark:ring-transparent transition-shadow hover:ring-muted-soft dark:hover:ring-transparent"
+              className="group relative block h-36 w-full cursor-pointer overflow-hidden rounded-md border border-modal-border bg-search-bg transition-colors hover:border-muted-soft"
             >
               {imageSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element

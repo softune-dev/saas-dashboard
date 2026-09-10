@@ -8,6 +8,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
 import { useToast } from "@/components/ui/toast";
+import { ViewToggle } from "@/components/ui/view-toggle";
+import { useCatalogView } from "@/lib/hooks/use-catalog-view";
 import {
   connectPayment,
   disconnectPayment,
@@ -54,6 +56,7 @@ export function PaymentView() {
   const { toast } = useToast();
   const { t } = useLanguage();
   const siteId = currentSite?.id ?? null;
+  const [view, setView] = useCatalogView("softune:catalog-view:payments");
 
   const {
     data: connectionRows = [],
@@ -285,10 +288,15 @@ export function PaymentView() {
   const error = swrError instanceof Error ? swrError.message : swrError ? "Failed to load payment methods" : null;
   const codConnection = connectionFor("cod");
   const manualConnection = connectionFor("manual");
+  const isList = view === "list";
 
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title={t("Payments")} />
+      <PageHeading
+        title={t("Payments")}
+        actionsInline
+        actions={<ViewToggle value={view} onChange={setView} />}
+      />
 
       {showSkeleton ? (
         <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -299,7 +307,13 @@ export function PaymentView() {
       ) : error ? (
         <EmptyState icon={Wallet} title="Couldn't load payment methods" description={error} />
       ) : (
-        <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          className={
+            isList
+              ? "flex flex-col divide-y divide-border overflow-hidden rounded-md border border-border bg-surface"
+              : "grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          }
+        >
           {PAYMENT_CATALOG.map((entry) => {
             const connection = connectionFor(entry.provider);
             return (
@@ -307,6 +321,7 @@ export function PaymentView() {
                 key={entry.provider}
                 entry={entry}
                 connection={connection}
+                variant={view}
                 onConnect={() => openConfig(entry.provider)}
                 onManage={() => openConfig(entry.provider)}
                 onDisconnect={() => setDisconnecting(rowFor(entry.provider))}

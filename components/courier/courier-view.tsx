@@ -8,6 +8,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
 import { useToast } from "@/components/ui/toast";
+import { ViewToggle } from "@/components/ui/view-toggle";
+import { useCatalogView } from "@/lib/hooks/use-catalog-view";
 import {
   connectEcourier,
   connectPathao,
@@ -33,6 +35,7 @@ export function CourierView() {
   const { currentSite, loading: sessionLoading } = useSession();
   const { toast } = useToast();
   const { t } = useLanguage();
+  const [view, setView] = useCatalogView("softune:catalog-view:courier");
 
   const {
     data: connections = [],
@@ -173,9 +176,15 @@ export function CourierView() {
 
   const showSkeleton = sessionLoading || (loading && currentSite);
 
+  const isList = view === "list";
+
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title={t("Courier")} />
+      <PageHeading
+        title={t("Courier")}
+        actionsInline
+        actions={<ViewToggle value={view} onChange={setView} />}
+      />
 
       {showSkeleton ? (
         <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -186,7 +195,13 @@ export function CourierView() {
       ) : error ? (
         <EmptyState icon={Truck} title="Couldn't load couriers" description={error} />
       ) : (
-        <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          className={
+            isList
+              ? "flex flex-col divide-y divide-border overflow-hidden rounded-md border border-border bg-surface"
+              : "grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          }
+        >
           {COURIER_CATALOG.map((entry) => {
             const connection = connections.find((c) => c.provider === entry.provider) ?? null;
             return (
@@ -194,6 +209,7 @@ export function CourierView() {
                 key={entry.provider}
                 entry={entry}
                 connection={connection}
+                variant={view}
                 onConnect={() => {
                   setConnectError(null);
                   setConnectingProvider(entry.provider);

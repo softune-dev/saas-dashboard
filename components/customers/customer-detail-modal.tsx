@@ -3,8 +3,9 @@
 import { Check, Copy, Pencil, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { useMdUp } from "@/lib/hooks/use-md-up";
 import { useToast } from "@/components/ui/toast";
-import { formatDisplayDate, formatTaka } from "@/lib/format";
+import { formatBdPhone, formatDisplayDate, formatTaka } from "@/lib/format";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import type { CustomerDetailOut, CustomerOut, RiskScore } from "@/lib/api/customers";
 
@@ -63,6 +64,7 @@ export function CustomerDetailModal({
   onClose,
   onSave,
 }: CustomerDetailModalProps) {
+  const mdUp = useMdUp();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -80,7 +82,7 @@ export function CustomerDetailModal({
   return (
     <AnimatePresence>
       {open && customer ? (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[90] flex items-end justify-center md:items-center md:p-4">
           <motion.button
             type="button"
             aria-label="Dismiss"
@@ -94,18 +96,20 @@ export function CustomerDetailModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="customer-detail-title"
-            initial={{ opacity: 0, y: 8 }}
+            initial={
+              mdUp ? { opacity: 0, y: 8 } : { opacity: 0, y: "100%" }
+            }
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.18 }}
-            className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-surface"
+            exit={mdUp ? { opacity: 0, y: 6 } : { opacity: 0, y: "100%" }}
+            transition={{ duration: mdUp ? 0.18 : 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="modal-panel relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl md:max-h-[85vh] md:max-w-lg md:rounded-xl md:border md:border-border"
           >
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-primary/10 bg-primary px-5 py-4">
               <div className="min-w-0">
                 <h3
                   id="customer-detail-title"
-                  className="truncate text-base font-semibold text-white"
+                  className="truncate text-lg font-medium text-white"
                 >
                   {customer.name || "Unnamed customer"}
                 </h3>
@@ -124,7 +128,7 @@ export function CustomerDetailModal({
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 max-md:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               {/* Contact info, editable */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
@@ -157,7 +161,7 @@ export function CustomerDetailModal({
                       placeholder="Email"
                       className="h-9 w-full rounded-md border border-border bg-surface px-2.5 text-sm text-foreground outline-none focus:border-primary"
                     />
-                    <p className="text-sm text-muted">{customer.phone}</p>
+                    <p className="text-sm text-muted">{formatBdPhone(customer.phone)}</p>
                     <div className="flex gap-2 pt-1">
                       <button
                         type="button"
@@ -186,20 +190,28 @@ export function CustomerDetailModal({
                     </div>
                   </div>
                 ) : (
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {customer.name || "Unnamed"}
-                    </p>
-                    <div className="mt-0.5 flex items-center gap-1.5">
-                      <p className="text-sm text-muted">{customer.phone}</p>
-                      <CopyButton value={customer.phone} label="phone number" />
-                    </div>
-                    {customer.email ? (
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">
+                        {customer.name || "Unnamed"}
+                      </p>
                       <div className="mt-0.5 flex items-center gap-1.5">
-                        <p className="text-sm text-muted">{customer.email}</p>
-                        <CopyButton value={customer.email} label="email" />
+                        <p className="text-sm text-muted">
+                          {formatBdPhone(customer.phone)}
+                        </p>
+                        <CopyButton
+                          value={formatBdPhone(customer.phone)}
+                          label="phone number"
+                        />
                       </div>
-                    ) : null}
+                      {customer.email ? (
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          <p className="text-sm text-muted">{customer.email}</p>
+                          <CopyButton value={customer.email} label="email" />
+                        </div>
+                      ) : null}
+                    </div>
+                    {detail ? <RiskBadge risk={detail.risk_score} /> : null}
                   </div>
                 )}
               </div>
@@ -240,15 +252,7 @@ export function CustomerDetailModal({
                 </div>
               </div>
 
-              {/* Risk score — rule-based signals from real order history,
-                  see app/risk_score.py. Only renders once the detail call
-                  settles; a skeleton here would be more noise than the
-                  stats/orders sections already show while loading. */}
-              {detail ? (
-                <RiskScoreCard risk={detail.risk_score} />
-              ) : (
-                <div className="h-24 animate-pulse rounded-md bg-search-bg" />
-              )}
+              {detail ? <RiskSignals risk={detail.risk_score} /> : null}
 
               {/* Linked orders — capped height so a customer with dozens of
                   orders scrolls inside this section instead of blowing up
@@ -334,44 +338,32 @@ function signalRows(risk: RiskScore): { label: string; value: string }[] {
   ];
 }
 
-/** Rule-based aggregate view — see app/risk_score.py's module docstring for
- * why every row here traces back to a real column, not a black-box model.
- * Deliberately NOT editable or actionable here (no "block this customer"
- * button) — it's a read signal for a merchant's own judgment, same spirit
- * as Fraud Protection's Suspicious Orders queue leaving the decision to a
- * human. */
-function RiskScoreCard({ risk }: { risk: RiskScore }) {
+function RiskBadge({ risk }: { risk: RiskScore }) {
   return (
-    <div className="border-t border-border pt-5 dark:border-transparent">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-medium text-muted">Risk score</p>
-        <span
-          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${LABEL_STYLES[risk.label]}`}
-        >
-          {risk.label} risk
-        </span>
-      </div>
-
-      <div className="mt-3 flex items-center gap-4">
-        <div
-          className={`flex size-16 shrink-0 items-center justify-center rounded-full border-4 ${RING_STYLES[risk.label]}`}
-        >
-          <span className="text-xl font-bold tabular-nums text-foreground">{risk.score}</span>
-        </div>
-        <p className="text-xs text-muted">
-          Computed from this customer&apos;s order, delivery, device, and IP history — not an
-          estimate, and never a reason to auto-reject an order on its own.
-        </p>
-      </div>
-
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-3">
-        {signalRows(risk).map((row) => (
-          <div key={row.label}>
-            <dt className="text-[11px] text-muted-soft">{row.label}</dt>
-            <dd className="text-sm font-medium text-foreground">{row.value}</dd>
-          </div>
-        ))}
-      </dl>
+    <div className="flex shrink-0 items-center gap-2">
+      <span
+        className={`flex size-9 items-center justify-center rounded-full border-2 text-sm font-bold tabular-nums text-foreground ${RING_STYLES[risk.label]}`}
+      >
+        {risk.score}
+      </span>
+      <span
+        className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${LABEL_STYLES[risk.label]}`}
+      >
+        {risk.label}
+      </span>
     </div>
+  );
+}
+
+function RiskSignals({ risk }: { risk: RiskScore }) {
+  return (
+    <dl className="grid grid-cols-3 gap-x-3 gap-y-2 border-t border-border pt-5 dark:border-transparent">
+      {signalRows(risk).map((row) => (
+        <div key={row.label}>
+          <dt className="text-[11px] text-muted-soft">{row.label}</dt>
+          <dd className="text-sm font-medium text-foreground">{row.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

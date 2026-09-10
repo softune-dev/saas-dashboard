@@ -85,21 +85,19 @@ export function ShippingSection() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">{t("Delivery locations")}</h2>
-          <p className="mt-0.5 text-xs text-muted-soft">
-            {t("Used in the Add Product page to pick a delivery charge instead of typing one each time.")}
-          </p>
-        </div>
+        <h2 className="text-base font-semibold text-foreground">
+          {t("Shipping")}
+        </h2>
         <PrimaryButton
           type="button"
           onClick={addLocation}
           className="!h-9 !px-3 text-xs"
         >
           <Plus className="size-3.5" strokeWidth={2} />
-          {t("Add location")}
+          <span className="md:hidden">{t("Add")}</span>
+          <span className="hidden md:inline">{t("Add location")}</span>
         </PrimaryButton>
       </div>
 
@@ -108,17 +106,17 @@ export function ShippingSection() {
           {t("No delivery locations yet. Add one to start pricing shipping by area.")}
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col max-md:divide-y max-md:divide-border dark:max-md:divide-transparent md:gap-2">
           {locations.map((zone) => (
             <li
               key={zone.id}
-              className="flex flex-wrap items-center gap-3 rounded-md border border-border p-3"
+              className="flex items-center gap-2 py-2.5 md:flex-wrap md:gap-3 md:rounded-md md:border md:border-border md:p-3"
             >
               <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <MapPin className="size-4" strokeWidth={1.75} />
               </span>
 
-              <div className="min-w-0 flex-1 basis-[10rem]">
+              <div className="min-w-0 flex-1">
                 <SettingsInput
                   name={`location-${zone.id}`}
                   value={zone.name}
@@ -127,7 +125,7 @@ export function ShippingSection() {
                 />
               </div>
 
-              <div className="w-full sm:w-36">
+              <div className="w-[5.5rem] shrink-0 md:w-36">
                 <SettingsInput
                   name={`charge-${zone.id}`}
                   placeholder="Charge (৳)"
@@ -138,6 +136,7 @@ export function ShippingSection() {
                   onChange={(e) =>
                     updateLocation(zone.id, { charge_cents: majorToCents(e.target.value) })
                   }
+                  aria-label={`Charge for ${zone.name || "location"}`}
                 />
               </div>
 
@@ -145,7 +144,7 @@ export function ShippingSection() {
                 type="button"
                 aria-label={`Remove ${zone.name || "location"}`}
                 onClick={() => removeLocation(zone.id)}
-                className="inline-flex size-10 items-center justify-center text-muted transition-colors hover:text-red-500"
+                className="inline-flex size-10 shrink-0 items-center justify-center text-muted transition-colors hover:text-red-500"
               >
                 <MaskIcon src="/sidebar/delete.svg" className="size-4" />
               </button>

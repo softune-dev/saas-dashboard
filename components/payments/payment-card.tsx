@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Settings, Unplug } from "lucide-react";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import type { PaymentCatalogEntry } from "./payment-data";
 import type { PaymentConnection } from "./payment-types";
@@ -14,6 +14,7 @@ type PaymentCardProps = {
   onDisconnect: () => void;
   /** Gateways that aren't free yet — primary Unlock CTA (not “Coming soon”). */
   onUnlock?: () => void;
+  variant?: "grid" | "list";
 };
 
 /** Compact catalog card — no expanded detail body when connected (that
@@ -25,8 +26,63 @@ export function PaymentCard({
   onManage,
   onDisconnect,
   onUnlock,
+  variant = "grid",
 }: PaymentCardProps) {
   const connected = connection != null;
+
+  if (variant === "list") {
+    return (
+      <article className="flex items-center gap-3 px-3 py-2.5">
+        <span className="flex h-10 w-16 shrink-0 items-center justify-start overflow-hidden rounded-md">
+          <img
+            src={entry.logoSrc}
+            alt=""
+            className="max-h-10 w-auto max-w-full object-contain object-left"
+          />
+        </span>
+        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+          {entry.name}
+        </h3>
+        {!entry.available ? (
+          <button
+            type="button"
+            onClick={onUnlock}
+            className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <MaskIcon src="/sidebar/lock.svg" className="size-3.5" />
+            Unlock
+          </button>
+        ) : connected ? (
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              aria-label={`Manage ${entry.name}`}
+              onClick={onManage}
+              className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
+            >
+              <Settings className="size-4" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              aria-label={`Disconnect ${entry.name}`}
+              onClick={onDisconnect}
+              className="inline-flex size-8 items-center justify-center rounded-full text-primary transition-opacity hover:opacity-80"
+            >
+              <Unplug className="size-4" strokeWidth={1.75} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onConnect}
+            className="inline-flex h-8 shrink-0 items-center justify-center rounded-full bg-primary px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+          >
+            Connect
+          </button>
+        )}
+      </article>
+    );
+  }
 
   return (
     <article className="flex flex-col rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-border dark:ring-transparent">
@@ -95,10 +151,11 @@ export function PaymentCard({
             </button>
             <button
               type="button"
+              aria-label={`Disconnect ${entry.name}`}
               onClick={onDisconnect}
-              className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-search-bg text-sm font-medium text-foreground transition-colors hover:bg-border"
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-search-bg text-primary transition-opacity hover:opacity-80"
             >
-              Disconnect
+              <Unplug className="size-4" strokeWidth={1.75} />
             </button>
           </>
         ) : (

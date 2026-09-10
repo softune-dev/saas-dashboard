@@ -1087,14 +1087,14 @@ export const DICTIONARY: Record<Locale, Record<string, string>> = {
 };
 
 const LanguageContext = createContext<LanguageContextType>({
-  locale: "bn",
+  locale: "en",
   setLocale: () => {},
   toggleLocale: () => {},
   t: (key) => key,
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("bn");
+  const [locale, setLocaleState] = useState<Locale>("en");
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;

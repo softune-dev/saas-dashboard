@@ -189,7 +189,7 @@ export function CategoryFormModal({
          * overlapping its bottom edge — both independently uploadable. The
          * banner is what the shop page swaps in when a visitor picks this
          * category; the circle is the small thumbnail used in listings. */}
-        <div className="relative mb-12">
+        <div className="relative mb-10">
           <MediaSourceMenu
             siteId={siteId}
             category="categories"
@@ -204,7 +204,7 @@ export function CategoryFormModal({
               <button
                 type="button"
                 onClick={open}
-                className="group relative block h-32 w-full cursor-pointer overflow-hidden rounded-xl bg-search-bg ring-1 ring-border dark:ring-transparent transition-shadow hover:ring-muted-soft dark:hover:ring-transparent"
+                className="group relative block h-32 w-full cursor-pointer overflow-hidden rounded-md border border-modal-border bg-search-bg transition-colors hover:border-muted-soft"
               >
                 {bannerSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -256,7 +256,7 @@ export function CategoryFormModal({
               <button
                 type="button"
                 onClick={open}
-                className="group absolute -bottom-10 left-1/2 flex size-20 -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-search-bg ring-4 ring-surface transition-shadow hover:ring-surface"
+                className="group absolute -bottom-10 left-1/2 flex size-20 -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-modal-border bg-search-bg ring-4 ring-surface"
               >
                 {imageSrc ? (
                   // eslint-disable-next-line @next/next/no-img-element

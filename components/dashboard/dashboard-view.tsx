@@ -1,7 +1,8 @@
 "use client";
 
-import { LayoutDashboard } from "lucide-react";
-import { useEffect } from "react";
+import Image from "next/image";
+import { LayoutDashboard, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -26,6 +27,7 @@ import { useLanguage } from "@/components/providers/language-provider";
 export function DashboardView() {
   const { t } = useLanguage();
   const router = useRouter();
+  const [setupBannerOpen, setSetupBannerOpen] = useState(true);
   const { currentSite, me, loading: sessionLoading } = useSession();
   const siteId = currentSite?.id ?? null;
   const isSuperadmin = me?.user.is_superadmin === true;
@@ -168,6 +170,27 @@ export function DashboardView() {
         />
       ) : (
         <>
+          {setupBannerOpen ? (
+            <div className="relative w-full overflow-hidden rounded-md md:hidden">
+              <Image
+                src="/others/setup.png"
+                alt=""
+                width={3588}
+                height={1184}
+                className="h-auto w-full"
+                sizes="(max-width: 767px) 100vw, 0px"
+                preload
+              />
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setSetupBannerOpen(false)}
+                className="absolute top-2 right-2 inline-flex size-8 items-center justify-center text-foreground"
+              >
+                <X className="size-5" strokeWidth={2} />
+              </button>
+            </div>
+          ) : null}
           <div className="block rounded-md bg-surface p-4 sm:p-5 xl:hidden">
             <ShopInfoPanel
               productsCount={productPage?.total ?? 0}

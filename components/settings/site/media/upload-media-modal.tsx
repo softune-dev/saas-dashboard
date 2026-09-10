@@ -65,8 +65,34 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
   }
 
   return (
-    <SettingsModal open={open} title={t("Upload media")} onClose={handleClose}>
-      <div className="flex flex-col gap-4">
+    <SettingsModal
+      open={open}
+      title={t("Upload media")}
+      onClose={handleClose}
+      footer={
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={uploading}
+            className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-search-bg text-sm font-medium text-foreground transition-colors hover:bg-border disabled:opacity-50"
+          >
+            {t("Cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={files.length === 0 || uploading}
+            className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {uploading
+              ? "Uploading…"
+              : `${t("Upload")} ${files.length > 0 ? files.length : ""} image${files.length === 1 ? "" : "s"}`}
+          </button>
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-4 pb-4 md:pb-0">
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -99,7 +125,7 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
         </div>
 
         {files.length > 0 ? (
-          <ul className="flex max-h-52 flex-col gap-1.5 overflow-y-auto">
+          <ul className="flex flex-col gap-1.5 md:max-h-52 md:overflow-y-auto">
             {files.map((file, i) => (
               <FilePreviewRow
                 key={`${file.name}-${i}`}
@@ -110,27 +136,6 @@ export function UploadMediaModal({ open, onClose, onUpload }: UploadMediaModalPr
             ))}
           </ul>
         ) : null}
-
-        <div className="flex gap-2 pt-1">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={uploading}
-            className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-search-bg text-sm font-medium text-foreground transition-colors hover:bg-border disabled:opacity-50"
-          >
-            {t("Cancel")}
-          </button>
-          <button
-            type="button"
-            onClick={handleUpload}
-            disabled={files.length === 0 || uploading}
-            className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {uploading
-              ? "Uploading…"
-              : `${t("Upload")} ${files.length > 0 ? files.length : ""} image${files.length === 1 ? "" : "s"}`}
-          </button>
-        </div>
       </div>
     </SettingsModal>
   );

@@ -103,9 +103,11 @@ type SettingsSelectProps = Omit<
   SelectHTMLAttributes<HTMLSelectElement>,
   "children"
 > & {
-  label: string;
+  label?: string;
   hint?: string;
   options: { value: string; label: string }[];
+  /** Open the menu above the trigger — for selects pinned in a modal footer. */
+  placement?: "bottom" | "top";
 };
 
 /** Custom listbox dropdown — same props as a native select so existing
@@ -121,9 +123,10 @@ export function SettingsSelect({
   onChange,
   disabled,
   name,
+  placement = "bottom",
 }: SettingsSelectProps) {
   const autoId = useId();
-  const fieldId = id ?? name ?? label.toLowerCase().replace(/\s+/g, "-") ?? autoId;
+  const fieldId = id ?? name ?? (label ? label.toLowerCase().replace(/\s+/g, "-") : autoId);
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
   const [open, setOpen] = useState(false);
@@ -198,7 +201,12 @@ export function SettingsSelect({
             ref={listRef}
             role="listbox"
             aria-labelledby={fieldId}
-            className="absolute top-[calc(100%+0.35rem)] right-0 left-0 z-40 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg"
+            className={[
+              "absolute right-0 left-0 z-40 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg",
+              placement === "top"
+                ? "bottom-[calc(100%+0.35rem)]"
+                : "top-[calc(100%+0.35rem)]",
+            ].join(" ")}
           >
             {options.map((opt) => {
               const active = opt.value === selected;

@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Settings, Unplug } from "lucide-react";
 import { MaskIcon } from "@/components/ui/mask-icon";
 import type { CourierConnectionOut } from "@/lib/api/courier";
 import type { CourierCatalogEntry } from "./courier-data";
@@ -12,6 +12,7 @@ type CourierCardProps = {
   onDisconnect: () => void;
   /** Unavailable providers — primary Unlock CTA (same as Payments). */
   onUnlock?: () => void;
+  variant?: "grid" | "list";
 };
 
 export function CourierCard({
@@ -20,9 +21,64 @@ export function CourierCard({
   onConnect,
   onDisconnect,
   onUnlock,
+  variant = "grid",
 }: CourierCardProps) {
   const connected = connection != null;
   const hasError = connection?.status === "error";
+
+  if (variant === "list") {
+    return (
+      <article className="flex items-center gap-3 px-3 py-2.5">
+        <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
+          <img
+            src={entry.logoSrc}
+            alt=""
+            className="max-h-10 max-w-10 object-contain"
+          />
+        </span>
+        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+          {entry.name}
+        </h3>
+        {!entry.available ? (
+          <button
+            type="button"
+            onClick={onUnlock}
+            className="inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <MaskIcon src="/sidebar/lock.svg" className="size-3.5" />
+            Unlock
+          </button>
+        ) : connected ? (
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              aria-label={`Manage ${entry.name}`}
+              onClick={onConnect}
+              className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
+            >
+              <Settings className="size-4" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              aria-label={`Disconnect ${entry.name}`}
+              onClick={onDisconnect}
+              className="inline-flex size-8 items-center justify-center rounded-full text-primary transition-opacity hover:opacity-80"
+            >
+              <Unplug className="size-4" strokeWidth={1.75} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={onConnect}
+            className="inline-flex h-8 shrink-0 items-center justify-center rounded-full bg-primary px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+          >
+            Connect
+          </button>
+        )}
+      </article>
+    );
+  }
 
   return (
     <article className="flex flex-col rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-border dark:ring-transparent">

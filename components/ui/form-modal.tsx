@@ -3,6 +3,7 @@
 import { Loader2, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import type { FormEvent, ReactNode } from "react";
+import { useMdUp } from "@/lib/hooks/use-md-up";
 
 type FormModalProps = {
   open: boolean;
@@ -22,9 +23,12 @@ type FormModalProps = {
   children: ReactNode;
 };
 
+const SHEET_EASE = [0.22, 1, 0.36, 1] as const;
+
 /** Shared shell for create/edit forms (categories, products, ...) — a
- * centered panel with a header, scrollable body, and a fixed Cancel/Save
- * footer, so each resource's form only has to define its own fields. */
+ * centered panel on md+, a full-width bottom sheet below that, with a
+ * header, scrollable body, and a fixed Cancel/Save footer, so each
+ * resource's form only has to define its own fields. */
 export function FormModal({
   open,
   title,
@@ -36,13 +40,14 @@ export function FormModal({
   onClose,
   children,
 }: FormModalProps) {
+  const mdUp = useMdUp();
   const padX = compact ? "px-4" : "px-5";
   const padY = compact ? "py-3" : "py-4";
 
   return (
     <AnimatePresence>
       {open ? (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[90] flex items-end justify-center md:items-center md:p-4">
           <motion.button
             type="button"
             aria-label="Dismiss"
@@ -56,11 +61,21 @@ export function FormModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="form-modal-title"
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="relative z-10 flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-surface"
+            initial={
+              mdUp
+                ? { opacity: 0, y: 12, scale: 0.98 }
+                : { opacity: 0, y: "100%" }
+            }
+            animate={
+              mdUp ? { opacity: 1, y: 0, scale: 1 } : { opacity: 1, y: 0 }
+            }
+            exit={
+              mdUp
+                ? { opacity: 0, y: 8, scale: 0.98 }
+                : { opacity: 0, y: "100%" }
+            }
+            transition={{ duration: 0.22, ease: SHEET_EASE }}
+            className="modal-panel relative z-10 flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-3xl md:max-h-[85vh] md:max-w-md md:rounded-2xl"
           >
             <div
               className={[
@@ -72,7 +87,7 @@ export function FormModal({
             >
               <h3
                 id="form-modal-title"
-                className="text-[15px] font-semibold text-foreground"
+                className="text-lg font-medium text-foreground"
               >
                 {title}
               </h3>
@@ -81,7 +96,7 @@ export function FormModal({
                 aria-label="Close"
                 onClick={onClose}
                 disabled={busy}
-                className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg disabled:opacity-60"
+                className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface disabled:opacity-60 dark:hover:bg-search-bg"
               >
                 <X className="size-4" strokeWidth={2} />
               </button>
@@ -105,6 +120,7 @@ export function FormModal({
                   "flex shrink-0 gap-2 border-t border-border dark:border-transparent",
                   padX,
                   padY,
+                  "max-md:pb-[max(0.75rem,env(safe-area-inset-bottom))]",
                 ].join(" ")}
               >
                 <button

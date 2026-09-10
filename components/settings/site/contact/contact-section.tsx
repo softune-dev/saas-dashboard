@@ -283,47 +283,59 @@ export function ContactSection() {
             {hours.map((row, index) => (
               <li
                 key={index}
-                className="grid grid-cols-1 items-end gap-3 rounded-xl bg-search-bg p-3 sm:grid-cols-[1fr_1fr_1fr_auto_auto]"
+                className="grid grid-cols-2 items-end gap-2 rounded-xl bg-search-bg p-3 md:grid-cols-[1fr_1fr_1fr_auto_auto] md:gap-3"
               >
-                <SettingsSelect
-                  label={t("Day")}
-                  name={`day-${index}`}
-                  value={row.day}
-                  options={dayPresets.map((d) => ({ value: d, label: d }))}
-                  onChange={(e) => updateHour(index, { day: e.target.value })}
-                />
-                <SettingsSelect
-                  label={t("Opens")}
-                  name={`open-${index}`}
-                  value={row.open}
-                  options={timeOptions}
-                  disabled={row.closed}
-                  onChange={(e) => updateHour(index, { open: e.target.value })}
-                  className={row.closed ? "opacity-40" : ""}
-                />
-                <SettingsSelect
-                  label={t("Closes")}
-                  name={`close-${index}`}
-                  value={row.close}
-                  options={timeOptions}
-                  disabled={row.closed}
-                  onChange={(e) => updateHour(index, { close: e.target.value })}
-                  className={row.closed ? "opacity-40" : ""}
-                />
-                <label className="mb-1 flex h-10 cursor-pointer items-center gap-2 rounded-md border border-border bg-surface px-3 text-sm text-foreground">
-                  <input
-                    type="checkbox"
-                    checked={row.closed}
-                    onChange={(e) => updateHour(index, { closed: e.target.checked })}
-                    className="size-3.5 accent-[var(--primary)]"
+                <div className="col-span-2 md:col-span-1">
+                  <SettingsSelect
+                    label={t("Day")}
+                    name={`day-${index}`}
+                    value={row.day}
+                    options={dayPresets.map((d) => ({ value: d, label: d }))}
+                    onChange={(e) => updateHour(index, { day: e.target.value })}
                   />
-                  {t("Closed")}
-                </label>
+                </div>
+                <div className={row.closed ? "max-md:hidden" : ""}>
+                  <SettingsSelect
+                    label={t("Opens")}
+                    name={`open-${index}`}
+                    value={row.open}
+                    options={timeOptions}
+                    disabled={row.closed}
+                    onChange={(e) => updateHour(index, { open: e.target.value })}
+                    className={row.closed ? "opacity-40" : ""}
+                  />
+                </div>
+                <div className={row.closed ? "max-md:hidden" : ""}>
+                  <SettingsSelect
+                    label={t("Closes")}
+                    name={`close-${index}`}
+                    value={row.close}
+                    options={timeOptions}
+                    disabled={row.closed}
+                    onChange={(e) => updateHour(index, { close: e.target.value })}
+                    className={row.closed ? "opacity-40" : ""}
+                  />
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={row.closed}
+                  aria-label={row.closed ? t("Closed") : t("Open")}
+                  onClick={() => updateHour(index, { closed: !row.closed })}
+                  className={[
+                    "inline-flex h-11 min-w-[5.5rem] cursor-pointer items-center justify-center gap-2 rounded-full border px-3 text-sm font-medium transition-colors md:mb-1 md:h-10",
+                    row.closed
+                      ? "border-border bg-surface text-muted"
+                      : "border-primary/30 bg-primary/10 text-primary",
+                  ].join(" ")}
+                >
+                  {row.closed ? t("Closed") : t("Open")}
+                </button>
                 <button
                   type="button"
                   aria-label="Remove hours row"
                   onClick={() => removeHour(index)}
-                  className="mb-1 inline-flex size-10 items-center justify-center text-muted transition-colors hover:text-red-500"
+                  className="inline-flex h-11 w-full items-center justify-center text-muted transition-colors hover:text-red-500 md:mb-1 md:size-10 md:w-10"
                 >
                   <MaskIcon src="/sidebar/delete.svg" className="size-4" />
                 </button>
@@ -352,48 +364,50 @@ export function ContactSection() {
           </PrimaryButton>
         </div>
 
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col max-md:divide-y max-md:divide-border dark:max-md:divide-transparent md:gap-2">
           {socials.map((social) => {
             const meta = getPlatformMeta(social.platform);
             const Icon = meta.Icon;
             return (
               <li
                 key={social.id}
-                className="flex flex-wrap items-end gap-3 rounded-xl bg-search-bg p-3"
+                className="flex items-center gap-3 py-3 md:flex-wrap md:items-end md:rounded-xl md:bg-search-bg md:p-3"
               >
-                <span className="mb-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-surface text-foreground">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-search-bg text-foreground md:mb-0.5 md:bg-surface">
                   <Icon className="size-4" aria-hidden />
                 </span>
-                <div className="w-full sm:w-40">
-                  <SettingsSelect
-                    label="Platform"
-                    name={`platform-${social.id}`}
-                    value={social.platform}
-                    options={socialPlatforms.map((p) => ({
-                      value: p.value,
-                      label: p.label,
-                    }))}
-                    onChange={(e) =>
-                      updateSocial(social.id, {
-                        platform: e.target.value as SocialPlatform,
-                      })
-                    }
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <SettingsInput
-                    label="URL"
-                    name={`url-${social.id}`}
-                    value={social.url}
-                    onChange={(e) => updateSocial(social.id, { url: e.target.value })}
-                    placeholder={meta.placeholder}
-                  />
+                <div className="flex min-w-0 flex-1 flex-col gap-2 md:flex-row md:items-end md:gap-3">
+                  <div className="w-full md:w-40">
+                    <SettingsSelect
+                      label="Platform"
+                      name={`platform-${social.id}`}
+                      value={social.platform}
+                      options={socialPlatforms.map((p) => ({
+                        value: p.value,
+                        label: p.label,
+                      }))}
+                      onChange={(e) =>
+                        updateSocial(social.id, {
+                          platform: e.target.value as SocialPlatform,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <SettingsInput
+                      label="URL"
+                      name={`url-${social.id}`}
+                      value={social.url}
+                      onChange={(e) => updateSocial(social.id, { url: e.target.value })}
+                      placeholder={meta.placeholder}
+                    />
+                  </div>
                 </div>
                 <button
                   type="button"
                   aria-label="Remove social link"
                   onClick={() => removeSocial(social.id)}
-                  className="mb-0.5 inline-flex size-10 items-center justify-center text-muted transition-colors hover:text-red-500"
+                  className="inline-flex size-10 shrink-0 items-center justify-center self-center text-muted transition-colors hover:text-red-500 md:mb-0.5 md:self-end"
                 >
                   <MaskIcon src="/sidebar/delete.svg" className="size-4" />
                 </button>

@@ -80,7 +80,7 @@ function CountTile({
     <Link
       href={href}
       aria-label={`${label} (${count})`}
-      className="flex items-center justify-between gap-2 rounded-md bg-search-bg p-3.5 transition-colors hover:opacity-90"
+      className="flex items-center justify-between gap-2 rounded-md bg-background p-3.5 transition-colors hover:opacity-90"
     >
       <span className="flex min-w-0 items-center gap-2.5">
         {hasStack ? <ImageStack urls={images} label={label} /> : null}
@@ -244,7 +244,7 @@ export function ShopInfoPanel({
       </div>
 
       {/* Inner cards: same rounded-md as the white panel; page background fill */}
-      <div className="flex items-center gap-3 rounded-md bg-search-bg p-3.5">
+      <div className="flex items-center gap-3 rounded-md bg-background p-3.5">
         <ShopAvatar
           logoUrl={logoUrl}
           name={currentSite?.name ?? t("Your site")}
@@ -261,14 +261,14 @@ export function ShopInfoPanel({
             target="_blank"
             rel="noopener noreferrer"
             aria-label={t("Open shop in a new tab")}
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-primary"
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-primary text-muted transition-colors hover:bg-surface hover:text-primary"
           >
             <ArrowUpRight className="size-4" strokeWidth={2} />
           </a>
         ) : null}
       </div>
 
-      <div className="flex items-center gap-3 rounded-md bg-search-bg p-3.5">
+      <div className="flex items-center gap-3 rounded-md bg-background p-3.5">
         <Image 
           src="/others/open-folder.webp" 
           alt="Folder" 
@@ -290,7 +290,7 @@ export function ShopInfoPanel({
         </div>
         <Link
           href="/settings/site/media"
-          className="shrink-0 text-xs font-medium text-muted transition-colors hover:underline"
+          className="shrink-0 text-xs font-medium text-muted underline underline-offset-2 transition-colors hover:text-foreground"
         >
           {t("Manage")}
         </Link>
@@ -301,7 +301,7 @@ export function ShopInfoPanel({
           <>
             <Link
               href="/products/new"
-              className="flex flex-col justify-center gap-2 rounded-md bg-search-bg p-3.5 transition-colors hover:bg-primary/5"
+              className="flex flex-col justify-center gap-2 rounded-md bg-background p-3.5 transition-colors hover:bg-primary/5"
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-primary text-white">
                 <MaskIcon src="/sidebar/plus.svg" className="size-4" />
@@ -314,7 +314,7 @@ export function ShopInfoPanel({
             </Link>
             <Link
               href="/categories"
-              className="flex flex-col justify-center gap-2 rounded-md bg-search-bg p-3.5 transition-colors hover:bg-primary/5"
+              className="flex flex-col justify-center gap-2 rounded-md bg-background p-3.5 transition-colors hover:bg-primary/5"
             >
               <span className="flex size-8 items-center justify-center rounded-full bg-primary text-white">
                 <MaskIcon src="/sidebar/plus.svg" className="size-4" />

@@ -6,6 +6,8 @@ import { useSession } from "@/components/providers/session-provider";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeading } from "@/components/ui/page-heading";
 import { useToast } from "@/components/ui/toast";
+import { ViewToggle } from "@/components/ui/view-toggle";
+import { useCatalogView } from "@/lib/hooks/use-catalog-view";
 import { Puzzle } from "lucide-react";
 import { AddonCard } from "./addon-card";
 import {
@@ -24,6 +26,7 @@ export function AddonsView() {
   const { t } = useLanguage();
   const [learnEntry, setLearnEntry] = useState<AddonCatalogEntry | null>(null);
   const [customOpen, setCustomOpen] = useState(false);
+  const [view, setView] = useCatalogView("softune:catalog-view:addons");
 
   const byCategory = useMemo(() => {
     return ADDON_CATEGORIES.map((category) => ({
@@ -58,9 +61,15 @@ export function AddonsView() {
     );
   }
 
+  const isList = view === "list";
+
   return (
     <div className="flex flex-col gap-4 pb-2">
-      <PageHeading title={t("Add-Ons")} />
+      <PageHeading
+        title={t("Add-Ons")}
+        actionsInline
+        actions={<ViewToggle value={view} onChange={setView} />}
+      />
 
       <div className="flex flex-col gap-8">
         {byCategory.map(({ category, items }, index) => {
@@ -70,11 +79,18 @@ export function AddonsView() {
               <h2 className="text-sm font-semibold tracking-wide text-muted uppercase">
                 {category}
               </h2>
-              <div className="grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div
+                className={
+                  isList
+                    ? "flex flex-col divide-y divide-border overflow-hidden rounded-md border border-border bg-surface"
+                    : "grid grid-cols-1 gap-5 px-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                }
+              >
                 {items.map((entry) => (
                   <AddonCard
                     key={entry.id}
                     entry={entry}
+                    variant={view}
                     onRequest={() =>
                       toast({
                         title: "Request sent",
@@ -87,7 +103,10 @@ export function AddonsView() {
                   />
                 ))}
                 {isLast ? (
-                  <CustomAddonCard onRequest={() => setCustomOpen(true)} />
+                  <CustomAddonCard
+                    variant={view}
+                    onRequest={() => setCustomOpen(true)}
+                  />
                 ) : null}
               </div>
             </section>

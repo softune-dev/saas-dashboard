@@ -1,21 +1,77 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Info, Settings } from "lucide-react";
 import type { AddonCatalogEntry } from "./addon-data";
 
 type AddonCardProps = {
   entry: AddonCatalogEntry;
   onRequest: () => void;
   onLearnMore: () => void;
+  variant?: "grid" | "list";
 };
 
 /** Same shell as courier/payment cards — status pill, icon slot, two actions.
  * Entries with `href` are real, already-built features (Payments/Courier),
  * not requestable add-ons — those get a single "Manage" link instead. */
-export function AddonCard({ entry, onRequest, onLearnMore }: AddonCardProps) {
+export function AddonCard({
+  entry,
+  onRequest,
+  onLearnMore,
+  variant = "grid",
+}: AddonCardProps) {
   const Icon = entry.icon;
   const builtin = !!entry.href;
+
+  if (variant === "list") {
+    return (
+      <article className="flex items-center gap-3 px-3 py-2.5">
+        {entry.logoSrc ? (
+          <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md">
+            <img
+              src={entry.logoSrc}
+              alt=""
+              className="max-h-10 w-auto max-w-full object-contain"
+            />
+          </span>
+        ) : Icon ? (
+          <Icon className="size-6 shrink-0 text-foreground" strokeWidth={1.5} aria-hidden />
+        ) : (
+          <span className="size-10 shrink-0" />
+        )}
+        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+          {entry.name}
+        </h3>
+        {builtin ? (
+          <Link
+            href={entry.href!}
+            aria-label={`Manage ${entry.name}`}
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
+          >
+            <Settings className="size-4" strokeWidth={1.75} />
+          </Link>
+        ) : (
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              aria-label={`Learn more about ${entry.name}`}
+              onClick={onLearnMore}
+              className="inline-flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-search-bg hover:text-foreground"
+            >
+              <Info className="size-4" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
+              onClick={onRequest}
+              className="inline-flex h-8 items-center justify-center rounded-full bg-primary px-3 text-xs font-medium text-white transition-opacity hover:opacity-90"
+            >
+              Request
+            </button>
+          </div>
+        )}
+      </article>
+    );
+  }
 
   return (
     <article className="flex flex-col rounded-2xl bg-surface p-5 shadow-sm ring-1 ring-border dark:ring-transparent">
@@ -61,17 +117,18 @@ export function AddonCard({ entry, onRequest, onLearnMore }: AddonCardProps) {
           <>
             <button
               type="button"
+              aria-label={`Learn more about ${entry.name}`}
+              onClick={onLearnMore}
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-search-bg text-muted transition-colors hover:bg-border hover:text-foreground"
+            >
+              <Info className="size-4" strokeWidth={1.75} />
+            </button>
+            <button
+              type="button"
               onClick={onRequest}
               className="inline-flex h-10 flex-1 cursor-pointer items-center justify-center rounded-full bg-primary text-sm font-medium text-white shadow-sm shadow-primary/20 transition-opacity hover:opacity-90"
             >
               Request
-            </button>
-            <button
-              type="button"
-              onClick={onLearnMore}
-              className="inline-flex h-10 flex-1 items-center justify-center rounded-full bg-search-bg text-sm font-medium text-foreground transition-colors hover:bg-border"
-            >
-              Learn More
             </button>
           </>
         )}

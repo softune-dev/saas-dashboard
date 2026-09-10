@@ -13,6 +13,8 @@
   --border: #e5e7eb;
   --store: #3b82f6;
   --search-bg: #f4f4f5;
+  /* Slate edge for modal fields — darker than --border, not near-black. */
+  --modal-border: #cbd5e1;
 }
 
 .dark {
@@ -27,6 +29,8 @@
   --store: #3b82f6;
   /* Soft tiles match the page bg exactly in dark mode. */
   --search-bg: #242728;
+  /* Match the rest of dark chrome — a dim line, not a white edge. */
+  --modal-border: #33383a;
 }
 
 @theme inline {
@@ -39,6 +43,7 @@
   --color-border: var(--border);
   --color-store: var(--store);
   --color-search-bg: var(--search-bg);
+  --color-modal-border: var(--modal-border);
   /* Google Sans only supplies glyphs Geist lacks (Bangla script) — CSS
      font-family fallback is per-glyph, so Latin/English text still renders
      in Geist untouched; only Bangla characters (e.g. category/product
@@ -62,6 +67,59 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Modal shell: gray panel + white fields in light, reversed in dark.
+   Put `modal-panel` on the dialog root — inputs, textareas, image wells,
+   and anything already using bg-search-bg / bg-surface invert with it.
+   Light fields use a slate 1px edge — not near-black, still visible on
+   the gray panel. */
+.modal-panel {
+  background-color: var(--background);
+}
+.modal-panel :is(input, textarea, select),
+.modal-panel [aria-haspopup="listbox"] {
+  background-color: var(--surface);
+  border-color: var(--modal-border);
+}
+.modal-panel :is(input, textarea, select):focus,
+.modal-panel [aria-haspopup="listbox"]:focus {
+  background-color: var(--surface);
+  border-color: var(--primary);
+}
+.modal-panel .bg-search-bg {
+  background-color: var(--surface);
+}
+.modal-panel [class*="border-dashed"] {
+  border-color: var(--modal-border);
+}
+.modal-panel [class*="ring-1"]:not([class*="ring-4"]) {
+  outline: 1px solid var(--modal-border);
+  outline-offset: -1px;
+}
+.dark .modal-panel {
+  background-color: var(--surface);
+}
+.dark .modal-panel :is(input, textarea, select),
+.dark .modal-panel [aria-haspopup="listbox"] {
+  background-color: var(--search-bg);
+  border-color: var(--modal-border);
+}
+.dark .modal-panel :is(input, textarea, select):focus,
+.dark .modal-panel [aria-haspopup="listbox"]:focus {
+  background-color: var(--search-bg);
+  border-color: var(--primary);
+}
+.dark .modal-panel .bg-search-bg,
+.dark .modal-panel .bg-surface {
+  background-color: var(--search-bg);
+}
+.dark .modal-panel [class*="border-dashed"] {
+  border-color: var(--modal-border);
+}
+.dark .modal-panel [class*="ring-1"]:not([class*="ring-4"]) {
+  outline: 1px solid var(--modal-border);
+  outline-offset: -1px;
 }
 
 /* reCAPTCHA v3's floating badge is required by Google's terms UNLESS the
