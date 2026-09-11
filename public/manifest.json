@@ -17,6 +17,29 @@
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
     { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot-home.jpg",
+      "sizes": "1080x2172",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Dashboard home — shop overview and store stats"
+    },
+    {
+      "src": "/screenshots/screenshot-courier.jpg",
+      "sizes": "1080x2172",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Courier booking and delivery tracking"
+    },
+    {
+      "src": "/screenshots/screenshot-themes.jpg",
+      "sizes": "1080x2173",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Storefront theme editor"
+    }
+  ],
   "launch_handler": {
     "client_mode": "focus-existing"
   },
