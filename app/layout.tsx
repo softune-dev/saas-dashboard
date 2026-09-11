@@ -176,6 +176,7 @@ const previewNunitoSans = Nunito_Sans({
 export const metadata: Metadata = {
   title: "Softunebd Dashboard",
   description: "Softunebd admin dashboard",
+  manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/favicon.ico", sizes: "any" }],
   },
