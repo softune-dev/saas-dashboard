@@ -1,8 +1,8 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
 import { IconPicker } from "@/components/themes/editor/editor-field";
+import { AppIcon } from "@/lib/app-icon";
 import type { ProductFeature } from "@/lib/api/commerce";
 
 type ProductFeaturesEditorProps = {
@@ -54,7 +54,7 @@ export function ProductFeaturesEditor({
                     className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-surface text-muted ring-1 ring-border transition-colors hover:text-primary dark:ring-transparent"
                   >
                     {feature.icon ? (
-                      <DynamicIcon name={name} className="size-4" strokeWidth={1.75} />
+                      <AppIcon name={name} className="size-4" strokeWidth={1.75} />
                     ) : (
                       <Plus className="size-4" strokeWidth={1.75} />
                     )}

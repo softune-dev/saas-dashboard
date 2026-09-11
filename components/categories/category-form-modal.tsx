@@ -1,7 +1,6 @@
 "use client";
 
 import { ImagePlus } from "lucide-react";
-import { DynamicIcon } from "lucide-react/dynamic";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FormModal } from "@/components/ui/form-modal";
 import { useToast } from "@/components/ui/toast";
@@ -11,7 +10,8 @@ import type { CategoryCreate, CategoryOut, CategoryUpdate } from "@/lib/api/comm
 import { SettingsInput, SettingsTextarea } from "@/components/settings/site/ui/settings-field";
 import { IconPicker } from "@/components/themes/editor/editor-field";
 import { MediaSourceMenu } from "@/components/media/media-source-menu";
-import { randomIconValue } from "@/lib/icon-options";
+import { AppIcon } from "@/lib/app-icon";
+import { randomSolarIconValue } from "@/lib/solar-icons";
 import { AiGenerateButton } from "@/components/ui/ai-generate-button";
 import { generateAiText } from "@/lib/api/ai";
 
@@ -77,11 +77,11 @@ export function CategoryFormModal({
             description: category.description ?? "",
             image: category.image_url ? { kind: "uploaded", url: category.image_url } : null,
             banner: category.banner_url ? { kind: "uploaded", url: category.banner_url } : null,
-            icon: category.icon ?? randomIconValue(),
+            icon: category.icon ?? randomSolarIconValue(),
           }
         // A fresh category still gets a real icon value picked up-front —
         // the admin can change it via the banner circle, but it's never unset.
-        : { ...empty, icon: randomIconValue() },
+        : { ...empty, icon: randomSolarIconValue() },
     );
   }, [open, category]);
 
@@ -236,7 +236,7 @@ export function CategoryFormModal({
                   aria-label={t("Choose category icon")}
                   className="flex size-10 items-center justify-center rounded-full bg-primary text-white shadow-sm ring-2 ring-surface transition-opacity hover:opacity-90"
                 >
-                  <DynamicIcon name={name} className="size-5" strokeWidth={1.75} />
+                  <AppIcon name={name} className="size-5" strokeWidth={1.75} />
                 </button>
               )}
             />

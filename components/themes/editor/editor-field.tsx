@@ -1,12 +1,13 @@
 "use client";
 
+import { Icon } from "@iconify/react";
 import { Check, ChevronDown, Pipette, Search, Shuffle, X } from "lucide-react";
-import { DynamicIcon, type IconName } from "lucide-react/dynamic";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ColorPalette, FontPair } from "./editor-types";
 import { fontFamilyFor } from "./editor-types";
-import { ICON_NAMES } from "@/lib/icon-options";
+import { AppIcon } from "@/lib/app-icon";
+import { SOLAR_ICON_NAMES } from "@/lib/solar-icons";
 import { GOOGLE_FONTS, ensureGoogleFont, randomFontPair } from "@/lib/google-fonts";
 
 /** fontFamilyFor only knows the curated slugs; anything else picked from
@@ -357,20 +358,21 @@ export function FontPairGrid({
   );
 }
 
-/** Icons rendered per page — the full library is 2000+; rendering all of
- * them at once (even as lazy DynamicIcons) makes the grid sluggish to
- * scroll. Search narrows it, and "Load more" pages through the rest, so
- * nothing in the library is actually unreachable. */
+/** Icons rendered per page — the full set is 1200+; rendering all of them
+ * at once makes the grid sluggish to scroll. Search narrows it, and
+ * scroll-triggered paging works through the rest, so nothing in the set is
+ * actually unreachable. */
 const ICON_PAGE_SIZE = 120;
 
-/** Icon-only picker backed by lucide's full ~2000-icon library (via
- * lucide-react/dynamic — each icon is its own dynamic import, so browsing
- * the whole set costs nothing until one is actually rendered), with search.
- * A native <select> here opens wherever the browser feels like (frequently
- * pinned to the top of the viewport in a scrolled sidebar), so this is a
- * fixed trigger button that opens a real centered modal with a search box
- * and an icon-only grid — no labels in the grid, just glyphs; hover shows
- * the name. */
+/** Icon-only picker backed by Iconify's Solar (Bold) icon set — see
+ * lib/solar-icons.ts for the name list and lib/app-icon.tsx for why a
+ * picked value is stored as a full Iconify id ("solar:bag-bold") and how
+ * older lucide-sourced values (bare names, no colon) still render. A native
+ * <select> here opens wherever the browser feels like (frequently pinned to
+ * the top of the viewport in a scrolled sidebar), so this is a fixed
+ * trigger button that opens a real centered modal with a search box and an
+ * icon-only grid — no labels in the grid, just glyphs; hover shows the
+ * name. */
 export function IconPicker({
   value,
   onChange,
@@ -380,16 +382,16 @@ export function IconPicker({
   onChange: (v: string) => void;
   /** Optional custom trigger (e.g. a circle on a banner). Default is the
    * full-width preview bar used in the theme editor. */
-  trigger?: (args: { open: () => void; name: IconName }) => ReactNode;
+  trigger?: (args: { open: () => void; name: string }) => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
-  const activeName = (value as IconName) || ICON_NAMES[0];
+  const activeValue = value || `solar:${SOLAR_ICON_NAMES[0]}-bold`;
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? ICON_NAMES.filter((n) => n.includes(q)) : ICON_NAMES;
+    return q ? SOLAR_ICON_NAMES.filter((n) => n.includes(q)) : SOLAR_ICON_NAMES;
   }, [query]);
   const results = matches.slice(0, page * ICON_PAGE_SIZE);
   const hasMore = results.length < matches.length;
@@ -401,8 +403,8 @@ export function IconPicker({
 
   // Scroll-triggered paging instead of a manual "Load more" click: an
   // invisible sentinel row sits after the last icon and pages in the next
-  // batch the moment it scrolls into view, so browsing the full ~2000-icon
-  // library just feels like one continuous scroll.
+  // batch the moment it scrolls into view, so browsing the whole set just
+  // feels like one continuous scroll.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!open || !hasMore) return;
@@ -421,7 +423,7 @@ export function IconPicker({
   return (
     <>
       {trigger ? (
-        trigger({ open: () => setOpen(true), name: activeName })
+        trigger({ open: () => setOpen(true), name: activeValue })
       ) : (
         /* Same footprint as SingleImagePicker's "banner" frame (h-16) so
          * swapping Icon ↔ Image never changes the reserved space below it. */
@@ -430,8 +432,10 @@ export function IconPicker({
           onClick={() => setOpen(true)}
           className="flex h-16 w-full items-center justify-center gap-2 rounded-lg border border-border bg-search-bg/60 text-muted transition-colors hover:border-muted-soft hover:text-foreground"
         >
-          <DynamicIcon name={activeName} className="size-6" strokeWidth={1.5} />
-          <span className="text-[13px] font-medium">{activeName.replace(/-/g, " ")}</span>
+          <AppIcon name={activeValue} className="size-6" strokeWidth={1.5} />
+          <span className="text-[13px] font-medium">
+            {activeValue.replace(/^solar:/, "").replace(/-bold$/, "").replace(/-/g, " ")}
+          </span>
         </button>
       )}
 
@@ -479,7 +483,7 @@ export function IconPicker({
                   autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search 2000+ icons…"
+                  placeholder="Search 1200+ icons…"
                   className="w-full rounded-lg border border-border bg-search-bg/60 py-1.5 pr-3 pl-7 text-[13px] text-foreground outline-none focus:border-primary"
                 />
               </div>
@@ -491,7 +495,8 @@ export function IconPicker({
                 ) : (
                   <>
                     {results.map((name) => {
-                      const isActive = name === activeName;
+                      const id = `solar:${name}-bold`;
+                      const isActive = id === activeValue;
                       return (
                         <button
                           key={name}
@@ -499,7 +504,7 @@ export function IconPicker({
                           title={name.replace(/-/g, " ")}
                           aria-label={name.replace(/-/g, " ")}
                           onClick={() => {
-                            onChange(name);
+                            onChange(id);
                             setOpen(false);
                             setQuery("");
                           }}
@@ -510,7 +515,7 @@ export function IconPicker({
                               : "border-border bg-search-bg/60 text-muted hover:border-muted-soft hover:text-foreground",
                           ].join(" ")}
                         >
-                          <DynamicIcon name={name} className="size-4" strokeWidth={1.75} />
+                          <Icon icon={id} className="size-4" />
                         </button>
                       );
                     })}
