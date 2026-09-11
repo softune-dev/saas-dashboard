@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { SWRConfig } from "swr";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { OnboardingGuard } from "@/components/onboarding/onboarding-guard";
@@ -28,6 +28,17 @@ import { localStorageProvider } from "@/lib/swr-persist";
  * tab regains focus — only real events (this tab's own mutations, or a
  * manual reload) should trigger a refetch. */
 export function Providers({ children }: { children: ReactNode }) {
+  useEffect(() => {
+    // Registering here (unconditionally, no permission prompt) is what lets
+    // PWABuilder/Lighthouse detect the service worker at all — enablePushForSite
+    // in lib/push.ts only registers it later, gated behind the bell dropdown's
+    // click (Notification.requestPermission() needs a user gesture), which a
+    // crawler that just loads the page and leaves never triggers.
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
   return (
     <ThemeProvider>
       <LanguageProvider>
