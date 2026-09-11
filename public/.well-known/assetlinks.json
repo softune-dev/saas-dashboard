@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.softunebd.dashboard.twa",
+      "sha256_cert_fingerprints": ["1F:33:BD:B1:E7:84:36:9F:0C:DD:7D:47:E9:10:14:AC:19:A5:EC:2A:B5:9D:6E:E9:21:30:23:00:D8:03:74:3C"]
+    }
+  }
+]
