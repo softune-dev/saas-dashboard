@@ -7,6 +7,18 @@
  * interception. Registered from dashboard/lib/push.ts.
  */
 
+// Take control of the page on the very first visit instead of waiting for a
+// second load — without this, navigator.serviceWorker.controller stays null
+// until the user reloads, which is what PWA scanners (PWABuilder, Lighthouse)
+// check to decide whether a service worker is "found" at all.
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   let data = { title: "New notification", body: "", url: "/orders" };
   try {
